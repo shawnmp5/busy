@@ -9,7 +9,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 ## What you can do
 
 **Calendar**
-- A big clock and a simple day-progress bar at the top of the left panel
+- A big clock with seconds at the top of the left panel
 - Day, Week, Month and Year views, with animated transitions and a live "now" line
 - Drag across empty time in Week or Day view to create an event
 - Drag an event to move it, or drag its bottom edge to change its length

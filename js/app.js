@@ -783,17 +783,9 @@ function renderNowCard() {
   const evs = eventsOn(tk).length, notes = notesOn(tk).length;
   const sec = `<span class="nt-sec">:${pad(now.getSeconds())}</span>`;
   const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}${sec}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}${sec}`;
-  const mins = h * 60 + mi, left = 1440 - mins;
-  const pct = mins / 1440 * 100;
-  const dur = m => `${Math.floor(m / 60)}h ${m % 60}m`;
   $('#now-card').innerHTML = `
     <div class="now-greet">${greet}</div>
     <button class="now-time" data-goto-day="${tk}" aria-label="Open today, ${fmtDayLong(tk)}">${clock}</button>
-    <div class="dp" title="${dur(mins)} gone · ${dur(left)} left">
-      <div class="dp-head"><span>Day</span><span class="dp-pct">${Math.round(pct)}%</span></div>
-      <div class="dp-track"><div class="dp-fill" style="width:${pct}%"></div></div>
-      <div class="dp-foot">${dur(left)} left</div>
-    </div>
     <div class="now-stats">
       <button data-goto-day="${tk}">${evs} event${evs === 1 ? '' : 's'}</button><span>·</span>
       <button data-open-board="${tk}">${notes} note${notes === 1 ? '' : 's'}</button><span>today</span>
