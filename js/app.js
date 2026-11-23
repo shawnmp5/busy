@@ -727,16 +727,7 @@ function renderSidebar() {
   renderUpNext();
   renderCalendars();
 }
-function updateBrandClock() {
-  const now = new Date();
-  const h = $('#brand-hour'), m = $('#brand-min');
-  if (h) h.setAttribute('transform', `rotate(${(now.getHours() % 12) * 30 + now.getMinutes() * 0.5} 256 256)`);
-  if (m) m.setAttribute('transform', `rotate(${now.getMinutes() * 6} 256 256)`);
-  const tile = $('.brand .brand-tile');
-  if (tile) tile.setAttribute('aria-label', `Chronos. It is ${fmtTime(`${pad(now.getHours())}:${pad(now.getMinutes())}`)}`);
-}
 function renderNowCard() {
-  updateBrandClock();
   const now = new Date();
   const h = now.getHours();
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';

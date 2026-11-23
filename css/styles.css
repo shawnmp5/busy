@@ -253,7 +253,7 @@ kbd {
   box-shadow: 0 0 0 1px rgb(143 220 255 / .18), 0 6px 18px rgb(30 107 255 / .35);
   transition: transform .3s cubic-bezier(.2,1.4,.4,1), box-shadow .3s;
 }
-.brand:hover .brand-tile { transform: scale(1.1); box-shadow: 0 0 0 1px rgb(143 220 255 / .35), 0 8px 26px rgb(30 107 255 / .6); }
+.brand:hover .brand-tile { transform: rotate(180deg); box-shadow: 0 0 0 1px rgb(143 220 255 / .35), 0 8px 26px rgb(30 107 255 / .6); }
 .brand-name { font-family: "Cinzel", var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: .14em; }
 .view-title {
   margin: 0 0 0 6px; font-family: var(--font-display); font-weight: 650; font-size: 24px; letter-spacing: -.02em;
