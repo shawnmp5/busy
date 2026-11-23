@@ -956,9 +956,9 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
     radial-gradient(circle at 0% 0%, #fbd6e2 0 14%, #f3b2c8 20%, transparent 30%),
     radial-gradient(circle at 0% 100%, #f9d3e0 0 20%, #f0a9c1 27%, transparent 38%),
     radial-gradient(circle at 100% 100%, #f9d3e0 0 20%, #f0a9c1 27%, transparent 38%),
-    radial-gradient(ellipse 30% 14% at 50% 78%, #f6c3d4 60%, transparent 62%),
-    linear-gradient(to bottom, transparent 82%, #b6cfa0 82%),
-    linear-gradient(to bottom, transparent 66%, #c3cbe4 66%),
+    radial-gradient(circle at 50% 100%, #f7c6d6 0 14%, #f0b0c7 20%, transparent 30%),
+    radial-gradient(circle at 50% 0%, #f7c6d6 0 10%, transparent 18%),
+    radial-gradient(circle at 70% 60%, rgb(255 255 255 / .35), transparent 22%),
     linear-gradient(#3f75c4, #a9c4ec 60%, #f1dfe8);
 }
 .sakura-prev i { position: absolute; width: 5px; height: 4px; border-radius: 60% 60% 50% 50%; background: #f7b9cd; left: var(--x); top: var(--y); animation: prevPetal 5s var(--d) infinite linear; opacity: .95; }

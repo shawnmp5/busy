@@ -102,7 +102,7 @@ const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
-  sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true,
+  sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -401,7 +401,7 @@ function applySettings() {
   else root.style.removeProperty('--glass');
   window.ChronosSakura?.set(scene === 'sakura', {
     mode: sakuraMode(s), petals: s.sakuraPetals, wind: s.sakuraWind, brightness: s.sakuraBright,
-    clouds: s.sakuraClouds, sway: s.sakuraSway, lanterns: s.sakuraLanterns,
+    clouds: s.sakuraClouds, sway: s.sakuraSway, lanterns: s.sakuraLanterns, rays: s.sakuraRays, parallax: s.sakuraParallax,
   });
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
@@ -1483,12 +1483,15 @@ function renderSettings(el) {
     ${s.skin === 'sakura' ? `<section class="set-sec"><h3>Cherry blossom</h3>
       <div class="set-group">
         ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-sakura-time="${id}" class="${s.sakuraTime === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
-        ${row('Falling petals', `<input type="range" class="range" min="0" max="100" step="1" value="${s.sakuraPetals}" data-scene-range="sakuraPetals" aria-label="Falling petals">`)}
+        ${row('Falling petals', `<input type="range" class="range" min="0" max="300" step="1" value="${s.sakuraPetals}" data-scene-range="sakuraPetals" aria-label="Falling petals">`)}
+        ${row('Petal presets', `<div class="seg">${[[20, 'Few'], [55, 'Normal'], [150, 'Lots'], [300, 'Blizzard']].map(([v, name]) => `<button data-sakura-petals="${v}" class="${s.sakuraPetals === v ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
         ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s.sakuraWind}" data-scene-range="sakuraWind" aria-label="Wind">`)}
         ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s.sakuraBright}" data-scene-range="sakuraBright" aria-label="Brightness">`)}
         ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.sakuraFrost}" data-scene-range="sakuraFrost" aria-label="Panel frost">`)}
         ${tgl('sakuraSway', 'Swaying branches', s.sakuraSway)}
         ${tgl('sakuraClouds', 'Clouds', s.sakuraClouds)}
+        ${tgl('sakuraRays', 'Light rays', s.sakuraRays)}
+        ${tgl('sakuraParallax', 'Move with mouse', s.sakuraParallax)}
         ${tgl('sakuraLanterns', 'Lanterns at night', s.sakuraLanterns)}
         <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="sakura">Reset</button></div>
       </div>
@@ -2188,6 +2191,7 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
   else if ((el = e.target.closest('[data-scene-reset]'))) { const pre = el.dataset.sceneReset; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith(pre)) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
+  else if ((el = e.target.closest('[data-sakura-petals]'))) { s.sakuraPetals = +el.dataset.sakuraPetals; rerender(); }
   else if ((el = e.target.closest('[data-sakura-time]'))) { s.sakuraTime = el.dataset.sakuraTime; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }

@@ -17,7 +17,7 @@
   const rand = (a, b) => a + Math.random() * (b - a);
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const DEFAULTS = { mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true };
+  const DEFAULTS = { mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true, rays: true, parallax: true };
 
   function makeCanvas(w, h) {
     const c = document.createElement('canvas');
@@ -171,6 +171,40 @@
     return c;
   }
 
+  /* Blossom so close to the eye that it's a blur: big soft clusters in the bottom corners and on the right edge */
+  function paintFore(L, P, q, sp) {
+    const { W, H } = L, u = Math.min(W, H * 1.6) / 1440, R = rng(57);
+    const raw = makeCanvas(W * q, H * q), g = raw.getContext('2d'); g.scale(q, q);
+    const spots = [[-.03, 1.02, 210], [1.04, .98, 230], [1.05, .42, 150], [.3, 1.08, 130], [.72, 1.07, 120]];
+    for (const [fx, fy, rad] of spots) {
+      const cx = fx * W, cy = fy * H, r = rad * u;
+      g.strokeStyle = P.bark; g.lineCap = 'round';
+      for (let k = 0; k < 3; k++) { g.lineWidth = (6 + R() * 8) * u; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + (R() - .5) * r * 2.2, cy + (R() - .5) * r * 1.6); g.stroke(); }
+      const n = Math.round(r * r / (130 * u * u));
+      for (let i = 0; i < n; i++) {
+        const a = R() * TAU, rr = Math.sqrt(R()) * r, s = (34 + R() * 34) * u;
+        const set = R() < .4 ? sp.back : sp.front, spr = set[(R() * set.length) | 0];
+        g.save(); g.translate(cx + Math.cos(a) * rr * 1.2, cy + Math.sin(a) * rr * .9); g.rotate(R() * TAU); g.drawImage(spr, -s / 2, -s / 2, s, s); g.restore();
+      }
+    }
+    const c = makeCanvas(W * q, H * q), cg = c.getContext('2d');
+    if (canFilter) cg.filter = `blur(${Math.round(9 * u * q)}px)`;
+    cg.globalAlpha = .92; cg.drawImage(raw, 0, 0);
+    return c;
+  }
+  /* One soft shaft of light, stretched and rotated when drawn */
+  function raySprite(night) {
+    const c = makeCanvas(64, 512), g = c.getContext('2d');
+    const across = g.createLinearGradient(0, 0, 64, 0), col = night ? '200,190,255' : '255,246,226';
+    across.addColorStop(0, `rgba(${col},0)`); across.addColorStop(.5, `rgba(${col},1)`); across.addColorStop(1, `rgba(${col},0)`);
+    g.fillStyle = across; g.fillRect(0, 0, 64, 512);
+    g.globalCompositeOperation = 'destination-in';
+    const along = g.createLinearGradient(0, 0, 0, 512);
+    along.addColorStop(0, 'rgba(0,0,0,1)'); along.addColorStop(.6, 'rgba(0,0,0,.45)'); along.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = along; g.fillRect(0, 0, 64, 512);
+    return c;
+  }
+
   /* Soft cumulus and wisp sprites */
   function cloudSprite(w, h, P, seed, wisp) {
     const c = makeCanvas(w, h), g = c.getContext('2d'), R = rng(seed);
@@ -239,15 +273,23 @@
   function petalSprite(a, b, size = 40) {
     const c = makeCanvas(size, size), g = c.getContext('2d'), r = size * .45;
     g.translate(size / 2, size / 2);
+    const shape = () => {
+      g.beginPath(); g.moveTo(0, r);
+      g.bezierCurveTo(-r * .78, r * .55, -r * .72, -r * .6, -r * .2, -r);
+      g.lineTo(0, -r * .8); g.lineTo(r * .2, -r);
+      g.bezierCurveTo(r * .72, -r * .6, r * .78, r * .55, 0, r);
+    };
+    /* a faint shadow so petals read against the blossom behind them */
+    g.save(); g.translate(size * .03, size * .05); shape(); g.fillStyle = 'rgba(90,20,55,.22)'; g.fill(); g.restore();
     const grd = g.createLinearGradient(0, r, 0, -r);
-    grd.addColorStop(0, b); grd.addColorStop(.55, a); grd.addColorStop(1, mix(a, b, .35));
+    grd.addColorStop(0, mix(b, '#c2306a', .25)); grd.addColorStop(.55, mix(a, b, .35)); grd.addColorStop(1, mix(a, b, .55));
     g.fillStyle = grd;
     g.beginPath(); g.moveTo(0, r);
     g.bezierCurveTo(-r * .78, r * .55, -r * .72, -r * .6, -r * .2, -r);
     g.lineTo(0, -r * .8); g.lineTo(r * .2, -r);
     g.bezierCurveTo(r * .72, -r * .6, r * .78, r * .55, 0, r);
     g.fill();
-    g.strokeStyle = 'rgba(150,60,95,.15)'; g.lineWidth = 1; g.stroke();
+    g.strokeStyle = 'rgba(150,40,90,.35)'; g.lineWidth = 1; g.stroke();
     return c;
   }
   function blurred(src, px) {
@@ -452,7 +494,7 @@
     const stars = Array.from({ length: 300 }, () => ({ x: R() * W, y: R() * H * .8, r: Math.pow(R(), 3) * 1.5 + .35, a: .3 + R() * .7, tw: .5 + R() * 2, ph: R() * TAU }))
       .filter(s => Math.hypot(s.x - L.moonX, s.y - L.moonY) > H * .07);
     const clouds = Array.from({ length: 6 }, (_, i) => ({ x: R() * W * 1.2 - W * .1, y: H * (.05 + R() * .26), w: W * (.16 + R() * .14), h: H * (.07 + R() * .05), v: 3 + R() * 6, seed: 500 + i, a: .75 + R() * .25 }));
-    S = { L, trees, mids, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8 };
+    S = { L, trees, mids, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8, px: 0, py: 0 };
     builtKey = '';
   }
   function buildLook() {
@@ -460,6 +502,8 @@
     S.P = P; S.sp = makeSprites(P);
     S.sky = paintSky(L, P, q, n);
     S.far = paintFar(L, P, q, n);
+    S.fore = paintFore(L, P, q, S.sp);
+    S.ray = raySprite(n);
     S.mid = paintMid(L, P, q, S.sp, S.mids);
     if (n) for (const c of [S.far, S.mid]) { /* a soft opening in the canopy where the moon shows through */
       const g = c.getContext('2d'); g.setTransform(q, 0, 0, q, 0, 0); g.globalCompositeOperation = 'destination-out';
@@ -475,7 +519,7 @@
   function spawnPetal(anywhere) {
     const sp = S.sp, k = (Math.random() * sp.petal.length) | 0;
     const z = Math.random() < .12 ? rand(1.4, 2) : rand(.35, 1.15);
-    const p = { k, z, s: rand(8, 14) * z, rot: rand(0, TAU), rs: rand(-2.5, 2.5), flip: rand(0, TAU), fs: rand(1.5, 4.5), vx: 0, vy: 0, wf: rand(.6, 1.6), ph: rand(0, TAU), fall: rand(26, 52) * (.55 + .5 * z), bokeh: z > 1.35 };
+    const p = { k, z, s: rand(10, 17) * z, rot: rand(0, TAU), rs: rand(-2.5, 2.5), flip: rand(0, TAU), fs: rand(1.5, 4.5), vx: 0, vy: 0, wf: rand(.6, 1.6), ph: rand(0, TAU), fall: rand(26, 52) * (.55 + .5 * z), bokeh: z > 1.35 };
     if (anywhere) { p.x = rand(-20, W + 20); p.y = rand(-20, H); }
     else if (Math.random() < .62 && S.blooms.length) {
       const b = S.blooms[(Math.random() * S.blooms.length) | 0];
@@ -484,10 +528,13 @@
     else { p.x = -20; p.y = rand(0, H * .6); }
     S.petals.push(p);
   }
-  function target() { return Math.round(clamp(opts.petals, 0, 100) / 100 * 280 * Math.sqrt(W * H / (1440 * 900))); }
+  function target() { return Math.round(clamp(opts.petals, 0, 300) / 100 * 280 * Math.sqrt(W * H / (1440 * 900))); }
 
+  let pointerX = 0, pointerY = 0;
   function step(dt, t) {
     const w = clamp(opts.wind, 0, 100) / 100;
+    const tx = opts.parallax ? pointerX : 0, ty = opts.parallax ? pointerY : 0;
+    S.px += (tx - S.px) * Math.min(1, dt * 2.5); S.py += (ty - S.py) * Math.min(1, dt * 2.5);
     /* gusts: every so often the wind picks up, shakes the trees and strips petals off them */
     if (w > 0) {
       nextGust -= dt;
@@ -527,14 +574,11 @@
     for (const k of grp.kids) drawGroup(g, k, t, swayK);
     g.restore();
   }
-  function drawPetal(g, p) {
-    const sp = S.sp;
-    g.save(); g.translate(p.x, p.y); g.rotate(p.rot);
-    const c = Math.cos(p.flip);
-    g.scale(Math.max(.12, Math.abs(c)), 1);
+  function drawPetal(g, p, dx, dy) {
+    const sp = S.sp, c = Math.cos(p.flip), sx = Math.max(.12, Math.abs(c)), cr = Math.cos(p.rot), sr = Math.sin(p.rot);
+    g.setTransform(q * cr * sx, q * sr * sx, -q * sr, q * cr, q * (p.x + dx * p.z), q * (p.y + dy * p.z));
     if (p.bokeh) { const s = p.s * 2.4; g.globalAlpha = .55; g.drawImage(sp.bokeh[p.k % sp.bokeh.length], -s / 2, -s / 2, s, s); }
-    else { g.globalAlpha = p.z < .6 ? .75 : 1; g.drawImage((c >= 0 ? sp.petal : sp.petalBack)[p.k % sp.petal.length], -p.s / 2, -p.s / 2, p.s, p.s); }
-    g.restore();
+    else { g.globalAlpha = p.z < .45 ? .55 : p.z < .6 ? .75 : 1; g.drawImage((c >= 0 ? sp.petal : sp.petalBack)[p.k % sp.petal.length], -p.s / 2, -p.s / 2, p.s, p.s); }
   }
   function frameDraw(t) {
     const g = ctx, L = S.L, n = night();
@@ -554,15 +598,33 @@
         g.quadraticCurveTo(b.x + b.s * .4, b.y - b.s * .3, b.x + b.s, b.y - f); g.stroke();
       }
     }
-    /* the canopy breathes very slightly, deeper layers moving less */
-    g.drawImage(S.far, -8 + Math.sin(t * .05) * 5, -6 + Math.cos(t * .043) * 4, W + 16, H + 12);
-    g.drawImage(S.mid, -5 + Math.sin(t * .09 + 1) * 4, -4 + Math.cos(t * .07) * 3, W + 10, H + 8);
+    /* depth: each layer drifts on its own, and shifts with the pointer by how close it is */
+    const mx = S.px, my = S.py;
+    g.drawImage(S.far, -12 + Math.sin(t * .05) * 5 - mx * 4, -10 + Math.cos(t * .043) * 4 - my * 3, W + 24, H + 20);
+    for (const p of S.petals) if (p.z < .45) drawPetal(g, p, -mx * 8, -my * 6);
+    g.setTransform(q, 0, 0, q, 0, 0);
+    g.drawImage(S.mid, -14 + Math.sin(t * .09 + 1) * 4 - mx * 10, -12 + Math.cos(t * .07) * 3 - my * 7, W + 28, H + 24);
+    /* soft shafts of light falling through the canopy */
+    if (opts.rays) {
+      g.globalCompositeOperation = n ? 'screen' : 'lighter';
+      const rays = [[.22, -.05, .5, .17], [.38, -.08, .44, .12], [.6, -.05, .38, .1], [.12, -.06, .56, .09]];
+      for (const [fx, fy, ang, a] of rays) {
+        const ox = n ? (S.L.moonX - W * .4) : 0;
+        g.setTransform(q, 0, 0, q, 0, 0); g.translate(fx * W + ox - mx * 6, fy * H); g.rotate(ang);
+        g.globalAlpha = a * (n ? .7 : 1) * (.65 + .35 * Math.sin(t * .23 + fx * 9));
+        g.drawImage(S.ray, -W * .06, 0, W * .12, H * 1.25);
+      }
+      g.setTransform(q, 0, 0, q, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+    }
     const swayK = opts.sway ? .35 + 1.3 * clamp(opts.wind, 0, 100) / 100 : 0;
-    for (const p of S.petals) if (p.z < .6) drawPetal(g, p);
+    for (const p of S.petals) if (p.z >= .45 && p.z < .6) drawPetal(g, p, -mx * 12, -my * 9);
+    g.setTransform(q, 0, 0, q, -mx * 18 * q, -my * 13 * q);
     for (const tr of S.trees) if (tr.spec.bottom) drawGroup(g, tr.root, t, swayK);
     for (const tr of S.trees) if (!tr.spec.bottom) drawGroup(g, tr.root, t, swayK);
-    for (const p of S.petals) if (p.z >= .6) drawPetal(g, p);
-    g.globalAlpha = 1;
+    for (const p of S.petals) if (p.z >= .6) drawPetal(g, p, -mx * 20, -my * 15);
+    g.setTransform(q, 0, 0, q, 0, 0); g.globalAlpha = 1;
+    /* closest of all: out-of-focus blossom right in front of the eye */
+    g.drawImage(S.fore, -40 + Math.sin(t * .3) * 6 - mx * 36, -30 + Math.cos(t * .26) * 4 - my * 26, W + 80, H + 60);
     const b = clamp(opts.brightness, 20, 180) / 100;
     if (b < 1) { g.fillStyle = `rgba(0,0,0,${(1 - b).toFixed(3)})`; g.fillRect(0, 0, W, H); }
     else if (b > 1) { g.globalCompositeOperation = 'screen'; g.fillStyle = `rgba(255,255,255,${((b - 1) * .35).toFixed(3)})`; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over'; }
@@ -594,6 +656,7 @@
       clearTimeout(resizeT);
       resizeT = setTimeout(() => { buildGeometry(); buildLook(); prefill(); if (!raf) once(); }, 150);
     });
+    window.addEventListener('pointermove', e => { pointerX = e.clientX / W * 2 - 1; pointerY = e.clientY / H * 2 - 1; }, { passive: true });
     document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else if (active) start(); });
   }
 
