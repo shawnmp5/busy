@@ -35,7 +35,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 
 **Settings** (the sliders icon, or `,`)
 - Five monochrome themes: Light (default), Paper, Auto (follows the system), Graphite and Dark
-- Rain on glass, an animated theme: a night city seen through a rainy window. Small drops land on the pane and run down it, merging when they meet and clearing tracks through the fog; each drop refracts a flipped view of the street. Its own Rain settings: Drizzle / Rain / Storm presets, sliders for amount of rain, drop size, slide speed and brightness, and switches for city lights, lightning, fog on the glass and rain falling outside. Rendered with WebGL (simpler fallback without it); it pauses in background tabs and holds still with reduced motion.
+- Cherry blossom, an animated theme: Mount Fuji across a lake, framed by cherry trees in bloom. Petals tumble down and drift on the wind, gusts shake the branches and strip petals off, clouds and mist drift past and the lake ripples with the mountain's reflection. By day it's a clear spring sky; by night there's a moon, stars, moonlight on the water, town lights and paper lanterns in the trees (Auto switches at 7 pm and 6 am). Its own settings: time of day, falling petals, wind, brightness, panel frost, and switches for swaying branches, clouds and lanterns. It pauses in background tabs and holds still with reduced motion.
 - Accent (black by default), typeface (San Francisco, SF Rounded, New York, SF Mono; on non-Apple devices San Francisco falls back to Inter, its closest open match), corner roundness, density
 - Event style (gray, solid, outline), 12/24-hour clock, week start, week numbers, hide weekends
 - Export, import or copy a JSON backup

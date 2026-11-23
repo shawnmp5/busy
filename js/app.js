@@ -74,11 +74,11 @@ const SKINS = [
   { id: 'auto', name: 'Auto' },
   { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
-  /* Animated scene (js/rain.js): the app sits on frosted glass with rain running down the window behind it */
-  { id: 'rain', name: 'Rain', scene: true },
+  /* Animated scene (js/sakura.js): Mount Fuji across a lake, framed by cherry trees in bloom, by day or by night */
+  { id: 'sakura', name: 'Cherry blossom', scene: true },
 ];
-/* Quick presets for the rain scene; each sets the amount and whether there's lightning */
-const RAIN_PRESETS = [['drizzle', 'Drizzle', 20, false], ['rain', 'Rain', 50, true], ['storm', 'Storm', 90, true]];
+/* Day or night for the cherry blossom scene; Auto follows the clock (night from 7 pm to 6 am) */
+const sakuraMode = s => s.sakuraTime === 'auto' ? ((h => h >= 19 || h < 6)(new Date().getHours()) ? 'night' : 'day') : (s.sakuraTime === 'night' ? 'night' : 'day');
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
 const INTER = 'family=Inter:wght@400..700';
@@ -102,7 +102,7 @@ const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
-  rainAmount: 50, rainFrost: 0, rainSize: 100, rainSpeed: 100, rainBright: 100, rainCity: true, rainLightning: true, rainFog: true, rainStreaks: true,
+  sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -392,12 +392,16 @@ function applySettings() {
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
   const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
-  /* how frosted the panels over the rain are; 0 = clear glass */
-  if (scene) root.style.setProperty('--glass', s.rainFrost > 0 ? `blur(${s.rainFrost}px) saturate(120%)` : 'none');
+  /* the cherry blossom scene by day gets light glass and dark text; by night, dark glass */
+  const tone = scene === 'sakura' ? sakuraMode(s) : null;
+  if (tone) root.setAttribute('data-tone', tone); else root.removeAttribute('data-tone');
+  /* how frosted the panels over the scene are; 0 = clear glass */
+  const frost = s.sakuraFrost;
+  if (scene) root.style.setProperty('--glass', frost > 0 ? `blur(${frost}px) saturate(130%)` : 'none');
   else root.style.removeProperty('--glass');
-  window.ChronosScenes?.set(scene, {
-    amount: s.rainAmount, size: s.rainSize, speed: s.rainSpeed, brightness: s.rainBright,
-    city: s.rainCity, lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks,
+  window.ChronosSakura?.set(scene === 'sakura', {
+    mode: sakuraMode(s), petals: s.sakuraPetals, wind: s.sakuraWind, brightness: s.sakuraBright,
+    clouds: s.sakuraClouds, sway: s.sakuraSway, lanterns: s.sakuraLanterns,
   });
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
@@ -421,6 +425,8 @@ function applySettings() {
   const app = $('#app');
   app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
+/* the cherry blossom scene on Auto turns to night (and back) on its own */
+setInterval(() => { const s = S(); if (s.skin === 'sakura' && s.sakuraTime === 'auto' && document.documentElement.dataset.tone !== sakuraMode(s)) applySettings(); }, 60000);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
 /* ============================================================
@@ -1465,28 +1471,26 @@ function renderSettings(el) {
         <div class="set-pad"><div class="skins">${SKINS.filter(k => !k.scene).map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
           <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac}` : '--p-sf:rgb(127 127 127 / .3);--p-ac:#888'}"><i></i><i><b></b></i></div>
           <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
-        <div class="set-pad"><button class="scene-card${s.skin === 'rain' ? ' on' : ''}" data-skin="rain" aria-pressed="${s.skin === 'rain'}">
-          <span class="scene-prev rain-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="scene-text"><b>Rain on glass</b><span>A night city behind a rainy window, with raindrops running down the glass.</span></span></button></div>
+        <div class="set-pad"><button class="scene-card${s.skin === 'sakura' ? ' on' : ''}" data-skin="sakura" aria-pressed="${s.skin === 'sakura'}">
+          <span class="scene-prev sakura-prev" aria-hidden="true"><b></b><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="scene-text"><b>Cherry blossom</b><span>Mount Fuji across a lake, framed by cherry trees. Petals drift on the wind, by day or by night.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
           <label class="swatch custom${s.accent && !ACCENTS.includes(s.accent) ? ' on' : ''}" title="Custom accent"><input type="color" id="set-accent" value="${s.accent || '#111111'}" aria-label="Custom accent"></label></div>`)}
       </div>
     </section>
-    ${s.skin === 'rain' ? `<section class="set-sec"><h3>Rain</h3>
+    ${s.skin === 'sakura' ? `<section class="set-sec"><h3>Cherry blossom</h3>
       <div class="set-group">
-        ${row('Preset', `<div class="seg">${RAIN_PRESETS.map(([id, name, amt, lt]) => `<button data-rain-preset="${id}" class="${s.rainAmount === amt && s.rainLightning === lt ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
-        ${row('Amount of rain', `<input type="range" class="range" min="0" max="100" step="1" value="${s.rainAmount}" data-rain-range="rainAmount" aria-label="Amount of rain">`)}
-        ${row('Drop size', `<input type="range" class="range" min="50" max="180" step="1" value="${s.rainSize}" data-rain-range="rainSize" aria-label="Drop size">`)}
-        ${row('Slide speed', `<input type="range" class="range" min="30" max="220" step="1" value="${s.rainSpeed}" data-rain-range="rainSpeed" aria-label="Slide speed">`)}
-        ${row('Brightness', `<input type="range" class="range" min="30" max="150" step="1" value="${s.rainBright}" data-rain-range="rainBright" aria-label="Brightness">`)}
-        ${row('Panel frost', `<input type="range" class="range" min="0" max="20" step="1" value="${s.rainFrost}" data-rain-range="rainFrost" aria-label="Panel frost">`)}
-        ${tgl('rainCity', 'City lights', s.rainCity)}
-        ${tgl('rainLightning', 'Lightning', s.rainLightning)}
-        ${tgl('rainFog', 'Fog on the glass', s.rainFog)}
-        ${tgl('rainStreaks', 'Rain falling outside', s.rainStreaks)}
-        <div class="set-row"><span class="hint">Lower the amount or turn things off if the scene feels busy or your computer runs warm.</span><button class="btn sm ghost" data-rain-reset>Reset</button></div>
+        ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-sakura-time="${id}" class="${s.sakuraTime === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
+        ${row('Falling petals', `<input type="range" class="range" min="0" max="100" step="1" value="${s.sakuraPetals}" data-scene-range="sakuraPetals" aria-label="Falling petals">`)}
+        ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s.sakuraWind}" data-scene-range="sakuraWind" aria-label="Wind">`)}
+        ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s.sakuraBright}" data-scene-range="sakuraBright" aria-label="Brightness">`)}
+        ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.sakuraFrost}" data-scene-range="sakuraFrost" aria-label="Panel frost">`)}
+        ${tgl('sakuraSway', 'Swaying branches', s.sakuraSway)}
+        ${tgl('sakuraClouds', 'Clouds and mist', s.sakuraClouds)}
+        ${tgl('sakuraLanterns', 'Lanterns at night', s.sakuraLanterns)}
+        <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="sakura">Reset</button></div>
       </div>
     </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
@@ -2183,8 +2187,8 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-accent]'))) { s.accent = el.dataset.accent || null; rerender(); }
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
-  else if ((el = e.target.closest('[data-rain-preset]'))) { const p = RAIN_PRESETS.find(x => x[0] === el.dataset.rainPreset); s.rainAmount = p[2]; s.rainLightning = p[3]; rerender(); }
-  else if (e.target.closest('[data-rain-reset]')) { for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith('rain')) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
+  else if ((el = e.target.closest('[data-scene-reset]'))) { const pre = el.dataset.sceneReset; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith(pre)) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
+  else if ((el = e.target.closest('[data-sakura-time]'))) { s.sakuraTime = el.dataset.sakuraTime; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }
   else if ((el = e.target.closest('[data-hour12]'))) { s.hour12 = el.dataset.hour12 === '1'; rerender(); }
@@ -2224,12 +2228,12 @@ layer.addEventListener('change', e => {
   if (t.id === 'set-defaultReminder') { s.defaultReminder = t.value === '' ? null : +t.value; save(); }
   if (t.id === 'set-soundType') { s.soundType = t.value; save(); playSound(t.value, true); }
   if (t.id === 'set-accent') { renderSettings(dr); }
-  if (t.dataset.rainRange) renderSettings(dr); /* refresh which preset is highlighted */
+  if (t.dataset.sceneRange) renderSettings(dr); /* refresh which preset is highlighted */
 });
 layer.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'set-radius') { S().radius = +t.value; save(); applySettings(); }
-  if (t.dataset.rainRange) { S()[t.dataset.rainRange] = +t.value; save(); applySettings(); }
+  if (t.dataset.sceneRange) { S()[t.dataset.sceneRange] = +t.value; save(); applySettings(); }
   if (t.id === 'set-accent') { S().accent = t.value; save(); applySettings(); }
 });
 function exportData() {
