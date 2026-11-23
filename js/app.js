@@ -80,7 +80,11 @@ const SKINS = [
   { id: 'autumn', name: 'Autumn', scene: true },
   /* Animated scene (js/tropical.js): a wall of jungle leaves with hibiscus, by day or by night */
   { id: 'tropical', name: 'Tropical', scene: true },
+  /* Animated scene (js/rain.js): a city at night through a rain-streaked window, with rain sounds */
+  { id: 'rain', name: 'Rainy night', scene: true },
 ];
+/* Quick presets for the rain: amount of rain and whether there's lightning */
+const RAIN_PRESETS = [['drizzle', 'Drizzle', 20, false], ['rain', 'Rain', 50, true], ['storm', 'Storm', 90, true]];
 /* Day or night for the tropical scene; Auto switches to night from 7 pm to 6 am */
 const tropicMode = s => s.tropicTime === 'auto' ? ((h => h >= 19 || h < 6)(new Date().getHours()) ? 'night' : 'day') : (s.tropicTime === 'night' ? 'night' : 'day');
 /* Day or night for the cherry blossom scene; Auto follows the clock (night from 7 pm to 6 am) */
@@ -114,6 +118,7 @@ const DEFAULT_SETTINGS = {
   sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true, sakuraOrb: true, sakuraGlass: 100,
   autumnTime: 'auto', autumnPetals: 55, autumnWind: 45, autumnBright: 100, autumnFrost: 4, autumnClouds: true, autumnSway: true, autumnLanterns: true, autumnRays: true, autumnParallax: true, autumnOrb: true, autumnGlass: 100,
   tropicTime: 'auto', tropicWind: 40, tropicBright: 100, tropicFrost: 4, tropicFlowers: true, tropicCritters: true, tropicLight: true, tropicOrb: true, tropicParallax: true, tropicGlass: 100,
+  rainAmount: 50, rainSize: 100, rainSpeed: 100, rainBright: 100, rainGlass: 100, rainFrost: 4, rainCity: true, rainTraffic: true, rainLightning: true, rainFog: true, rainStreaks: true, rainSound: false, rainVolume: 60, rainThunder: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -405,18 +410,23 @@ function applySettings() {
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
   /* the cherry blossom scene by day gets light glass and dark text; by night, dark glass */
   const tree = scene === 'sakura' || scene === 'autumn', tk = treeKey(s);
-  const tone = tree ? treeMode(s) : scene === 'tropical' ? tropicMode(s) : null;
+  const tone = tree ? treeMode(s) : scene === 'tropical' ? tropicMode(s) : scene === 'rain' ? 'night' : null;
   if (tone) root.setAttribute('data-tone', tone); else root.removeAttribute('data-tone');
   /* how frosted the panels over the scene are; 0 = clear glass */
-  const frost = scene === 'tropical' ? s.tropicFrost : s[tk + 'Frost'];
+  const pre = scene === 'tropical' ? 'tropic' : scene === 'rain' ? 'rain' : tk;
+  const frost = s[pre + 'Frost'];
   if (scene) root.style.setProperty('--glass', frost > 0 ? `blur(${frost}px) saturate(130%)` : 'none');
   else root.style.removeProperty('--glass');
   /* how see-through the panels are: 0 = clear glass, 100 = the theme's default, up to 150 = more solid */
-  const glassK = scene === 'tropical' ? s.tropicGlass : s[tk + 'Glass'];
+  const glassK = s[pre + 'Glass'];
   if (scene) root.style.setProperty('--glass-k', ((glassK ?? 100) / 100).toFixed(2)); else root.style.removeProperty('--glass-k');
   window.ChronosSakura?.set(tree, {
     season: scene === 'autumn' ? 'autumn' : 'spring', mode: treeMode(s), petals: s[tk + 'Petals'], wind: s[tk + 'Wind'], brightness: s[tk + 'Bright'],
     clouds: s[tk + 'Clouds'], sway: s[tk + 'Sway'], lanterns: s[tk + 'Lanterns'], rays: s[tk + 'Rays'], parallax: s[tk + 'Parallax'], orb: s[tk + 'Orb'],
+  });
+  window.ChronosRain?.set(scene === 'rain', {
+    amount: s.rainAmount, size: s.rainSize, speed: s.rainSpeed, brightness: s.rainBright, city: s.rainCity, traffic: s.rainTraffic,
+    lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks, sound: s.rainSound, volume: s.rainVolume, thunder: s.rainThunder,
   });
   window.ChronosTropical?.set(scene === 'tropical', {
     mode: tropicMode(s), wind: s.tropicWind, brightness: s.tropicBright, flowers: s.tropicFlowers,
@@ -1503,6 +1513,9 @@ function renderSettings(el) {
         <div class="set-pad"><button class="scene-card${s.skin === 'tropical' ? ' on' : ''}" data-skin="tropical" aria-pressed="${s.skin === 'tropical'}">
           <span class="scene-prev tropical-prev" aria-hidden="true"><i></i><i></i></span>
           <span class="scene-text"><b>Tropical</b><span>A jungle wall of monstera, palms and ferns with hibiscus, swaying in the breeze, by day or by night.</span></span></button></div>
+        <div class="set-pad"><button class="scene-card${s.skin === 'rain' ? ' on' : ''}" data-skin="rain" aria-pressed="${s.skin === 'rain'}">
+          <span class="scene-prev rain-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="scene-text"><b>Rainy night</b><span>A city at night through a rain-streaked window, with the sound of rain and distant thunder.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
@@ -1540,6 +1553,30 @@ function renderSettings(el) {
         ${tgl('tropicOrb', 'Sun and moon', s.tropicOrb)}
         ${tgl('tropicParallax', 'Move with mouse', s.tropicParallax)}
         <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="tropic">Reset</button></div>
+      </div>
+    </section>` : ''}
+    ${s.skin === 'rain' ? `<section class="set-sec"><h3>Rainy night</h3>
+      <div class="set-group">
+        ${row('Preset', `<div class="seg">${RAIN_PRESETS.map(([id, name, amt, lt]) => `<button data-rain-preset="${id}" class="${s.rainAmount === amt && s.rainLightning === lt ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
+        ${row('Amount of rain', `<input type="range" class="range" min="0" max="100" step="1" value="${s.rainAmount}" data-scene-range="rainAmount" aria-label="Amount of rain">`)}
+        ${row('Drop size', `<input type="range" class="range" min="50" max="180" step="1" value="${s.rainSize}" data-scene-range="rainSize" aria-label="Drop size">`)}
+        ${row('Slide speed', `<input type="range" class="range" min="30" max="220" step="1" value="${s.rainSpeed}" data-scene-range="rainSpeed" aria-label="Slide speed">`)}
+        ${row('Brightness', `<input type="range" class="range" min="30" max="150" step="1" value="${s.rainBright}" data-scene-range="rainBright" aria-label="Brightness">`)}
+        ${row('Panel opacity', `<input type="range" class="range" min="0" max="150" step="1" value="${s.rainGlass}" data-scene-range="rainGlass" aria-label="Panel opacity">`)}
+        ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.rainFrost}" data-scene-range="rainFrost" aria-label="Panel frost">`)}
+        ${tgl('rainCity', 'City lights', s.rainCity)}
+        ${tgl('rainTraffic', 'Moving traffic', s.rainTraffic)}
+        ${tgl('rainLightning', 'Lightning', s.rainLightning)}
+        ${tgl('rainFog', 'Fog on the glass', s.rainFog)}
+        ${tgl('rainStreaks', 'Rain falling outside', s.rainStreaks)}
+      </div>
+    </section>
+    <section class="set-sec"><h3>Rain sounds</h3>
+      <div class="set-group">
+        ${tgl('rainSound', 'Play rain sounds', s.rainSound)}
+        ${row('Volume', `<input type="range" class="range" min="0" max="100" step="1" value="${s.rainVolume}" data-scene-range="rainVolume" aria-label="Volume">`)}
+        ${tgl('rainThunder', 'Thunder', s.rainThunder)}
+        <div class="set-row"><span class="hint">Made right in your browser. It starts after your next click, and keeps playing if you switch tabs.</span><button class="btn sm ghost" data-scene-reset="rain">Reset</button></div>
       </div>
     </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
@@ -2238,6 +2275,7 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
   else if ((el = e.target.closest('[data-scene-reset]'))) { const pre = el.dataset.sceneReset; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith(pre)) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
   else if ((el = e.target.closest('[data-sakura-petals]'))) { s[treeKey(s) + 'Petals'] = +el.dataset.sakuraPetals; rerender(); }
+  else if ((el = e.target.closest('[data-rain-preset]'))) { const p = RAIN_PRESETS.find(x => x[0] === el.dataset.rainPreset); s.rainAmount = p[2]; s.rainLightning = p[3]; rerender(); }
   else if ((el = e.target.closest('[data-tropic-time]'))) { s.tropicTime = el.dataset.tropicTime; rerender(); }
   else if ((el = e.target.closest('[data-sakura-time]'))) { s[treeKey(s) + 'Time'] = el.dataset.sakuraTime; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }

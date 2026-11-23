@@ -116,6 +116,16 @@
   color-scheme: dark;
 }
 
+/* Rainy night scene (js/rain.js): dark blue-violet glass with pale text */
+:root[data-scene="rain"][data-tone="night"] {
+  --bg: #0a0b11;
+  --surface: rgb(10 12 20 / calc(.3 * var(--glass-k, 1))); --surface-2: rgb(255 255 255 / calc(.07 * var(--glass-k, 1))); --surface-3: rgb(255 255 255 / .12);
+  --line: rgb(255 255 255 / .08); --line-strong: rgb(255 255 255 / .17); --panel-line: rgb(255 255 255 / .09);
+  --fg: #f2f3f8; --fg-2: rgb(232 234 245 / .64); --fg-3: rgb(232 234 245 / .36); --accent: #9fb4ff; --danger: #ff6b62;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 0 0 / .55); --scrim: rgb(0 0 0 / .35);
+  color-scheme: dark;
+}
+
 /* Derived */
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -1064,3 +1074,28 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 :root[data-scene] .upnext li button { background: var(--surface-2); }
 :root[data-scene] .upnext li button:hover { background: var(--hover); }
 :root[data-scene] .upnext .imp-item { background: color-mix(in oklab, var(--danger) 10%, var(--surface-2)); }
+
+/* Rainy night: pop-ups, menus, the settings drawer and the modal */
+:root[data-scene="rain"] .pop, :root[data-scene="rain"] .menu, :root[data-scene="rain"] .search-results { background: rgb(14 16 24 / .86); }
+:root[data-scene="rain"] .modal { background: rgb(14 16 24 / .9); }
+:root[data-scene="rain"] .drawer { background: rgb(10 11 17 / .78); }
+:root[data-scene="rain"] .topbar, :root[data-scene="rain"] .board-head, :root[data-scene="rain"] .board, :root[data-scene="rain"] .today-strip, :root[data-scene="rain"] .stage { text-shadow: 0 1px 10px rgb(0 0 0 / .7); }
+:root[data-scene="rain"] ::selection { background: rgb(150 170 255 / .3); }
+.rain-prev {
+  background:
+    radial-gradient(circle at 22% 88%, rgb(255 190 110 / .55), transparent 14%),
+    radial-gradient(circle at 70% 92%, rgb(255 60 60 / .5), transparent 10%),
+    radial-gradient(circle at 48% 70%, rgb(255 60 170 / .45), transparent 12%),
+    linear-gradient(to top, #0a0a10 30%, transparent 30%),
+    linear-gradient(#04050a, #17141f);
+}
+.rain-prev i { position: absolute; border-radius: 50%; width: var(--s); height: calc(var(--s) * 1.15); left: var(--x); top: var(--y);
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / .75) 0 12%, transparent 22%), radial-gradient(circle at 50% 60%, rgb(255 200 140 / .25), rgb(10 12 20 / .55) 75%);
+  box-shadow: inset 0 -1px 2px rgb(255 255 255 / .2); animation: prevDrop 4.2s var(--d) infinite cubic-bezier(.6, 0, .9, .6); }
+.rain-prev i:nth-child(1) { --s: 11px; --x: 18%; --y: 10%; --d: 0s; }
+.rain-prev i:nth-child(2) { --s: 7px; --x: 44%; --y: 34%; --d: -1.3s; }
+.rain-prev i:nth-child(3) { --s: 13px; --x: 68%; --y: 6%; --d: -2.4s; }
+.rain-prev i:nth-child(4) { --s: 5px; --x: 84%; --y: 52%; --d: -.7s; }
+.rain-prev i:nth-child(5) { --s: 6px; --x: 30%; --y: 60%; --d: -3.1s; }
+@keyframes prevDrop { 0%, 35% { transform: translateY(0); } 55% { transform: translateY(14px); } 62% { transform: translateY(16px); } 100% { transform: translateY(70px); } }
+
