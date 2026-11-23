@@ -37,7 +37,6 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 
 **Settings** (the sliders icon, or `,`)
 - Five monochrome themes: Light (default), Paper, Auto (follows the system), Graphite and Dark
-- Six animated scenes, with the app on frosted glass above them: Nebula (drifting gas clouds, twinkling stars, shooting stars), Rain (a wet night window with blurry city lights and lightning), Aurora (northern lights over mountains), Snow, Fireflies and Synthwave. They pause when the tab is hidden and hold still if your system asks for reduced motion.
 - Accent (black by default), typeface (San Francisco, SF Rounded, New York, SF Mono; on non-Apple devices San Francisco falls back to Inter, its closest open match), corner roundness, density
 - Event style (gray, solid, outline), 12/24-hour clock, week start, week numbers, hide weekends
 - Export, import or copy a JSON backup

@@ -62,23 +62,6 @@
   color-scheme: dark;
 }
 
-/* Animated scenes: a canvas (js/scenes.js) paints the backdrop and every panel becomes frosted glass over it.
-   --bg stays an opaque base colour so text drawn "in the background colour" (selected pills, badges) stays readable. */
-:root[data-scene] {
-  --surface: rgb(16 16 24 / .52); --surface-2: rgb(255 255 255 / .07); --surface-3: rgb(255 255 255 / .12);
-  --line: rgb(255 255 255 / .09); --line-strong: rgb(255 255 255 / .18); --panel-line: rgb(255 255 255 / .08);
-  --fg: #f4f4f8; --fg-2: rgb(235 235 245 / .62); --fg-3: rgb(235 235 245 / .34); --accent: #f4f4f8; --danger: #ff6b62;
-  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 0 0 / .55); --scrim: rgb(0 0 0 / .35);
-  --glass: blur(22px) saturate(150%);
-  color-scheme: dark;
-}
-:root[data-scene="nebula"]    { --bg: #07051a; --surface: rgb(18 12 40 / .5); }
-:root[data-scene="rain"]      { --bg: #0b0e14; --surface: rgb(14 18 26 / .55); }
-:root[data-scene="aurora"]    { --bg: #04101a; --surface: rgb(6 20 30 / .5); }
-:root[data-scene="snow"]      { --bg: #111827; --surface: rgb(20 26 42 / .5); }
-:root[data-scene="fireflies"] { --bg: #06110d; --surface: rgb(6 18 14 / .52); }
-:root[data-scene="synthwave"] { --bg: #12031f; --surface: rgb(26 6 40 / .55); --accent: #ff6ad5; }
-
 /* Derived */
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -892,23 +875,3 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
-
-/* ---------- Scenes ---------- */
-#scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
-#scene[hidden] { display: none; }
-:root[data-scene] .app { z-index: 1; }
-:root[data-scene] body { background: var(--bg); }
-:root[data-scene] .stage,
-:root[data-scene] .pop, :root[data-scene] .menu, :root[data-scene] .modal,
-:root[data-scene] .search-results, :root[data-scene] .search,
-:root[data-scene] .set-group, :root[data-scene] .note-btn {
-  -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
-}
-:root[data-scene] .drawer { background: rgb(10 10 16 / .55); -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); }
-:root[data-scene] .modal { background: rgb(14 14 22 / .7); }
-/* Text sitting straight on the backdrop gets a soft shadow so it stays legible over bright patches */
-:root[data-scene] .topbar, :root[data-scene] .sidebar, :root[data-scene] .board-head { text-shadow: 0 1px 12px rgb(0 0 0 / .55); }
-:root[data-scene] .toggle input:checked + .tr::after { background: #000; }
-.scenes-label { font-size: 12px; color: var(--fg-2); font-weight: 500; padding-left: 2px; }
-.skins.scenes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.skins.scenes .skin-prev { aspect-ratio: 16 / 10; display: block; }
