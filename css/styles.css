@@ -366,9 +366,9 @@ button.w-tile:active { transform: scale(.98); }
 .chip-ev.allday { background: color-mix(in oklab, var(--c) 45%, var(--surface)); }
 .chip-ev.allday:hover { background: color-mix(in oklab, var(--c) 60%, var(--surface)); }
 .chip-ev.allday .d { display: none; }
-.chip-ev.holiday { --hc: #8e8e93; cursor: default; color: color-mix(in oklab, var(--hc) 75%, var(--fg)); background: color-mix(in oklab, var(--hc) 13%, var(--surface)); box-shadow: inset 2px 0 0 var(--hc); font-weight: 500; }
-.chip-ev.holiday:hover { background: color-mix(in oklab, var(--hc) 13%, var(--surface)); }
-.chip-ev.holiday .n { font-weight: 500; }
+.chip-ev.holiday { --hc: #8e8e93; cursor: default; color: color-mix(in oklab, var(--hc) 85%, var(--fg)); background: transparent; box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--hc) 55%, transparent); font-weight: 400; }
+.chip-ev.holiday:hover { background: transparent; }
+.chip-ev.holiday .n { font-weight: 400; }
 .chip-ev.dragging { opacity: .35; }
 :root.ev-solid .chip-ev:not(.holiday) { background: var(--c); color: var(--on-c, #fff); }
 :root.ev-solid .chip-ev:not(.holiday) .t { color: inherit; opacity: .7; }
