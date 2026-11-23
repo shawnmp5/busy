@@ -1,13 +1,13 @@
 """Generate the Busy mark: a tiny calendar grid, black and white, no background.
 
-Nine rounded day tiles: seven filled (busy) and two empty outlines (free time). Usage: python3 tools/make_mark.py
+Nine rounded day tiles, all filled: a fully booked week. Usage: python3 tools/make_mark.py
 """
 import os
 
 OUT = os.path.join(os.path.dirname(__file__), '..', 'assets', 'logo')
 COLS, ROWS = 3, 3
 TILE, GAP = 172, 42
-FREE = {(1, 0), (2, 1)}  # the empty days
+FREE = set()            # no empty days
 SW = 16               # outline width of the empty day
 
 
