@@ -212,7 +212,6 @@ mark { background: color-mix(in oklab, var(--fg) 12%, transparent); color: inher
 .drawer .seg button.active { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
 
 .fab { display: none; }
-@media (min-width: 1321px) { #btn-board { display: none; } }
 .new-top { height: 36px; margin: 0 4px; }
 
 /* ---------- Sidebar ---------- */

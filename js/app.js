@@ -378,8 +378,7 @@ function applySettings() {
   if (meta) meta.content = bg;
   const app = $('#app');
   app.classList.toggle('sb-closed', !s.sidebarOpen);
-  s.boardOpen = true;
-  app.classList.remove('bd-closed');
+  app.classList.toggle('bd-closed', !s.boardOpen);
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
@@ -1450,7 +1449,7 @@ function renderReminders(el) {
 function renderShortcuts(el) {
   const rows = [
     ['Go to today', ['T']], ['Previous / next', ['←', '→']], ['Day · Week · Month · Year', ['D', 'W', 'M', 'Y']],
-    ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Show day panel (small screens)', ['B']],
+    ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
     ['Toggle sidebar', ['[']], ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
   ];
   el.innerHTML = drawerShell('Shortcuts', `<div class="keys">${rows.map(([l, k]) => `<span>${l}</span><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span>`).join('')}</div>
@@ -1701,7 +1700,7 @@ function toggleSidebar() {
 }
 function toggleBoard() {
   if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; ui.sbOverlay = false; syncOverlays(); }
-  /* On wide screens the day panel is always shown */
+  else { S().boardOpen = !S().boardOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
 }
 
 /* ============================================================
