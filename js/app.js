@@ -211,7 +211,7 @@ function undo() {
 
 /* UI state */
 const ui = {
-  view: ['day', 'week', 'month', 'year'].includes(S().view) ? S().view : 'month',
+  view: 'month',
   selected: todayKey(),
   mini: new Date(),
   bdOverlay: false,
@@ -432,11 +432,13 @@ function renderTitle() {
   $('#view-title').innerHTML = html;
 }
 function renderSeg() {
+  if (!$('#view-seg')) return;
   $$('#view-seg button').forEach(b => { const on = b.dataset.view === ui.view; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   placeSegPill();
 }
 function placeSegPill() {
   const seg = $('#view-seg');
+  if (!seg) return;
   let pill = $('.seg-pill', seg);
   if (!pill) { pill = document.createElement('span'); pill.className = 'seg-pill'; seg.prepend(pill); }
   const on = $('button.active', seg);
@@ -1462,14 +1464,12 @@ function renderReminders(el) {
 }
 function renderShortcuts(el) {
   const rows = [
-    ['Go to today', ['T']], ['Previous / next', ['←', '→']], ['Day · Week · Month · Year', ['D', 'W', 'M', 'Y']],
+    ['Go to today', ['T']], ['Previous / next month', ['←', '→']],
     ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
     ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
   ];
   el.innerHTML = drawerShell('Shortcuts', `<div class="keys">${rows.map(([l, k]) => `<span>${l}</span><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span>`).join('')}</div>
     <section class="set-sec"><h3>Mouse & touch</h3><div class="keys tips">
-      <span>Drag across empty time in Week or Day view to create an event.</span>
-      <span>Drag an event to move it, or drag its bottom edge to change its length.</span>
       <span>Drag event chips between days in Month view.</span>
       <span>Drag a note by its top edge. Drop it on any day in the calendar to move it there.</span>
       <span>Double-click the notes area to add a note exactly where you clicked.</span>
@@ -1674,6 +1674,7 @@ function goTo(key, view) {
   const prev = ui.selected;
   ui.selected = key;
   ui.mini = fromKey(key);
+  view = null; /* month view only */
   if (view && view !== ui.view) { ui.view = view; S().view = view; save(); ui.animate = 'in'; ui.resetScroll = true; }
   else if (key !== prev) {
     const changedPage = ui.view === 'month' ? key.slice(0, 7) !== prev.slice(0, 7) : ui.view === 'year' ? key.slice(0, 4) !== prev.slice(0, 4) : ui.view === 'day' || !weekDays().map(toKey).includes(prev);
@@ -1718,7 +1719,6 @@ function toggleBoard() {
 function goToday() { const tk = todayKey(); ui.animate = tk < ui.selected ? 'left' : 'in'; ui.resetScroll = true; ui.selected = tk; ui.mini = new Date(); render(); }
 $('#btn-prev').addEventListener('click', () => shift(-1));
 $('#btn-next').addEventListener('click', () => shift(1));
-$('#view-seg').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
 $('#btn-board').addEventListener('click', toggleBoard);
 $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
@@ -1731,14 +1731,14 @@ document.addEventListener('click', e => {
   const t = e.target;
   let el;
   if ((el = t.closest('[data-drawer-close]'))) { closeDrawer(); syncOverlays(); return; }
-  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); goTo(el.dataset.gotoDay, 'day'); closeDrawer(); return; }
+  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); selectDay(el.dataset.gotoDay, true); closeDrawer(); return; }
   if ((el = t.closest('[data-goto-month]'))) { goTo(el.dataset.gotoMonth, 'month'); return; }
   if ((el = t.closest('[data-pick]'))) { ui.selected = el.dataset.pick; ui.animate = 'in'; ui.resetScroll = true; render(); return; }
   if ((el = t.closest('[data-mini]'))) { ui.mini = addMonths(new Date(ui.mini.getFullYear(), ui.mini.getMonth(), 1), +el.dataset.mini); renderMini(); return; }
   if ((el = t.closest('[data-open-board]'))) { e.stopPropagation(); ui.selected = el.dataset.openBoard; ui.mini = fromKey(ui.selected); openBoardIfHidden(); closeDrawer(); render(); return; }
   if ((el = t.closest('[data-quick-note]'))) { e.stopPropagation(); addNote(el.dataset.quickNote); return; }
   if ((el = t.closest('[data-quick-event]'))) { e.stopPropagation(); openEditor({ date: el.dataset.quickEvent }); return; }
-  if ((el = t.closest('[data-more]'))) { e.stopPropagation(); goTo(el.dataset.more, 'day'); return; }
+  if ((el = t.closest('[data-more]'))) { e.stopPropagation(); selectDay(el.dataset.more, true); return; }
   if ((el = t.closest('[data-open-ev]'))) { const ev = findEvent(el.dataset.openEv); if (ev) { if (drawerKind) { closeDrawer(); goTo(el.dataset.occ); } showEventPopover(ev, el.dataset.occ, el); } return; }
   if ((el = t.closest('[data-cal-toggle]'))) {
     const id = el.dataset.calToggle;
@@ -1837,7 +1837,6 @@ document.addEventListener('contextmenu', e => {
       { id: 'ev', label: 'New event', icon: 'plus', kbd: 'C', fn: () => openEditor({ date: key }) },
       { id: 'note', label: 'New note', icon: 'sticky', kbd: 'N', fn: () => addNote(key) },
       { id: 'list', label: 'New checklist', icon: 'check', fn: () => addNote(key, { mode: 'list' }) },
-      { id: 'day', label: 'Open in Day view', icon: 'cal', fn: () => goTo(key, 'day') },
     ], pt);
   }
 });
@@ -2156,7 +2155,6 @@ document.addEventListener('keydown', e => {
   const k = e.key;
   const map = {
     t: goToday, ArrowLeft: () => shift(-1), ArrowRight: () => shift(1), j: () => shift(1), k: () => shift(-1),
-    d: () => setView('day'), w: () => setView('week'), m: () => setView('month'), y: () => setView('year'),
     c: () => openEditor({ date: ui.selected }), n: () => addNote(ui.selected), '/': () => sInput.focus(),
     b: toggleBoard, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
   };
