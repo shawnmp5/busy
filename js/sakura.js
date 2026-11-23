@@ -70,7 +70,7 @@
      Layout
      ============================================================ */
   function layout(W, H) {
-    return { W, H, horizon: H * .68, moonX: W * .73, moonY: H * .15 };
+    return { W, H, horizon: H * .68, moonX: W * .53, moonY: H * .27 };
   }
   /* ============================================================
      Static paintings (done once per size and per day/night)
@@ -115,7 +115,7 @@
     return (x, y) => {
       const nx = x / W, ny = y / H;
       let d = N(nx * 4.2, ny * 4.2) * .65 + N2(nx * 9 + 7, ny * 9 + 3) * .35;
-      d += .22 * Math.abs(nx - .5) * 2 + .08 * ny;              /* fuller toward the sides */
+      d += .3 * Math.max(Math.abs(nx - .5), Math.abs(ny - .5)) * 2;  /* fuller toward the edges and corners */
       if (night) d -= .6 * Math.max(0, 1 - Math.hypot(x - L.moonX, y - L.moonY) / (H * .17)); /* keep the moon clear */
       return d;
     };
@@ -273,13 +273,29 @@
   function treeSpecs(W, H) {
     const u = Math.min(W, H * 1.6) / 1440;
     const near = (o) => ({ depth: 6, spread: .5, droop: .1, swayAt: [1, 3], clusterR: [18 * u, 34 * u], clusterN: 20, along: 1, flower: [13 * u, 22 * u], lanterns: 0, ...o });
+    const spray = (o) => near({ len: 78 * u, width: 9 * u, depth: 4, spread: .75, droop: .05, swayAt: [1], clusterR: [22 * u, 38 * u], clusterN: 24, ...o });
+    const PI = Math.PI;
     return [
-      near({ seed: 101, x: W + 30 * u, y: H * .34, angle: Math.PI * .96, len: 175 * u, width: 13 * u, lanterns: 3 }),
-      near({ seed: 202, x: -30 * u, y: H * .1, angle: .06, len: 180 * u, width: 12 * u, lanterns: 1 }),
-      near({ seed: 404, x: W * .42, y: -40 * u, angle: Math.PI * .5, len: 95 * u, width: 9 * u, depth: 5, spread: .65, droop: .15, swayAt: [1, 2], lanterns: 1 }),
-      near({ seed: 505, x: -30 * u, y: H * .8, angle: -.38, len: 165 * u, width: 13 * u, droop: .05, bottom: true }),
-      near({ seed: 606, x: W + 30 * u, y: H * .82, angle: Math.PI + .32, len: 165 * u, width: 13 * u, droop: .06, bottom: true }),
-      near({ seed: 707, x: W * .62, y: H + 30 * u, angle: -Math.PI / 2 - .25, len: 100 * u, width: 10 * u, depth: 5, spread: .6, droop: .02, swayAt: [2], bottom: true }),
+      near({ seed: 101, x: W + 30 * u, y: H * .34, angle: PI * .96, len: 150 * u, width: 12 * u, lanterns: 3 }),
+      near({ seed: 202, x: -30 * u, y: H * .12, angle: .06, len: 150 * u, width: 11 * u, lanterns: 1 }),
+      near({ seed: 404, x: W * .42, y: -40 * u, angle: PI * .5, len: 85 * u, width: 9 * u, depth: 5, spread: .65, droop: .15, swayAt: [1, 2], lanterns: 1 }),
+      near({ seed: 505, x: -30 * u, y: H * .8, angle: -.38, len: 140 * u, width: 12 * u, droop: .05, bottom: true }),
+      near({ seed: 606, x: W + 30 * u, y: H * .82, angle: PI + .32, len: 140 * u, width: 12 * u, droop: .06, bottom: true }),
+      near({ seed: 707, x: W * .62, y: H + 30 * u, angle: -PI / 2 - .25, len: 90 * u, width: 10 * u, depth: 5, spread: .6, droop: .02, swayAt: [2], bottom: true }),
+      /* corners */
+      spray({ seed: 901, x: -20 * u, y: -20 * u, angle: .75 }),
+      spray({ seed: 902, x: W + 20 * u, y: -20 * u, angle: PI - .75 }),
+      spray({ seed: 903, x: -20 * u, y: H + 20 * u, angle: -.75, bottom: true }),
+      spray({ seed: 904, x: W + 20 * u, y: H + 20 * u, angle: -PI + .75, bottom: true }),
+      /* sides */
+      spray({ seed: 905, x: -20 * u, y: H * .48, angle: .1 }),
+      spray({ seed: 906, x: W + 20 * u, y: H * .55, angle: PI - .1 }),
+      /* top and bottom edges */
+      spray({ seed: 907, x: W * .2, y: -20 * u, angle: PI / 2 - .25 }),
+      spray({ seed: 908, x: W * .78, y: -20 * u, angle: PI / 2 + .25, lanterns: 1 }),
+      spray({ seed: 909, x: W * .14, y: H + 20 * u, angle: -PI / 2 + .25, bottom: true }),
+      spray({ seed: 910, x: W * .4, y: H + 20 * u, angle: -PI / 2, bottom: true }),
+      spray({ seed: 911, x: W * .86, y: H + 20 * u, angle: -PI / 2 - .25, bottom: true }),
     ];
   }
   /* softly focused trees between the far canopy and the near branches */
@@ -291,6 +307,8 @@
       mid({ seed: 822, x: W * .9, y: H + 60 * u, angle: -Math.PI / 2 - .25, len: 160 * u, width: 26 * u }),
       mid({ seed: 833, x: -40 * u, y: -20 * u, angle: .7, len: 170 * u, width: 22 * u, droop: .1 }),
       mid({ seed: 844, x: W + 40 * u, y: H * .35, angle: Math.PI + .1, len: 160 * u, width: 20 * u, droop: .08 }),
+      mid({ seed: 855, x: W + 40 * u, y: -30 * u, angle: Math.PI - .8, len: 140 * u, width: 18 * u, droop: .1 }),
+      mid({ seed: 866, x: -40 * u, y: H + 40 * u, angle: -.9, len: 140 * u, width: 18 * u }),
     ];
   }
   function buildTree(spec) {
@@ -305,7 +323,7 @@
       g.ops.push({ t: 'b', x0: x, y0: y, cx: lerp(x, ex, .5) + nx * bow, cy: lerp(y, ey, .5) + ny * bow, x1: ex, y1: ey, w0: wid, w1: wid * .66 });
       if (g.ops.length === 1) g.dir = Math.sin(a1) > 0 ? -1 : 1;
       /* blossom all along the limbs, so the wood mostly hides behind flowers */
-      if (depth >= 1) for (let k = 0; k < spec.along; k++) g.ops.push({ t: 'c', x: lerp(x, ex, .25 + R() * .6), y: lerp(y, ey, .25 + R() * .6), r: lerp(spec.clusterR[0], spec.clusterR[1], R()) * .8, n: spec.clusterN * .7 | 0, seed: R() * 1e9 | 0 });
+      for (let k = 0; k < spec.along; k++) g.ops.push({ t: 'c', x: lerp(x, ex, .25 + R() * .6), y: lerp(y, ey, .25 + R() * .6), r: lerp(spec.clusterR[0], spec.clusterR[1], R()) * .8, n: spec.clusterN * .7 | 0, seed: R() * 1e9 | 0 });
       if (depth >= spec.depth || len < 8) {
         g.ops.push({ t: 'c', x: ex, y: ey, r: lerp(spec.clusterR[0], spec.clusterR[1], R()), n: spec.clusterN, seed: R() * 1e9 | 0 });
         if (lanternsLeft > 0 && R() < .14) { lanternsLeft--; g.ops.push({ t: 'l', x: ex, y: ey, len: (30 + R() * 50) * (spec.len / 250), s: 11 * (spec.width / 40) + 6 }); }
@@ -333,7 +351,7 @@
     return out;
   }
   function drawBranch(g, op, P) {
-    /* a tapered limb drawn as one smooth filled shape, then a soft highlight on the lit side */
+    /* a tapered limb drawn as one smooth, matte filled shape */
     const N = 14, L = [], Rt = [], mid = [];
     for (let i = 0; i <= N; i++) {
       const t = i / N, it = 1 - t;
@@ -348,16 +366,9 @@
     g.closePath(); g.fill();
     g.beginPath(); g.arc(op.x0, op.y0, op.w0 / 2, 0, TAU); g.fill();
     g.beginPath(); g.arc(op.x1, op.y1, op.w1 / 2, 0, TAU); g.fill();
-    /* highlight on whichever edge faces up */
-    const side = mid[0][3] < 0 ? 1 : -1;
-    g.strokeStyle = P.barkHi; g.lineCap = 'round'; g.lineJoin = 'round';
-    g.lineWidth = Math.max(.6, op.w0 * .18);
-    g.beginPath();
-    mid.forEach(([x, y, nx, ny, w], i) => { const px = x + nx * w * .55 * side, py = y + ny * w * .55 * side; i ? g.lineTo(px, py) : g.moveTo(px, py); });
-    g.stroke();
     /* a couple of thin bark lines on the thick limbs */
     if (op.w0 > 10) {
-      g.strokeStyle = 'rgba(0,0,0,.18)'; g.lineWidth = .8;
+      g.strokeStyle = 'rgba(0,0,0,.14)'; g.lineWidth = .7;
       for (const f of [-.25, .2]) { g.beginPath(); mid.forEach(([x, y, nx, ny, w], i) => { const px = x + nx * w * f, py = y + ny * w * f; i ? g.lineTo(px, py) : g.moveTo(px, py); }); g.stroke(); }
     }
   }
