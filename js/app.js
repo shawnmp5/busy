@@ -74,7 +74,10 @@ const SKINS = [
   { id: 'auto', name: 'Auto' },
   { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
+  /* Animated scene (js/rain.js): the app sits on frosted glass with rain running down the window behind it */
+  { id: 'rain', name: 'Rain', scene: true },
 ];
+const RAIN_LEVELS = [['drizzle', 'Drizzle'], ['rain', 'Rain'], ['storm', 'Storm']];
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
 const INTER = 'family=Inter:wght@400..700';
@@ -97,7 +100,7 @@ const REPEATS = [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays
 const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
-  ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
+  ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14, rainLevel: 'rain',
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -378,6 +381,9 @@ function ensureFont(gf) {
 function applySettings() {
   const s = S(), root = document.documentElement;
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
+  const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
+  if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
+  window.ChronosScenes?.set(scene, { level: s.rainLevel });
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
   root.classList.toggle('ev-outline', s.eventStyle === 'outline');
@@ -1367,9 +1373,13 @@ function renderSettings(el) {
     </section>
     <section class="set-sec"><h3>Appearance</h3>
       <div class="set-group">
-        <div class="set-pad"><div class="skins">${SKINS.map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
+        <div class="set-pad"><div class="skins">${SKINS.filter(k => !k.scene).map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
           <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac}` : '--p-sf:rgb(127 127 127 / .3);--p-ac:#888'}"><i></i><i><b></b></i></div>
           <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
+        <div class="set-pad"><button class="scene-card${s.skin === 'rain' ? ' on' : ''}" data-skin="rain" aria-pressed="${s.skin === 'rain'}">
+          <span class="scene-prev rain-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="scene-text"><b>Rain on glass</b><span>A night city behind a rainy window. Drops bead, slide and merge on the glass.</span></span></button></div>
+        ${s.skin === 'rain' ? row('Rain', `<div class="seg">${RAIN_LEVELS.map(([id, name]) => `<button data-rain="${id}" class="${s.rainLevel === id ? 'active' : ''}">${name}</button>`).join('')}</div>`) : ''}
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
@@ -2070,6 +2080,7 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-accent]'))) { s.accent = el.dataset.accent || null; rerender(); }
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
+  else if ((el = e.target.closest('[data-rain]'))) { s.rainLevel = el.dataset.rain; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }
   else if ((el = e.target.closest('[data-hour12]'))) { s.hour12 = el.dataset.hour12 === '1'; rerender(); }

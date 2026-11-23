@@ -62,6 +62,18 @@
   color-scheme: dark;
 }
 
+/* Rain scene: a canvas (js/rain.js) paints the window and every panel becomes lightly frosted glass over it.
+   --bg stays an opaque base colour so text drawn "in the background colour" (selected pills, badges) stays readable. */
+:root[data-scene="rain"] {
+  --bg: #0a0b11;
+  --surface: rgb(10 12 20 / .34); --surface-2: rgb(255 255 255 / .07); --surface-3: rgb(255 255 255 / .12);
+  --line: rgb(255 255 255 / .08); --line-strong: rgb(255 255 255 / .17); --panel-line: rgb(255 255 255 / .09);
+  --fg: #f2f3f8; --fg-2: rgb(232 234 245 / .62); --fg-3: rgb(232 234 245 / .34); --accent: #f2f3f8; --danger: #ff6b62;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 0 0 / .55); --scrim: rgb(0 0 0 / .35);
+  --glass: blur(3px) saturate(120%);
+  color-scheme: dark;
+}
+
 /* Derived */
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -875,3 +887,44 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+
+/* ---------- Rain scene ---------- */
+#scene { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; display: block; }
+#scene[hidden] { display: none; }
+:root[data-scene] .app { z-index: 1; }
+:root[data-scene] .stage, :root[data-scene] .search, :root[data-scene] .set-group, :root[data-scene] .note-btn {
+  -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+}
+:root[data-scene] .pop, :root[data-scene] .menu, :root[data-scene] .search-results {
+  background: rgb(14 16 24 / .72); -webkit-backdrop-filter: blur(24px) saturate(140%); backdrop-filter: blur(24px) saturate(140%);
+}
+:root[data-scene] .modal { background: rgb(14 16 24 / .78); -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); }
+:root[data-scene] .drawer { background: rgb(10 11 17 / .62); -webkit-backdrop-filter: blur(28px) saturate(140%); backdrop-filter: blur(28px) saturate(140%); }
+/* Text sitting straight on the window gets a soft shadow so it stays legible over the bright lights */
+:root[data-scene] .topbar, :root[data-scene] .sidebar, :root[data-scene] .board-head, :root[data-scene] .stage { text-shadow: 0 1px 10px rgb(0 0 0 / .6); }
+:root[data-scene] .toggle input:checked + .tr::after { background: #000; }
+
+.scene-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 8px; border-radius: 18px; text-align: left; box-shadow: inset 0 0 0 1px var(--line); transition: box-shadow .15s, background .15s; }
+.scene-card:hover { background: var(--hover); }
+.scene-card.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
+.scene-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.scene-text b { font-size: 14px; font-weight: 600; }
+.scene-text span { font-size: 12px; color: var(--fg-2); line-height: 1.35; }
+.scene-prev { flex: none; width: 112px; aspect-ratio: 16 / 10; border-radius: 12px; position: relative; overflow: hidden; }
+.rain-prev {
+  background:
+    radial-gradient(circle at 22% 88%, rgb(255 190 110 / .55), transparent 14%),
+    radial-gradient(circle at 70% 92%, rgb(255 60 60 / .5), transparent 10%),
+    radial-gradient(circle at 48% 70%, rgb(255 60 170 / .45), transparent 12%),
+    linear-gradient(to top, #0a0a10 30%, transparent 30%),
+    linear-gradient(#04050a, #17141f);
+}
+.rain-prev i { position: absolute; border-radius: 50%; width: var(--s); height: calc(var(--s) * 1.15); left: var(--x); top: var(--y);
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / .75) 0 12%, transparent 22%), radial-gradient(circle at 50% 60%, rgb(255 200 140 / .25), rgb(10 12 20 / .55) 75%);
+  box-shadow: inset 0 -1px 2px rgb(255 255 255 / .2); animation: prevDrop 4.2s var(--d) infinite cubic-bezier(.6, 0, .9, .6); }
+.rain-prev i:nth-child(1) { --s: 11px; --x: 18%; --y: 10%; --d: 0s; }
+.rain-prev i:nth-child(2) { --s: 7px; --x: 44%; --y: 34%; --d: -1.3s; }
+.rain-prev i:nth-child(3) { --s: 13px; --x: 68%; --y: 6%; --d: -2.4s; }
+.rain-prev i:nth-child(4) { --s: 5px; --x: 84%; --y: 52%; --d: -.7s; }
+.rain-prev i:nth-child(5) { --s: 6px; --x: 30%; --y: 60%; --d: -3.1s; }
+@keyframes prevDrop { 0%, 35% { transform: translateY(0); } 55% { transform: translateY(14px); } 62% { transform: translateY(16px); } 100% { transform: translateY(70px); } }
