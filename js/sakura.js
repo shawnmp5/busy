@@ -1,14 +1,15 @@
 /* Chronos — "Cherry blossom" scene.
 
-   A spring hillside in full bloom. Everything is painted in code:
-   - a sky with drifting clouds and mist settling over the hills,
-   - rolling hills covered in blossom and a row of flowering cherry trees on a meadow strewn with fallen petals,
-   - foreground cherry trees made of thousands of five-petal flowers, whose branches sway in the wind and in gusts,
-   - petals that tumble and flip as they fall, and burst off the trees when a gust comes through.
-   A night version swaps in a moon, stars and paper lanterns glowing in the branches.
+   Standing under cherry trees in full bloom, looking up: about three quarters of the view is blossom.
+   Everything is painted in code, in three depths:
+   - far: a soft, out-of-focus wall of pink blossom with bokeh highlights and blurred limbs,
+   - middle: flowering trees slightly out of focus,
+   - near: sharp, thin branches crossing the frame, covered in detailed five-petal flowers, swaying in the wind.
+   Gaps in the canopy show the sky and drifting clouds. Petals tumble and flip as they fall, and burst off the
+   branches when a gust comes through. A night version swaps in a moon, stars and paper lanterns in the branches.
 
-   Static layers (sky, hills, every branch) are painted once into offscreen canvases; each frame only
-   moves them around, so it stays light. It pauses in background tabs and draws one still frame for reduced motion. */
+   Static layers are painted once into offscreen canvases; each frame only moves them around, so it stays light.
+   It pauses in background tabs and draws one still frame for reduced motion. */
 (function () {
   'use strict';
 
@@ -29,6 +30,13 @@
     const R = rng(seed), v = Float32Array.from({ length: 256 }, () => R());
     return x => { const i = Math.floor(x), f = x - i, u = f * f * (3 - 2 * f); return lerp(v[i & 255], v[(i + 1) & 255], u); };
   }
+  function noise2(seed) {
+    const R = rng(seed), v = Float32Array.from({ length: 4096 }, () => R()), at = (x, y) => v[(x & 63) * 64 + (y & 63)];
+    return (x, y) => {
+      const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, u = xf * xf * (3 - 2 * xf), w = yf * yf * (3 - 2 * yf);
+      return lerp(lerp(at(xi, yi), at(xi + 1, yi), u), lerp(at(xi, yi + 1), at(xi + 1, yi + 1), u), w);
+    };
+  }
   const angleDiff = (to, from) => Math.atan2(Math.sin(to - from), Math.cos(to - from));
   const hexRgb = h => { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   const mix = (a, b, t) => '#' + hexRgb(a).map((v, i) => Math.round(lerp(v, hexRgb(b)[i], t)).toString(16).padStart(2, '0')).join('');
@@ -40,19 +48,19 @@
   const PAL = {
     day: {
       sky: [[0, '#2a5db4'], [.32, '#5f92d8'], [.58, '#a9c4ec'], [.8, '#dcdcef'], [1, '#f3e1e8']],
-      hillFar: '#b4bfdc', hillNear: '#9fb0cd', bloomFar: '#f3d3e1', bloomNear: '#f2bfd3', ground: ['#c9d9b4', '#9fbb8c'], fallen: '#f7cfdc',
-      light: -1, haze: '224,231,246',
+      canopy: ['244,190,210', '248,206,222', '240,172,198', '252,224,234', '236,160,188', '250,214,226'], limbFar: 'rgba(92,58,68,.5)', bokeh: '255,250,252', haze: '250,226,236',
+      light: -1,
       cloudLit: '255,255,255', cloudShade: '200,205,232', cloudPink: '250,222,232', mist: '236,240,250',
-      bark: '#4a3335', barkHi: 'rgba(255,226,232,.30)', backShade: '#a5678a', bud: '#e5779e',
-      flowers: [['#fff6f9', '#f8c5d5', '#e2789e'], ['#ffeef4', '#f3aec6', '#d6648e'], ['#fffbfc', '#fbd8e4', '#ea8bad'], ['#fde3ec', '#ee9cb9', '#c94f7d'], ['#ffffff', '#f6cfdc', '#df7aa1']],
+      bark: '#4a3335', barkHi: 'rgba(255,226,232,.30)', backShade: '#d88aa9', bud: '#e5779e',
+      flowers: [['#fff6f9', '#f8c5d5', '#e9a05a'], ['#ffeef4', '#f3aec6', '#d6648e'], ['#fffbfc', '#fbd8e4', '#ea8bad'], ['#fde3ec', '#ee9cb9', '#e39a55'], ['#ffffff', '#f6cfdc', '#df7aa1']],
       stamen: '#f2cf72', petals: [['#fff3f7', '#f4b4c9'], ['#ffeaf1', '#ef9fbb'], ['#fffafb', '#f8cddb'], ['#fde0ea', '#e98cae']],
     },
     night: {
       sky: [[0, '#02040d'], [.4, '#0a1230'], [.7, '#1c2149'], [.88, '#33294f'], [1, '#43304f']],
-      hillFar: '#1d2445', hillNear: '#171d38', bloomFar: '#5d4f78', bloomNear: '#7a6290', ground: ['#1a1f33', '#0e1222'], fallen: '#8a6f99',
-      light: 1, haze: '40,44,80',
+      canopy: ['112,74,116', '134,92,134', '96,64,104', '156,108,150', '84,56,96', '124,84,128'], limbFar: 'rgba(12,6,16,.7)', bokeh: '255,205,232', haze: '60,34,66',
+      light: 1,
       cloudLit: '150,162,205', cloudShade: '38,44,78', cloudPink: '90,80,120', mist: '70,80,120',
-      bark: '#170f18', barkHi: 'rgba(170,180,235,.16)', backShade: '#2b2140', bud: '#a35a8e',
+      bark: '#170f18', barkHi: 'rgba(170,180,235,.16)', backShade: '#6a3466', bud: '#a35a8e',
       flowers: [['#f7e6f0', '#d7a3c4', '#a2427e'], ['#fbeef5', '#e2b2cf', '#b2508c'], ['#eedcea', '#c493b8', '#8c3a72'], ['#fff4f9', '#e9c3da', '#bd5f99']],
       stamen: '#cdb56c', petals: [['#f6e5ef', '#cf9fbf'], ['#eedbe8', '#bd8ab0'], ['#fbf0f6', '#dfb5cf']],
     },
@@ -101,63 +109,65 @@
     return c;
   }
 
-  /* Hills covered in blossom, a row of flowering trees and a meadow of fallen petals */
-  function paintLand(L, P, q, night, sp) {
-    const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d'); g.scale(q, q);
-    const R = rng(77), u = Math.min(W, H * 1.6) / 1440;
-    const hill = (base, amp, freq, seed, col, bloom, clumps, dotR, haze) => {
-      const nn = noise1(seed), top = x => base - amp * nn(x * freq) - amp * .35 * nn(x * freq * 3 + 5);
-      const path = new Path2D(); path.moveTo(0, H);
-      for (let x = 0; x <= W; x += 3) path.lineTo(x, top(x));
-      path.lineTo(W, H); path.closePath();
-      g.fillStyle = col; g.fill(path);
-      g.save(); g.clip(path);
-      /* clumps of soft pink dots read as distant trees in bloom */
-      for (let i = 0; i < clumps; i++) {
-        const x = R() * W, y = top(x) + Math.pow(R(), 1.3) * (H - top(x)) * .7, n = 4 + (R() * 8 | 0), cr = dotR * (1.5 + R() * 2);
-        for (let k = 0; k < n; k++) {
-          g.fillStyle = bloom; g.globalAlpha = .35 + R() * .5;
-          g.beginPath(); g.arc(x + (R() - .5) * cr * 2, y + (R() - .5) * cr * 1.3, dotR * (.5 + R() * .8), 0, TAU); g.fill();
-        }
-      }
-      g.globalAlpha = 1;
-      const hz = g.createLinearGradient(0, base - amp, 0, H);
-      hz.addColorStop(0, `rgba(${P.haze},${haze})`); hz.addColorStop(1, `rgba(${P.haze},${haze * .3})`);
-      g.fillStyle = hz; g.fillRect(0, 0, W, H);
-      g.restore();
+  /* The canopy behind the near branches: a blurred wall of blossom, then softly focused flowering trees */
+  function canopyMask(L, night) {
+    const { W, H } = L, N = noise2(17), N2 = noise2(23);
+    return (x, y) => {
+      const nx = x / W, ny = y / H;
+      let d = N(nx * 4.2, ny * 4.2) * .65 + N2(nx * 9 + 7, ny * 9 + 3) * .35;
+      d += .22 * Math.abs(nx - .5) * 2 + .08 * ny;              /* fuller toward the sides */
+      if (night) d -= .6 * Math.max(0, 1 - Math.hypot(x - L.moonX, y - L.moonY) / (H * .17)); /* keep the moon clear */
+      return d;
     };
-    hill(L.horizon, H * .09, .0035, 21, P.hillFar, P.bloomFar, 900 * u + 300, 2.6 * u + .8, .5);
-    hill(L.horizon + H * .09, H * .07, .005, 33, P.hillNear, P.bloomNear, 1000 * u + 300, 4 * u + 1, .25);
-    /* the meadow */
-    const gy = H * .88, mg = g.createLinearGradient(0, gy - H * .04, 0, H);
-    mg.addColorStop(0, P.ground[0]); mg.addColorStop(1, P.ground[1]);
-    const gn = noise1(47);
-    g.fillStyle = mg; g.beginPath(); g.moveTo(0, H);
-    for (let x = 0; x <= W; x += 4) g.lineTo(x, gy - H * .03 * gn(x * .004));
-    g.lineTo(W, H); g.closePath(); g.fill();
-    /* a row of cherry trees in full bloom */
-    const crowns = Math.round(W / (95 * u)) + 2;
-    for (let k = 0; k < crowns; k++) {
-      const x = (k - .5) / (crowns - 2) * W + (R() - .5) * 40 * u, by = gy + R() * H * .02;
-      const cr = (34 + R() * 30) * u, cy = by - cr * 1.25;
-      g.strokeStyle = P.bark; g.lineCap = 'round';
-      g.lineWidth = 4 * u; g.beginPath(); g.moveTo(x, by); g.lineTo(x + (R() - .5) * 6 * u, cy); g.stroke();
-      g.lineWidth = 2 * u;
-      for (let b = 0; b < 3; b++) { g.beginPath(); g.moveTo(x, cy + cr * .3); g.lineTo(x + (R() - .5) * cr * 1.4, cy - R() * cr * .6); g.stroke(); }
-      const n = Math.round(cr * cr / (6 * u * u));
-      for (let i = 0; i < n; i++) {
-        const a = R() * TAU, rr = Math.sqrt(R()) * cr, back = i < n * .45;
-        const set = back ? sp.back : sp.front, spr = set[(R() * set.length) | 0], fs = (4 + R() * 4) * u;
-        g.drawImage(spr, x + Math.cos(a) * rr * 1.2 - fs / 2, cy + Math.sin(a) * rr * .85 - fs / 2, fs, fs);
-      }
+  }
+  function paintFar(L, P, q, night) {
+    const { W, H } = L, u = Math.min(W, H * 1.6) / 1440, R = rng(88), dens = canopyMask(L, night);
+    const raw = makeCanvas(W * q, H * q), g = raw.getContext('2d'); g.scale(q, q);
+    /* blurred limbs far behind */
+    g.strokeStyle = P.limbFar; g.lineCap = 'round';
+    for (let i = 0; i < 7; i++) {
+      const x0 = R() * W, y0 = H + 20, x1 = x0 + (R() - .5) * W * .6, y1 = R() * H * .4;
+      g.lineWidth = (14 + R() * 26) * u;
+      g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(lerp(x0, x1, .5) + (R() - .5) * 200 * u, lerp(y0, y1, .5), x1, y1); g.stroke();
     }
-    /* petals already fallen on the grass */
-    for (let i = 0; i < 900 * u + 200; i++) {
-      const y = gy + Math.pow(R(), .8) * (H - gy), k = (y - gy) / (H - gy);
-      g.fillStyle = P.fallen; g.globalAlpha = .45 + R() * .5;
-      g.beginPath(); g.ellipse(R() * W, y, (1.2 + k * 2.5) * u + .5, (.7 + k * 1.4) * u + .3, R() * TAU, 0, TAU); g.fill();
+    /* soft masses of blossom, leaving a few gaps for the sky */
+    const count = Math.round(2600 * W * H / (1440 * 900));
+    for (let i = 0; i < count; i++) {
+      const x = R() * W, y = R() * H, d = dens(x, y);
+      if (d < .55 + R() * .08) continue;
+      const r = (18 + R() * 60) * u * (.7 + d * .6), col = P.canopy[(R() * P.canopy.length) | 0];
+      g.fillStyle = `rgba(${col},${(.55 + R() * .45).toFixed(2)})`;
+      g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
     }
-    g.globalAlpha = 1;
+    const c = makeCanvas(W * q, H * q), cg = c.getContext('2d');
+    if (canFilter) cg.filter = `blur(${Math.round(14 * u * q)}px)`;
+    cg.drawImage(raw, 0, 0);
+    cg.filter = 'none'; cg.scale(q, q);
+    /* bokeh: soft discs of light where the sun catches out-of-focus flowers */
+    for (let i = 0; i < 90; i++) {
+      const x = R() * W, y = R() * H;
+      if (dens(x, y) < .5) continue;
+      const r = (6 + R() * 18) * u, grd = cg.createRadialGradient(x, y, 0, x, y, r);
+      grd.addColorStop(0, `rgba(${P.bokeh},${(.1 + R() * .18).toFixed(2)})`); grd.addColorStop(.8, `rgba(${P.bokeh},.08)`); grd.addColorStop(1, `rgba(${P.bokeh},0)`);
+      cg.fillStyle = grd; cg.beginPath(); cg.arc(x, y, r, 0, TAU); cg.fill();
+    }
+    return c;
+  }
+  function flatten(g, grp, ox, oy) {
+    const x = ox + grp.px, y = oy + grp.py;
+    g.drawImage(grp.canvas, x + grp.ox, y + grp.oy, grp.cw, grp.ch);
+    for (const k of grp.kids) flatten(g, k, x, y);
+  }
+  function paintMid(L, P, q, sp, trees) {
+    const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d');
+    const raw = makeCanvas(W * q, H * q), rg = raw.getContext('2d'); rg.scale(q, q);
+    for (const t of trees) { renderGroup(t.root, t.spec, P, sp, q, false); flatten(rg, t.root, 0, 0); }
+    if (canFilter) g.filter = `blur(${(1.4 * q).toFixed(1)}px)`;
+    g.drawImage(raw, 0, 0); g.filter = 'none';
+    /* a veil of air pushes them back behind the near branches */
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = `rgba(${P.haze},.22)`; g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'source-over';
     return c;
   }
 
@@ -262,16 +272,26 @@
   const SWAY_AMP = [.004, .016, .03, .05];
   function treeSpecs(W, H) {
     const u = Math.min(W, H * 1.6) / 1440;
-    const specs = [
-      { seed: 101, x: W + 40 * u, y: -40 * u, angle: Math.PI * .87, len: 240 * u, width: 22 * u, depth: 5, spread: .55, droop: .17, swayAt: [1, 3], clusterR: [34 * u, 58 * u], clusterN: 60, along: 2, flower: [10 * u, 17 * u], lanterns: 4 },
-      { seed: 202, x: -30 * u, y: H * .03, angle: .16, len: 180 * u, width: 14 * u, depth: 5, spread: .58, droop: .13, swayAt: [1, 3], clusterR: [28 * u, 48 * u], clusterN: 48, along: 2, flower: [9 * u, 15 * u], lanterns: 1 },
-      { seed: 404, x: W * .5, y: -60 * u, angle: Math.PI * .55, len: 120 * u, width: 12 * u, depth: 4, spread: .7, droop: .2, swayAt: [1, 2], clusterR: [26 * u, 44 * u], clusterN: 44, along: 1, flower: [9 * u, 15 * u], lanterns: 1 },
+    const near = (o) => ({ depth: 6, spread: .5, droop: .1, swayAt: [1, 3], clusterR: [18 * u, 34 * u], clusterN: 20, along: 1, flower: [13 * u, 22 * u], lanterns: 0, ...o });
+    return [
+      near({ seed: 101, x: W + 30 * u, y: H * .34, angle: Math.PI * .96, len: 175 * u, width: 13 * u, lanterns: 3 }),
+      near({ seed: 202, x: -30 * u, y: H * .1, angle: .06, len: 180 * u, width: 12 * u, lanterns: 1 }),
+      near({ seed: 404, x: W * .42, y: -40 * u, angle: Math.PI * .5, len: 95 * u, width: 9 * u, depth: 5, spread: .65, droop: .15, swayAt: [1, 2], lanterns: 1 }),
+      near({ seed: 505, x: -30 * u, y: H * .8, angle: -.38, len: 165 * u, width: 13 * u, droop: .05, bottom: true }),
+      near({ seed: 606, x: W + 30 * u, y: H * .82, angle: Math.PI + .32, len: 165 * u, width: 13 * u, droop: .06, bottom: true }),
+      near({ seed: 707, x: W * .62, y: H + 30 * u, angle: -Math.PI / 2 - .25, len: 100 * u, width: 10 * u, depth: 5, spread: .6, droop: .02, swayAt: [2], bottom: true }),
     ];
-    [[-.03, .22], [.09, .1], [.19, -.05], [.81, .05], [.91, -.1], [1.03, -.22]].forEach(([fx, lean], i) => specs.push({
-      seed: 300 + i * 17, x: W * fx, y: H + 40 * u, angle: -Math.PI / 2 + lean, len: 92 * u, width: 17 * u, depth: 5, spread: .66, droop: .03,
-      swayAt: [2], clusterR: [38 * u, 62 * u], clusterN: 62, along: 2, flower: [10 * u, 16 * u], lanterns: 0, bottom: true,
-    }));
-    return specs;
+  }
+  /* softly focused trees between the far canopy and the near branches */
+  function midSpecs(W, H) {
+    const u = Math.min(W, H * 1.6) / 1440;
+    const mid = (o) => ({ depth: 6, spread: .55, droop: .02, swayAt: [], clusterR: [22 * u, 40 * u], clusterN: 28, along: 1, flower: [7 * u, 11 * u], lanterns: 0, ...o });
+    return [
+      mid({ seed: 811, x: W * .42, y: H + 60 * u, angle: -Math.PI / 2 - .12, len: 170 * u, width: 30 * u }),
+      mid({ seed: 822, x: W * .9, y: H + 60 * u, angle: -Math.PI / 2 - .25, len: 160 * u, width: 26 * u }),
+      mid({ seed: 833, x: -40 * u, y: -20 * u, angle: .7, len: 170 * u, width: 22 * u, droop: .1 }),
+      mid({ seed: 844, x: W + 40 * u, y: H * .35, angle: Math.PI + .1, len: 160 * u, width: 20 * u, droop: .08 }),
+    ];
   }
   function buildTree(spec) {
     const R = rng(spec.seed);
@@ -415,21 +435,28 @@
     ctx.setTransform(q, 0, 0, q, 0, 0);
     const L = layout(W, H);
     const specs = treeSpecs(W, H), trees = specs.map(sp => ({ spec: sp, root: buildTree(sp) }));
+    const mids = midSpecs(W, H).map(sp => ({ spec: sp, root: buildTree(sp) }));
     const blooms = []; for (const t of trees) bloomPoints(t.root, 0, 0, blooms);
     const R = rng(3);
-    const stars = Array.from({ length: 260 }, () => ({ x: R() * W, y: Math.pow(R(), 1.4) * L.horizon * .85, r: Math.pow(R(), 3) * 1.5 + .35, a: .3 + R() * .7, tw: .5 + R() * 2, ph: R() * TAU }))
-      .filter(s => s.y < L.horizon - H * .1 && Math.hypot(s.x - L.moonX, s.y - L.moonY) > H * .07);
+    const stars = Array.from({ length: 300 }, () => ({ x: R() * W, y: R() * H * .8, r: Math.pow(R(), 3) * 1.5 + .35, a: .3 + R() * .7, tw: .5 + R() * 2, ph: R() * TAU }))
+      .filter(s => Math.hypot(s.x - L.moonX, s.y - L.moonY) > H * .07);
     const clouds = Array.from({ length: 6 }, (_, i) => ({ x: R() * W * 1.2 - W * .1, y: H * (.05 + R() * .26), w: W * (.16 + R() * .14), h: H * (.07 + R() * .05), v: 3 + R() * 6, seed: 500 + i, a: .75 + R() * .25 }));
-    S = { L, trees, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8 };
+    S = { L, trees, mids, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8 };
     builtKey = '';
   }
   function buildLook() {
     const P = PAL[opts.mode], n = night(), L = S.L;
     S.P = P; S.sp = makeSprites(P);
     S.sky = paintSky(L, P, q, n);
-    S.land = paintLand(L, P, q, n, S.sp);
+    S.far = paintFar(L, P, q, n);
+    S.mid = paintMid(L, P, q, S.sp, S.mids);
+    if (n) for (const c of [S.far, S.mid]) { /* a soft opening in the canopy where the moon shows through */
+      const g = c.getContext('2d'); g.setTransform(q, 0, 0, q, 0, 0); g.globalCompositeOperation = 'destination-out';
+      const hole = g.createRadialGradient(L.moonX, L.moonY, 0, L.moonX, L.moonY, H * .2);
+      hole.addColorStop(0, 'rgba(0,0,0,1)'); hole.addColorStop(.45, 'rgba(0,0,0,.95)'); hole.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = hole; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over';
+    }
     for (const c of S.clouds) c.sprite = cloudSprite(c.w, c.h, P, c.seed, false);
-    S.mist = cloudSprite(W * .8, H * .09, P, 91, true);
     for (const t of S.trees) renderGroup(t.root, t.spec, P, S.sp, q, n && opts.lanterns);
     builtKey = `${W}x${H}:${opts.mode}:${n && opts.lanterns}`;
   }
@@ -508,13 +535,6 @@
     }
     if (opts.clouds) for (const c of S.clouds) { g.globalAlpha = c.a * (n ? .8 : 1); g.drawImage(c.sprite, c.x, c.y, c.w, c.h); }
     g.globalAlpha = 1;
-    if (opts.clouds) {
-      const mw = W * .8, mx = ((t * 6) % (W + mw)) - mw;
-      g.globalAlpha = .5; g.drawImage(S.mist, mx, L.horizon - H * .075, mw, H * .09);
-      g.globalAlpha = .38; g.drawImage(S.mist, W - mx - mw * .6, L.horizon - H * .05, mw, H * .08);
-      g.globalAlpha = 1;
-    }
-    g.drawImage(S.land, 0, 0, W, H);
     if (!n && S.birds.length) {
       g.strokeStyle = 'rgba(40,40,60,.55)'; g.lineWidth = 1.2; g.lineCap = 'round';
       for (const b of S.birds) {
@@ -523,6 +543,9 @@
         g.quadraticCurveTo(b.x + b.s * .4, b.y - b.s * .3, b.x + b.s, b.y - f); g.stroke();
       }
     }
+    /* the canopy breathes very slightly, deeper layers moving less */
+    g.drawImage(S.far, -8 + Math.sin(t * .05) * 5, -6 + Math.cos(t * .043) * 4, W + 16, H + 12);
+    g.drawImage(S.mid, -5 + Math.sin(t * .09 + 1) * 4, -4 + Math.cos(t * .07) * 3, W + 10, H + 8);
     const swayK = opts.sway ? .35 + 1.3 * clamp(opts.wind, 0, 100) / 100 : 0;
     for (const p of S.petals) if (p.z < .6) drawPetal(g, p);
     for (const tr of S.trees) if (tr.spec.bottom) drawGroup(g, tr.root, t, swayK);
