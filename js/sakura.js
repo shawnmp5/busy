@@ -17,7 +17,7 @@
   const rand = (a, b) => a + Math.random() * (b - a);
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const DEFAULTS = { mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true, rays: true, parallax: true };
+  const DEFAULTS = { season: 'spring', mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true, rays: true, parallax: true };
 
   function makeCanvas(w, h) {
     const c = document.createElement('canvas');
@@ -49,7 +49,7 @@
     day: {
       sky: [[0, '#2a5db4'], [.32, '#5f92d8'], [.58, '#a9c4ec'], [.8, '#dcdcef'], [1, '#f3e1e8']],
       canopy: ['244,190,210', '248,206,222', '240,172,198', '252,224,234', '236,160,188', '250,214,226'], limbFar: 'rgba(92,58,68,.5)', bokeh: '255,250,252', haze: '250,226,236',
-      light: -1,
+      light: -1, horizonTint: '250,220,232', sunGlow: '255,246,228', ray: '255,246,226',
       cloudLit: '255,255,255', cloudShade: '200,205,232', cloudPink: '250,222,232', mist: '236,240,250',
       bark: '#4a3335', barkHi: 'rgba(255,226,232,.30)', backShade: '#d88aa9', bud: '#e5779e',
       flowers: [['#fff6f9', '#f8c5d5', '#e9a05a'], ['#ffeef4', '#f3aec6', '#d6648e'], ['#fffbfc', '#fbd8e4', '#ea8bad'], ['#fde3ec', '#ee9cb9', '#e39a55'], ['#ffffff', '#f6cfdc', '#df7aa1']],
@@ -58,11 +58,33 @@
     night: {
       sky: [[0, '#02040d'], [.4, '#0a1230'], [.7, '#1c2149'], [.88, '#33294f'], [1, '#43304f']],
       canopy: ['112,74,116', '134,92,134', '96,64,104', '156,108,150', '84,56,96', '124,84,128'], limbFar: 'rgba(12,6,16,.7)', bokeh: '255,205,232', haze: '60,34,66',
-      light: 1,
+      light: 1, halo: '170,182,250', moon: ['#fffef6', '#f1efe2', '#dcdacc'], moonGlow: '230,235,255', nightGlow: '140,90,130', ray: '200,190,255',
       cloudLit: '150,162,205', cloudShade: '38,44,78', cloudPink: '90,80,120', mist: '70,80,120',
       bark: '#170f18', barkHi: 'rgba(170,180,235,.16)', backShade: '#6a3466', bud: '#a35a8e',
       flowers: [['#f7e6f0', '#d7a3c4', '#a2427e'], ['#fbeef5', '#e2b2cf', '#b2508c'], ['#eedcea', '#c493b8', '#8c3a72'], ['#fff4f9', '#e9c3da', '#bd5f99']],
       stamen: '#cdb56c', petals: [['#f6e5ef', '#cf9fbf'], ['#eedbe8', '#bd8ab0'], ['#fbf0f6', '#dfb5cf']],
+    },
+  };
+
+  /* Autumn: the same trees in maple colours, with leaves on the branches and falling instead of petals */
+  const PAL_AUTUMN = {
+    day: {
+      sky: [[0, '#3a6fb8'], [.35, '#79a6d9'], [.62, '#c9d6e6'], [.82, '#f2dcc0'], [1, '#f6c99a']],
+      canopy: ['236,120,40', '246,160,50', '214,80,30', '250,196,80', '196,60,30', '240,140,60'], limbFar: 'rgba(60,34,24,.55)', bokeh: '255,236,200', haze: '250,214,170',
+      light: -1, horizonTint: '255,214,160', sunGlow: '255,236,196', ray: '255,226,170',
+      cloudLit: '255,250,240', cloudShade: '214,200,196', cloudPink: '255,214,180', mist: '250,236,220',
+      bark: '#3a2620', barkHi: 'rgba(255,220,190,.2)', backShade: '#a8341a', bud: null, leafScale: 1.55,
+      leaves: [['#f79a1e', '#d8461a', '#ffd36a'], ['#ec5a1a', '#b01e16', '#ffa65a'], ['#ffbe2e', '#ee7a1c', '#ffe68a'], ['#de3a1c', '#9a1812', '#ff8a4a'], ['#f2822a', '#c8381a', '#ffc46a'], ['#e4471e', '#a52014', '#ff9e52']],
+      petals: [['#f5a623', '#d9531e'], ['#e8601c', '#a8261a'], ['#ffc93c', '#f08a24'], ['#d8401e', '#8c1d14'], ['#c46a2a', '#7a3a14']],
+    },
+    night: {
+      sky: [[0, '#05040c'], [.4, '#140c22'], [.7, '#2a1626'], [.88, '#3d1f22'], [1, '#4a2620']],
+      canopy: ['120,46,24', '150,70,28', '96,32,22', '170,96,40', '80,26,20', '136,58,30'], limbFar: 'rgba(8,4,4,.7)', bokeh: '255,190,120', haze: '70,32,22',
+      light: 1, halo: '255,168,96', moon: ['#fff3dc', '#ffd08c', '#e2914c'], moonGlow: '255,196,120', nightGlow: '150,70,40', ray: '255,170,110',
+      cloudLit: '170,140,140', cloudShade: '40,26,36', cloudPink: '120,70,60', mist: '90,60,60',
+      bark: '#120a08', barkHi: 'rgba(255,180,120,.1)', backShade: '#3a140c', bud: null, leafScale: 1.55,
+      leaves: [['#c8661c', '#7a2412', '#f0a050'], ['#b2401a', '#5a1410', '#e07a40'], ['#d89a2a', '#8a4a14', '#f0c860'], ['#9a2a16', '#4a0e0c', '#d0603a']],
+      petals: [['#c8661c', '#7a2412'], ['#b2401a', '#5a1410'], ['#d89a2a', '#8a4a14']],
     },
   };
 
@@ -82,19 +104,19 @@
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
     if (!night) {
       const sun = g.createRadialGradient(W * .06, -H * .06, 0, W * .06, -H * .06, W * .65);
-      sun.addColorStop(0, 'rgba(255,246,228,.42)'); sun.addColorStop(1, 'rgba(255,246,228,0)');
+      sun.addColorStop(0, `rgba(${P.sunGlow},.42)`); sun.addColorStop(1, `rgba(${P.sunGlow},0)`);
       g.fillStyle = sun; g.fillRect(0, 0, W, H);
       const pink = g.createLinearGradient(0, L.horizon - H * .28, 0, L.horizon);
-      pink.addColorStop(0, 'rgba(250,220,232,0)'); pink.addColorStop(1, 'rgba(250,220,232,.38)');
+      pink.addColorStop(0, `rgba(${P.horizonTint},0)`); pink.addColorStop(1, `rgba(${P.horizonTint},.38)`);
       g.fillStyle = pink; g.fillRect(0, 0, W, H);
     } else {
       const halo = g.createRadialGradient(L.moonX, L.moonY, 0, L.moonX, L.moonY, H * .55);
-      halo.addColorStop(0, 'rgba(185,198,255,.26)'); halo.addColorStop(.25, 'rgba(150,165,240,.10)'); halo.addColorStop(1, 'rgba(150,165,240,0)');
+      halo.addColorStop(0, `rgba(${P.halo},.28)`); halo.addColorStop(.25, `rgba(${P.halo},.1)`); halo.addColorStop(1, `rgba(${P.halo},0)`);
       g.fillStyle = halo; g.fillRect(0, 0, W, H);
       const mr = Math.min(W, H) * .042;
-      g.shadowColor = 'rgba(230,235,255,.9)'; g.shadowBlur = mr * 1.2;
+      g.shadowColor = `rgba(${P.moonGlow},.9)`; g.shadowBlur = mr * 1.2;
       const disc = g.createRadialGradient(L.moonX - mr * .3, L.moonY - mr * .3, 0, L.moonX, L.moonY, mr);
-      disc.addColorStop(0, '#fffef6'); disc.addColorStop(.8, '#f1efe2'); disc.addColorStop(1, '#dcdacc');
+      disc.addColorStop(0, P.moon[0]); disc.addColorStop(.8, P.moon[1]); disc.addColorStop(1, P.moon[2]);
       g.fillStyle = disc; g.beginPath(); g.arc(L.moonX, L.moonY, mr, 0, TAU); g.fill();
       g.shadowBlur = 0;
       const R = rng(9);
@@ -103,7 +125,7 @@
         g.fillStyle = 'rgba(150,150,140,.16)'; g.beginPath(); g.arc(L.moonX + Math.cos(a) * d, L.moonY + Math.sin(a) * d, r, 0, TAU); g.fill();
       }
       const glow = g.createLinearGradient(0, L.horizon - H * .2, 0, L.horizon);
-      glow.addColorStop(0, 'rgba(120,80,130,0)'); glow.addColorStop(1, 'rgba(140,90,130,.3)');
+      glow.addColorStop(0, `rgba(${P.nightGlow},0)`); glow.addColorStop(1, `rgba(${P.nightGlow},.3)`);
       g.fillStyle = glow; g.fillRect(0, 0, W, H);
     }
     return c;
@@ -193,9 +215,9 @@
     return c;
   }
   /* One soft shaft of light, stretched and rotated when drawn */
-  function raySprite(night) {
+  function raySprite(col) {
     const c = makeCanvas(64, 512), g = c.getContext('2d');
-    const across = g.createLinearGradient(0, 0, 64, 0), col = night ? '200,190,255' : '255,246,226';
+    const across = g.createLinearGradient(0, 0, 64, 0);
     across.addColorStop(0, `rgba(${col},0)`); across.addColorStop(.5, `rgba(${col},1)`); across.addColorStop(1, `rgba(${col},0)`);
     g.fillStyle = across; g.fillRect(0, 0, 64, 512);
     g.globalCompositeOperation = 'destination-in';
@@ -298,7 +320,55 @@
     g.drawImage(src, pad, pad);
     return c;
   }
+  /* A maple leaf: five pointed, toothed lobes, veins from the stem, and a few darker speckles */
+  function mapleSprite(base, edge, vein, size, seed) {
+    const c = makeCanvas(size, size), g = c.getContext('2d'), R = rng(seed), r = size * .46;
+    g.translate(size / 2, size * .54);
+    const lobes = [[0, 1], [.95, .86], [-.95, .86], [1.95, .52], [-1.95, .52]];
+    const p = new Path2D();
+    for (let i = 0; i <= 240; i++) {
+      const th = i / 240 * TAU - Math.PI;
+      let rr = .34;
+      for (const [a, l] of lobes) { const d = Math.abs(angleDiff(th, a)); if (d < .62) rr = Math.max(rr, .34 + (l - .34) * Math.pow(Math.cos(d / .62 * Math.PI / 2), 1.25)); }
+      rr *= 1 - .07 * Math.abs(Math.sin(th * 15 + seed)) - (Math.abs(th) > 2.7 ? .12 : 0);
+      const ang = th - Math.PI / 2, x = Math.cos(ang) * rr * r, y = Math.sin(ang) * rr * r;
+      i ? p.lineTo(x, y) : p.moveTo(x, y);
+    }
+    p.closePath();
+    const grd = g.createRadialGradient(0, 0, 0, 0, -r * .1, r);
+    grd.addColorStop(0, vein); grd.addColorStop(.35, base); grd.addColorStop(.85, mix(base, edge, .6)); grd.addColorStop(1, edge);
+    g.fillStyle = grd; g.fill(p);
+    g.save(); g.clip(p);
+    for (let i = 0; i < 14; i++) {
+      g.fillStyle = `rgba(110,30,10,${(.12 + R() * .2).toFixed(2)})`;
+      g.beginPath(); g.arc((R() - .5) * r * 1.5, (R() - .7) * r * 1.3, size * (.008 + R() * .02), 0, TAU); g.fill();
+    }
+    const sheen = g.createLinearGradient(-r, -r, r, r);
+    sheen.addColorStop(0, 'rgba(255,255,220,.18)'); sheen.addColorStop(.5, 'rgba(255,255,220,0)'); sheen.addColorStop(1, 'rgba(60,10,0,.18)');
+    g.fillStyle = sheen; g.fillRect(-r, -r * 1.2, r * 2, r * 2.4);
+    g.restore();
+    g.strokeStyle = mix(vein, '#ffffff', .2); g.globalAlpha = .55; g.lineCap = 'round';
+    for (const [a, l] of lobes) {
+      const ang = a - Math.PI / 2;
+      g.lineWidth = size * .014; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(ang) * l * r * .92, Math.sin(ang) * l * r * .92); g.stroke();
+      g.lineWidth = size * .007;
+      for (const t of [.35, .6]) for (const sd of [-.5, .5]) {
+        const bx = Math.cos(ang) * l * r * t, by = Math.sin(ang) * l * r * t;
+        g.beginPath(); g.moveTo(bx, by); g.lineTo(bx + Math.cos(ang + sd) * l * r * .25, by + Math.sin(ang + sd) * l * r * .25); g.stroke();
+      }
+    }
+    g.globalAlpha = 1; g.strokeStyle = mix(edge, '#3a1a0a', .4); g.lineWidth = size * .018;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(size * .02, r * .55); g.stroke();
+    return c;
+  }
   function makeSprites(P) {
+    if (P.leaves) return {
+      front: P.leaves.map(([b, e, v], i) => mapleSprite(b, e, v, 64, i + 1)),
+      back: P.leaves.map(([b, e, v], i) => mapleSprite(mix(b, P.backShade, .35), mix(e, P.backShade, .35), mix(v, P.backShade, .3), 64, i + 11)),
+      petal: P.petals.map(([a, b], i) => mapleSprite(a, b, mix(a, '#fff2b0', .5), 48, i + 21)),
+      petalBack: P.petals.map(([a, b], i) => mapleSprite(mix(a, P.backShade, .25), mix(b, P.backShade, .3), mix(a, P.backShade, .1), 48, i + 31)),
+      bokeh: P.petals.map(([a, b], i) => blurred(mapleSprite(a, b, a, 64, i + 41), 4)),
+    };
     return {
       front: P.flowers.map(([i, o, c]) => flowerSprite(i, o, c, P.stamen)),
       back: P.flowers.map(([i, o, c]) => flowerSprite(mix(i, P.backShade, .32), mix(o, P.backShade, .38), mix(c, P.backShade, .3), mix(P.stamen, P.backShade, .4))),
@@ -432,10 +502,10 @@
     fl.sort((p1, p2) => p2[1] - p1[1]);
     for (const [fx, fy, r1, r2, r3, r4, r5, r6] of fl) {
       const back = (fy - op.y) / op.r > r6 * 1.3 - .45;
-      const s = lerp(spec.flower[0], spec.flower[1], Math.pow(r1, .8)) * (back ? .85 : 1) * (r2 < .1 ? .6 : 1);
+      const s = lerp(spec.flower[0], spec.flower[1], Math.pow(r1, .8)) * (back ? .85 : 1) * (r2 < .1 ? .6 : 1) * (P.leafScale || 1);
       const set = back ? sp.back : sp.front, spr = set[(r3 * set.length) | 0];
       g.save(); g.translate(fx, fy); g.rotate(r4 * TAU); g.drawImage(spr, -s / 2, -s / 2, s, s); g.restore();
-      if (r5 < .07) { g.fillStyle = P.bud; g.beginPath(); g.arc(fx + (r2 - .5) * s, fy + (r6 - .5) * s, s * .16, 0, TAU); g.fill(); }
+      if (P.bud && r5 < .07) { g.fillStyle = P.bud; g.beginPath(); g.arc(fx + (r2 - .5) * s, fy + (r6 - .5) * s, s * .16, 0, TAU); g.fill(); }
     }
   }
   function drawLantern(g, op) {
@@ -498,12 +568,12 @@
     builtKey = '';
   }
   function buildLook() {
-    const P = PAL[opts.mode], n = night(), L = S.L;
+    const P = (opts.season === 'autumn' ? PAL_AUTUMN : PAL)[opts.mode], n = night(), L = S.L;
     S.P = P; S.sp = makeSprites(P);
     S.sky = paintSky(L, P, q, n);
     S.far = paintFar(L, P, q, n);
     S.fore = paintFore(L, P, q, S.sp);
-    S.ray = raySprite(n);
+    S.ray = raySprite(P.ray);
     S.mid = paintMid(L, P, q, S.sp, S.mids);
     if (n) for (const c of [S.far, S.mid]) { /* a soft opening in the canopy where the moon shows through */
       const g = c.getContext('2d'); g.setTransform(q, 0, 0, q, 0, 0); g.globalCompositeOperation = 'destination-out';
@@ -513,13 +583,14 @@
     }
     for (const c of S.clouds) c.sprite = cloudSprite(c.w, c.h, P, c.seed, false);
     for (const t of S.trees) renderGroup(t.root, t.spec, P, S.sp, q, n && opts.lanterns);
-    builtKey = `${W}x${H}:${opts.mode}:${n && opts.lanterns}`;
+    builtKey = `${W}x${H}:${opts.season}:${opts.mode}:${n && opts.lanterns}`;
   }
 
   function spawnPetal(anywhere) {
     const sp = S.sp, k = (Math.random() * sp.petal.length) | 0;
     const z = Math.random() < .12 ? rand(1.4, 2) : rand(.35, 1.15);
-    const p = { k, z, s: rand(10, 17) * z, rot: rand(0, TAU), rs: rand(-2.5, 2.5), flip: rand(0, TAU), fs: rand(1.5, 4.5), vx: 0, vy: 0, wf: rand(.6, 1.6), ph: rand(0, TAU), fall: rand(26, 52) * (.55 + .5 * z), bokeh: z > 1.35 };
+    const leafy = opts.season === 'autumn';
+    const p = { k, z, s: rand(10, 17) * z * (leafy ? 2.3 : 1), rot: rand(0, TAU), rs: rand(-2.5, 2.5), flip: rand(0, TAU), fs: rand(1.5, 4.5), vx: 0, vy: 0, wf: rand(.6, 1.6), ph: rand(0, TAU), fall: rand(26, 52) * (.55 + .5 * z), bokeh: z > 1.35 };
     if (anywhere) { p.x = rand(-20, W + 20); p.y = rand(-20, H); }
     else if (Math.random() < .62 && S.blooms.length) {
       const b = S.blooms[(Math.random() * S.blooms.length) | 0];
@@ -670,7 +741,7 @@
         buildGeometry(); buildLook(); prefill(); start();
         return;
       }
-      if (builtKey !== `${W}x${H}:${opts.mode}:${night() && opts.lanterns}`) buildLook();
+      if (builtKey !== `${W}x${H}:${opts.season}:${opts.mode}:${night() && opts.lanterns}`) { buildLook(); prefill(); }
       if (!raf) once();
     },
   };

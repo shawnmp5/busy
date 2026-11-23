@@ -80,6 +80,24 @@
   color-scheme: dark;
 }
 
+/* Autumn scene (the cherry blossom engine in fall colours): warm amber glass with brown text by day, deep ember glass at night */
+:root[data-scene="autumn"][data-tone="day"] {
+  --bg: #fbecd9;
+  --surface: rgb(255 246 232 / .6); --surface-2: rgb(255 238 214 / .62); --surface-3: rgb(200 90 30 / .12);
+  --line: rgb(150 70 20 / .14); --line-strong: rgb(150 70 20 / .26); --panel-line: rgb(255 226 190 / .85);
+  --fg: #3b1d0c; --fg-2: rgb(110 52 18 / .78); --fg-3: rgb(110 52 18 / .48); --accent: #d9581e; --danger: #c8283f;
+  --shadow-pop: 0 1px 2px rgb(120 50 10 / .08), 0 16px 44px rgb(120 50 10 / .2); --scrim: rgb(70 30 10 / .16);
+  color-scheme: light;
+}
+:root[data-scene="autumn"][data-tone="night"] {
+  --bg: #1a0c07;
+  --surface: rgb(40 18 10 / .52); --surface-2: rgb(255 190 140 / .08); --surface-3: rgb(255 170 110 / .14);
+  --line: rgb(255 180 130 / .1); --line-strong: rgb(255 180 130 / .2); --panel-line: rgb(255 180 130 / .14);
+  --fg: #fff1e4; --fg-2: rgb(250 210 180 / .72); --fg-3: rgb(250 210 180 / .42); --accent: #f5a15a; --danger: #ff6b6b;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(20 5 0 / .6); --scrim: rgb(20 5 0 / .4);
+  color-scheme: dark;
+}
+
 /* Derived */
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -968,3 +986,32 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 .sakura-prev i:nth-child(5) { --x: 15%; --y: -10%; --d: -3.4s; }
 .sakura-prev i:nth-child(6) { --x: 45%; --y: -10%; --d: -4.2s; }
 @keyframes prevPetal { to { transform: translate(26px, 90px) rotate(540deg); } }
+
+/* Autumn: pop-ups, menus, the settings drawer and the modal take the scene's glass */
+:root[data-scene="autumn"][data-tone="day"] .pop, :root[data-scene="autumn"][data-tone="day"] .menu, :root[data-scene="autumn"][data-tone="day"] .search-results { background: rgb(255 246 234 / .88); }
+:root[data-scene="autumn"][data-tone="day"] .modal { background: rgb(255 246 234 / .92); }
+:root[data-scene="autumn"][data-tone="day"] .drawer { background: rgb(255 240 222 / .84); }
+:root[data-scene="autumn"][data-tone="day"] .topbar, :root[data-scene="autumn"][data-tone="day"] .board-head, :root[data-scene="autumn"][data-tone="day"] .board, :root[data-scene="autumn"][data-tone="day"] .today-strip, :root[data-scene="autumn"][data-tone="day"] .stage { text-shadow: 0 0 10px rgb(255 244 228 / .95), 0 0 2px rgb(255 244 228 / .85); }
+:root[data-scene="autumn"][data-tone="day"] .toggle input:checked + .tr::after { background: #fff; }
+:root[data-scene="autumn"][data-tone="night"] .pop, :root[data-scene="autumn"][data-tone="night"] .menu, :root[data-scene="autumn"][data-tone="night"] .search-results { background: rgb(40 18 10 / .86); }
+:root[data-scene="autumn"][data-tone="night"] .modal { background: rgb(40 18 10 / .9); }
+:root[data-scene="autumn"][data-tone="night"] .drawer { background: rgb(30 13 7 / .78); }
+:root[data-scene="autumn"][data-tone="night"] .topbar, :root[data-scene="autumn"][data-tone="night"] .board-head, :root[data-scene="autumn"][data-tone="night"] .board, :root[data-scene="autumn"][data-tone="night"] .today-strip, :root[data-scene="autumn"][data-tone="night"] .stage { text-shadow: 0 1px 10px rgb(20 5 0 / .7); }
+:root[data-scene="autumn"] ::selection { background: rgb(240 140 60 / .3); }
+.autumn-prev {
+  background:
+    radial-gradient(circle at 100% 0%, #f5a623 0 22%, #d9531e 30%, transparent 42%),
+    radial-gradient(circle at 0% 0%, #ffc93c 0 14%, #f08a24 20%, transparent 30%),
+    radial-gradient(circle at 0% 100%, #e8601c 0 20%, #a8261a 27%, transparent 38%),
+    radial-gradient(circle at 100% 100%, #f08a2a 0 20%, #c4401a 27%, transparent 38%),
+    radial-gradient(circle at 50% 100%, #d8401e 0 14%, #8c1d14 20%, transparent 30%),
+    radial-gradient(circle at 50% 0%, #f5a623 0 10%, transparent 18%),
+    radial-gradient(circle at 70% 60%, rgb(255 236 200 / .4), transparent 22%),
+    linear-gradient(#3a6fb8, #c9d6e6 60%, #f6c99a);
+}
+.autumn-prev i { position: absolute; width: 7px; height: 7px; background: #e8601c; clip-path: polygon(50% 0, 62% 30%, 100% 25%, 75% 55%, 85% 100%, 50% 80%, 15% 100%, 25% 55%, 0 25%, 38% 30%); left: var(--x); top: var(--y); animation: prevPetal 5.5s var(--d) infinite linear; }
+.autumn-prev i:nth-child(1) { --x: 30%; --y: -10%; --d: 0s; background: #f5a623; }
+.autumn-prev i:nth-child(2) { --x: 55%; --y: -10%; --d: -1.4s; }
+.autumn-prev i:nth-child(3) { --x: 75%; --y: -10%; --d: -2.8s; background: #ffc93c; }
+.autumn-prev i:nth-child(4) { --x: 15%; --y: -10%; --d: -3.6s; background: #d8401e; }
+.autumn-prev i:nth-child(5) { --x: 45%; --y: -10%; --d: -4.4s; background: #f08a2a; }

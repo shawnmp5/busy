@@ -76,9 +76,14 @@ const SKINS = [
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
   /* Animated scene (js/sakura.js): looking up into cherry trees in full bloom, by day or by night */
   { id: 'sakura', name: 'Cherry blossom', scene: true },
+  /* The same scene in autumn: maple leaves in orange, red and gold, on the branches and falling */
+  { id: 'autumn', name: 'Autumn', scene: true },
 ];
 /* Day or night for the cherry blossom scene; Auto follows the clock (night from 7 pm to 6 am) */
-const sakuraMode = s => s.sakuraTime === 'auto' ? ((h => h >= 19 || h < 6)(new Date().getHours()) ? 'night' : 'day') : (s.sakuraTime === 'night' ? 'night' : 'day');
+/* The cherry blossom and autumn scenes share an engine; their settings are stored under 'sakura…' and 'autumn…' */
+const treeKey = s => s.skin === 'autumn' ? 'autumn' : 'sakura';
+const treeMode = (s, k = treeKey(s)) => s[k + 'Time'] === 'auto' ? ((h => h >= 19 || h < 6)(new Date().getHours()) ? 'night' : 'day') : (s[k + 'Time'] === 'night' ? 'night' : 'day');
+const sakuraMode = s => treeMode(s);
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
 const INTER = 'family=Inter:wght@400..700';
@@ -103,6 +108,7 @@ const DEFAULT_SETTINGS = {
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true,
+  autumnTime: 'auto', autumnPetals: 55, autumnWind: 45, autumnBright: 100, autumnFrost: 4, autumnClouds: true, autumnSway: true, autumnLanterns: true, autumnRays: true, autumnParallax: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -393,15 +399,16 @@ function applySettings() {
   const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
   /* the cherry blossom scene by day gets light glass and dark text; by night, dark glass */
-  const tone = scene === 'sakura' ? sakuraMode(s) : null;
+  const tree = scene === 'sakura' || scene === 'autumn', tk = treeKey(s);
+  const tone = tree ? treeMode(s) : null;
   if (tone) root.setAttribute('data-tone', tone); else root.removeAttribute('data-tone');
   /* how frosted the panels over the scene are; 0 = clear glass */
-  const frost = s.sakuraFrost;
+  const frost = s[tk + 'Frost'];
   if (scene) root.style.setProperty('--glass', frost > 0 ? `blur(${frost}px) saturate(130%)` : 'none');
   else root.style.removeProperty('--glass');
-  window.ChronosSakura?.set(scene === 'sakura', {
-    mode: sakuraMode(s), petals: s.sakuraPetals, wind: s.sakuraWind, brightness: s.sakuraBright,
-    clouds: s.sakuraClouds, sway: s.sakuraSway, lanterns: s.sakuraLanterns, rays: s.sakuraRays, parallax: s.sakuraParallax,
+  window.ChronosSakura?.set(tree, {
+    season: scene === 'autumn' ? 'autumn' : 'spring', mode: treeMode(s), petals: s[tk + 'Petals'], wind: s[tk + 'Wind'], brightness: s[tk + 'Bright'],
+    clouds: s[tk + 'Clouds'], sway: s[tk + 'Sway'], lanterns: s[tk + 'Lanterns'], rays: s[tk + 'Rays'], parallax: s[tk + 'Parallax'],
   });
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
@@ -426,7 +433,7 @@ function applySettings() {
   app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
 /* the cherry blossom scene on Auto turns to night (and back) on its own */
-setInterval(() => { const s = S(); if (s.skin === 'sakura' && s.sakuraTime === 'auto' && document.documentElement.dataset.tone !== sakuraMode(s)) applySettings(); }, 60000);
+setInterval(() => { const s = S(), k = treeKey(s); if ((s.skin === 'sakura' || s.skin === 'autumn') && s[k + 'Time'] === 'auto' && document.documentElement.dataset.tone !== treeMode(s)) applySettings(); }, 60000);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
 /* ============================================================
@@ -1461,6 +1468,7 @@ function renderSettings(el) {
   const s = S();
   const scroll = $('.drawer-body', el)?.scrollTop || 0;
   const row = (label, control) => `<div class="set-row"><span>${label}</span>${control}</div>`;
+  const tk = treeKey(s);
   NOTE_FONTS.forEach(f => ensureFont(f.gf));
   el.innerHTML = drawerShell('Settings', `
     <section class="set-sec"><div class="set-head"><h3>Calendars</h3><button class="icon-btn sm" data-add-cal aria-label="Add calendar" title="Add calendar">${icon('plus')}</button></div>
@@ -1474,26 +1482,29 @@ function renderSettings(el) {
         <div class="set-pad"><button class="scene-card${s.skin === 'sakura' ? ' on' : ''}" data-skin="sakura" aria-pressed="${s.skin === 'sakura'}">
           <span class="scene-prev sakura-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
           <span class="scene-text"><b>Cherry blossom</b><span>Standing under cherry trees in full bloom. Petals drift on the wind, by day or by night.</span></span></button></div>
+        <div class="set-pad"><button class="scene-card${s.skin === 'autumn' ? ' on' : ''}" data-skin="autumn" aria-pressed="${s.skin === 'autumn'}">
+          <span class="scene-prev autumn-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="scene-text"><b>Autumn</b><span>Maple trees in fall colour. Orange and red leaves drift down on the wind, by day or by night.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
           <label class="swatch custom${s.accent && !ACCENTS.includes(s.accent) ? ' on' : ''}" title="Custom accent"><input type="color" id="set-accent" value="${s.accent || '#111111'}" aria-label="Custom accent"></label></div>`)}
       </div>
     </section>
-    ${s.skin === 'sakura' ? `<section class="set-sec"><h3>Cherry blossom</h3>
+    ${(s.skin === 'sakura' || s.skin === 'autumn') ? `<section class="set-sec"><h3>${s.skin === 'autumn' ? 'Autumn' : 'Cherry blossom'}</h3>
       <div class="set-group">
-        ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-sakura-time="${id}" class="${s.sakuraTime === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
-        ${row('Falling petals', `<input type="range" class="range" min="0" max="300" step="1" value="${s.sakuraPetals}" data-scene-range="sakuraPetals" aria-label="Falling petals">`)}
-        ${row('Petal presets', `<div class="seg">${[[20, 'Few'], [55, 'Normal'], [150, 'Lots'], [300, 'Blizzard']].map(([v, name]) => `<button data-sakura-petals="${v}" class="${s.sakuraPetals === v ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
-        ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s.sakuraWind}" data-scene-range="sakuraWind" aria-label="Wind">`)}
-        ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s.sakuraBright}" data-scene-range="sakuraBright" aria-label="Brightness">`)}
-        ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.sakuraFrost}" data-scene-range="sakuraFrost" aria-label="Panel frost">`)}
-        ${tgl('sakuraSway', 'Swaying branches', s.sakuraSway)}
-        ${tgl('sakuraClouds', 'Clouds', s.sakuraClouds)}
-        ${tgl('sakuraRays', 'Light rays', s.sakuraRays)}
-        ${tgl('sakuraParallax', 'Move with mouse', s.sakuraParallax)}
-        ${tgl('sakuraLanterns', 'Lanterns at night', s.sakuraLanterns)}
-        <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="sakura">Reset</button></div>
+        ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-sakura-time="${id}" class="${s[tk + 'Time'] === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
+        ${row(tk === 'autumn' ? 'Falling leaves' : 'Falling petals', `<input type="range" class="range" min="0" max="300" step="1" value="${s[tk + 'Petals']}" data-scene-range="${tk}Petals" aria-label="Falling ${tk === 'autumn' ? 'leaves' : 'petals'}">`)}
+        ${row(tk === 'autumn' ? 'Leaf presets' : 'Petal presets', `<div class="seg">${[[20, 'Few'], [55, 'Normal'], [150, 'Lots'], [300, 'Blizzard']].map(([v, name]) => `<button data-sakura-petals="${v}" class="${s[tk + 'Petals'] === v ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
+        ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s[tk + 'Wind']}" data-scene-range="${tk}Wind" aria-label="Wind">`)}
+        ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s[tk + 'Bright']}" data-scene-range="${tk}Bright" aria-label="Brightness">`)}
+        ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s[tk + 'Frost']}" data-scene-range="${tk}Frost" aria-label="Panel frost">`)}
+        ${tgl(tk + 'Sway', 'Swaying branches', s[tk + 'Sway'])}
+        ${tgl(tk + 'Clouds', 'Clouds', s[tk + 'Clouds'])}
+        ${tgl(tk + 'Rays', 'Light rays', s[tk + 'Rays'])}
+        ${tgl(tk + 'Parallax', 'Move with mouse', s[tk + 'Parallax'])}
+        ${tgl(tk + 'Lanterns', 'Lanterns at night', s[tk + 'Lanterns'])}
+        <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="${tk}">Reset</button></div>
       </div>
     </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
@@ -2191,8 +2202,8 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
   else if ((el = e.target.closest('[data-scene-reset]'))) { const pre = el.dataset.sceneReset; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith(pre)) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
-  else if ((el = e.target.closest('[data-sakura-petals]'))) { s.sakuraPetals = +el.dataset.sakuraPetals; rerender(); }
-  else if ((el = e.target.closest('[data-sakura-time]'))) { s.sakuraTime = el.dataset.sakuraTime; rerender(); }
+  else if ((el = e.target.closest('[data-sakura-petals]'))) { s[treeKey(s) + 'Petals'] = +el.dataset.sakuraPetals; rerender(); }
+  else if ((el = e.target.closest('[data-sakura-time]'))) { s[treeKey(s) + 'Time'] = el.dataset.sakuraTime; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }
   else if ((el = e.target.closest('[data-hour12]'))) { s.hour12 = el.dataset.hour12 === '1'; rerender(); }
