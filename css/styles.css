@@ -1,5 +1,5 @@
 /* Chronos — a quiet, monochrome calendar.
-   Black and white with grays for everything secondary. One typeface (Helvetica Neue),
+   Black and white with grays for everything secondary. One typeface (Apple's San Francisco, with Inter as the fallback),
    generous whitespace, thin dividers, and black for anything selected or important. */
 
 /* ---------- Tokens ---------- */
@@ -21,8 +21,8 @@
   --scrim: rgb(0 0 0 / .18);
   color-scheme: light;
 
-  --font-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto, sans-serif;
   --font-note: var(--font-body);
   --note-size: 14px;
   --r: 14px;

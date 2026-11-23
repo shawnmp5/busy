@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/logo/chronos-logo.svg" alt="Chronos" width="560"></p>
 
-A quiet, monochrome calendar with a notes board for every day and reminders for events and notes. Black and white, Helvetica Neue, plenty of space.
+A quiet, monochrome calendar with a notes board for every day and reminders for events and notes. Black and white, Apple's San Francisco typeface, plenty of space.
 
 No build step and no dependencies. Open `index.html` in a browser, or serve the folder with any static host (GitHub Pages works). Everything is saved in your browser's `localStorage`.
 
@@ -36,7 +36,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 
 **Settings** (the sliders icon, or `,`)
 - Five monochrome themes: Light (default), Paper, Auto (follows the system), Graphite and Dark
-- Accent (black by default), typeface (Helvetica Neue, System, Rounded, Serif, Mono), corner roundness, density
+- Accent (black by default), typeface (San Francisco, SF Rounded, New York, SF Mono; on non-Apple devices San Francisco falls back to Inter, its closest open match), corner roundness, density
 - Event style (gray, solid, outline), 12/24-hour clock, week start, week numbers, hide weekends
 - Mood for each day, shown in the Month and Year views
 - Export, import or copy a JSON backup

@@ -73,13 +73,14 @@ const SKINS = [
   { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
 ];
-const HELVETICA = '"Helvetica Neue", Helvetica, Arial';
+/* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
+const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
+const INTER = 'family=Inter:wght@400..700';
 const FONTS = [
-  { id: 'helvetica', name: 'Helvetica Neue', display: HELVETICA, body: HELVETICA, gf: null },
-  { id: 'system', name: 'System', display: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto', body: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto', gf: null },
-  { id: 'rounded', name: 'Rounded', display: `ui-rounded, "SF Pro Rounded", ${HELVETICA}`, body: `ui-rounded, "SF Pro Rounded", ${HELVETICA}`, gf: null },
-  { id: 'serif', name: 'Serif', display: '"New York", "Iowan Old Style", Georgia, "Times New Roman"', body: '"New York", "Iowan Old Style", Georgia, "Times New Roman"', gf: null },
-  { id: 'mono', name: 'Mono', display: 'ui-monospace, "SF Mono", Menlo, Consolas', body: 'ui-monospace, "SF Mono", Menlo, Consolas', gf: null },
+  { id: 'sf', name: 'San Francisco', display: SF, body: SF, gf: INTER },
+  { id: 'rounded', name: 'SF Rounded', display: `ui-rounded, "SF Pro Rounded", ${SF}`, body: `ui-rounded, "SF Pro Rounded", ${SF}`, gf: INTER },
+  { id: 'serif', name: 'New York', display: 'ui-serif, "New York", "Iowan Old Style", Georgia, "Times New Roman"', body: 'ui-serif, "New York", "Iowan Old Style", Georgia, "Times New Roman"', gf: null },
+  { id: 'mono', name: 'SF Mono', display: 'ui-monospace, "SF Mono", Menlo, Consolas', body: 'ui-monospace, "SF Mono", Menlo, Consolas', gf: null },
 ];
 const NOTE_FONTS = [
   { id: 'clean', name: 'Clean', family: 'var(--font-body)', size: 14, gf: null },
@@ -92,7 +93,7 @@ const attrFont = f => f.replace(/"/g, "'");
 const REMINDERS = [[null, 'No reminder'], [0, 'At start time'], [5, '5 minutes before'], [10, '10 minutes before'], [15, '15 minutes before'], [30, '30 minutes before'], [60, '1 hour before'], [120, '2 hours before'], [1440, '1 day before']];
 const REPEATS = [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays', 'Every weekday (Mon–Fri)'], ['weekly', 'Every week'], ['biweekly', 'Every 2 weeks'], ['monthly', 'Every month'], ['yearly', 'Every year']];
 const DEFAULT_SETTINGS = {
-  skin: 'light', accent: null, font: 'helvetica', noteFont: 'clean',
+  skin: 'light', accent: null, font: 'sf', noteFont: 'clean',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
@@ -146,13 +147,14 @@ function migrate(s) {
   out.events.forEach(e => { e.exceptions = e.exceptions || []; e.repeat = e.repeat || 'none'; });
   if (((s.settings && s.settings.design) || 1) < 2) {
     /* One-time move to the monochrome design: reset appearance, turn default colours into grays */
-    Object.assign(out.settings, { skin: 'light', accent: null, font: 'helvetica', noteFont: 'clean', radius: 14, ambient: false, grain: false, glass: false, design: 2 });
+    Object.assign(out.settings, { skin: 'light', accent: null, font: 'sf', noteFont: 'clean', radius: 14, ambient: false, grain: false, glass: false, design: 2 });
     const mono = c => (c && OLD_EVENT_COLORS[String(c).toLowerCase()]) || c;
     out.calendars.forEach(c => { c.color = mono(c.color); });
     out.events.forEach(e => { if (e.color) e.color = mono(e.color); });
   }
   out.notes.forEach(n => { if (OLD_NOTE_COLORS[n.color]) n.color = OLD_NOTE_COLORS[n.color]; });
   if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
+  if (!FONTS.some(f => f.id === out.settings.font)) out.settings.font = 'sf';
   const cutoff = Date.now() - 14 * 864e5;
   for (const k in out.fired) if (out.fired[k] < cutoff) delete out.fired[k];
   return out;
