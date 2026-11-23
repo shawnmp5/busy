@@ -98,7 +98,7 @@ const DEFAULT_SETTINGS = {
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
-  sidebarOpen: false, boardOpen: true, view: 'month', design: 4,
+  sidebarOpen: true, boardOpen: true, view: 'month', design: 3,
 };
 const KEY = 'chronos.v1';
 
@@ -146,7 +146,7 @@ function migrate(s) {
   out.events.forEach(e => { e.exceptions = e.exceptions || []; e.repeat = e.repeat || 'none'; });
   if (((s.settings && s.settings.design) || 1) < 2) {
     /* One-time move to the monochrome design: reset appearance, turn default colours into grays */
-    Object.assign(out.settings, { skin: 'light', accent: null, font: 'sf', noteFont: 'caveat', radius: 14, ambient: false, grain: false, glass: false, sidebarOpen: false, design: 4 });
+    Object.assign(out.settings, { skin: 'light', accent: null, font: 'sf', noteFont: 'caveat', radius: 14, ambient: false, grain: false, glass: false, design: 3 });
     const mono = c => (c && OLD_EVENT_COLORS[String(c).toLowerCase()]) || c;
     out.calendars.forEach(c => { c.color = mono(c.color); });
     out.events.forEach(e => { if (e.color) e.color = mono(e.color); });
@@ -155,11 +155,6 @@ function migrate(s) {
     /* Post-it notes are back: restore the handwriting font the monochrome redesign switched off */
     if (out.settings.noteFont === 'clean') out.settings.noteFont = 'caveat';
     out.settings.design = 3;
-  }
-  if (((s.settings && s.settings.design) || 1) >= 2 && out.settings.design < 4) {
-    /* The left panel is hidden by default now; the menu button still opens it */
-    out.settings.sidebarOpen = false;
-    out.settings.design = 4;
   }
   out.notes.forEach(n => { if (MONO_NOTE_COLORS[n.color]) n.color = MONO_NOTE_COLORS[n.color]; });
   if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
@@ -1717,7 +1712,6 @@ $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
 $('#btn-shortcuts').addEventListener('click', () => openDrawer('shortcuts'));
 $('#btn-create').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
-$('#btn-new-top').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-create-note').addEventListener('click', () => addNote(ui.selected));
 $('#btn-add-cal').addEventListener('click', e => openCalEditor(null, e.currentTarget));
 $('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
