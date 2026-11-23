@@ -397,7 +397,7 @@ function applySettings() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = bg;
   const app = $('#app');
-  app.classList.toggle('bd-closed', !s.boardOpen);
+  app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
@@ -1710,7 +1710,7 @@ function syncOverlays() {
 }
 function toggleBoard() {
   if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; syncOverlays(); }
-  else { S().boardOpen = !S().boardOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
+  /* wide screens: the board can't be closed */
 }
 
 /* ============================================================

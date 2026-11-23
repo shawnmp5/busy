@@ -850,3 +850,6 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
+@media (min-width: 1321px) {
+  #btn-board { display: none; }
+}
