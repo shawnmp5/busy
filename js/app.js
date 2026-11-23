@@ -98,7 +98,7 @@ const DEFAULT_SETTINGS = {
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
-  sidebarOpen: true, boardOpen: true, view: 'month', design: 3,
+  sidebarOpen: true, boardOpen: true, view: 'month', design: 5,
 };
 const KEY = 'chronos.v1';
 
@@ -155,6 +155,11 @@ function migrate(s) {
     /* Post-it notes are back: restore the handwriting font the monochrome redesign switched off */
     if (out.settings.noteFont === 'clean') out.settings.noteFont = 'caveat';
     out.settings.design = 3;
+  }
+  if (((s.settings && s.settings.design) || 1) === 4) {
+    /* A short-lived version hid the left panel; open it again */
+    out.settings.sidebarOpen = true;
+    out.settings.design = 5;
   }
   out.notes.forEach(n => { if (MONO_NOTE_COLORS[n.color]) n.color = MONO_NOTE_COLORS[n.color]; });
   if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
