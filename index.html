@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chronos Calendar</title>
+<meta name="description" content="A calendar with sticky notes for every day, reminders, and themes you can make your own.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='52' height='48' rx='12' fill='%237c9cff'/%3E%3Crect x='6' y='10' width='52' height='14' rx='7' fill='%235a78e0'/%3E%3Ctext x='32' y='50' font-family='Arial' font-weight='700' font-size='24' text-anchor='middle' fill='%23fff'%3EC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Inter:wght@400..700&family=Caveat:wght@500..700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<!--APP-->
+<div class="ambient" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="icon-btn" id="btn-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
+      <div class="brand">
+        <div class="brand-tile" aria-hidden="true"><span id="brand-day">23</span></div>
+        <span class="brand-name">Chronos</span>
+      </div>
+      <button class="btn ghost" id="btn-today">Today</button>
+      <div class="nav-arrows">
+        <button class="icon-btn" id="btn-prev" aria-label="Previous" title="Previous (←)"><svg class="ic"><use href="#i-left"/></svg></button>
+        <button class="icon-btn" id="btn-next" aria-label="Next" title="Next (→)"><svg class="ic"><use href="#i-right"/></svg></button>
+      </div>
+      <h1 class="view-title" id="view-title" aria-live="polite"></h1>
+    </div>
+    <div class="tb-right">
+      <div class="search" id="search">
+        <svg class="ic"><use href="#i-search"/></svg>
+        <input id="search-input" type="search" placeholder="Search events & notes" autocomplete="off" aria-label="Search events and notes">
+        <kbd>/</kbd>
+        <div class="search-results" id="search-results" hidden></div>
+      </div>
+      <div class="seg" id="view-seg" role="tablist" aria-label="View">
+        <button data-view="day" role="tab">Day</button>
+        <button data-view="week" role="tab">Week</button>
+        <button data-view="month" role="tab">Month</button>
+        <button data-view="year" role="tab">Year</button>
+      </div>
+      <button class="icon-btn has-badge" id="btn-bell" aria-label="Reminders" title="Reminders"><svg class="ic"><use href="#i-bell"/></svg><span class="badge" id="bell-badge" hidden>0</span></button>
+      <button class="icon-btn" id="btn-settings" aria-label="Customize" title="Customize"><svg class="ic"><use href="#i-sliders"/></svg></button>
+      <button class="icon-btn" id="btn-board" aria-label="Toggle day board" title="Day board (B)"><svg class="ic"><use href="#i-panel"/></svg></button>
+    </div>
+  </header>
+
+  <aside class="sidebar panel" id="sidebar">
+    <div class="create-row">
+      <button class="btn primary create" id="btn-create"><svg class="ic"><use href="#i-plus"/></svg>New event</button>
+      <button class="btn note-btn" id="btn-create-note" title="New sticky note (N)"><svg class="ic"><use href="#i-sticky"/></svg><span>Note</span></button>
+    </div>
+    <section class="now-card" id="now-card"></section>
+    <section class="mini" id="mini"></section>
+    <section class="side-sec">
+      <div class="side-head"><h2>Up next</h2></div>
+      <ul class="upnext" id="upnext"></ul>
+    </section>
+    <section class="side-sec">
+      <div class="side-head"><h2>Calendars</h2><button class="icon-btn sm" id="btn-add-cal" aria-label="Add calendar" title="Add calendar"><svg class="ic"><use href="#i-plus"/></svg></button></div>
+      <ul class="cal-list" id="cal-list"></ul>
+    </section>
+    <button class="shortcut-hint" id="btn-shortcuts"><svg class="ic"><use href="#i-keyboard"/></svg>Keyboard shortcuts <kbd>?</kbd></button>
+  </aside>
+
+  <main class="stage panel" id="stage"></main>
+
+  <aside class="board panel" id="board" aria-label="Day board"></aside>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div id="layer"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<input type="file" id="import-file" accept="application/json,.json" hidden>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4"/></symbol>
+    <symbol id="i-panel" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M15 3v18"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.5V12l3.5 2"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+    <symbol id="i-sticky" viewBox="0 0 24 24"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
+    <symbol id="i-alarm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+    <symbol id="i-keyboard" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4V5zM15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+  </defs>
+</svg>
+
+<script src="js/app.js"></script>
+<!--/APP-->
+</body>
+</html>
