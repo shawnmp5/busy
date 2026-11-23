@@ -74,7 +74,7 @@ const SKINS = [
   { id: 'auto', name: 'Auto' },
   { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
-  /* Animated scene (js/sakura.js): Mount Fuji across a lake, framed by cherry trees in bloom, by day or by night */
+  /* Animated scene (js/sakura.js): cherry trees in full bloom over hills of blossom, by day or by night */
   { id: 'sakura', name: 'Cherry blossom', scene: true },
 ];
 /* Day or night for the cherry blossom scene; Auto follows the clock (night from 7 pm to 6 am) */
@@ -1472,8 +1472,8 @@ function renderSettings(el) {
           <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac}` : '--p-sf:rgb(127 127 127 / .3);--p-ac:#888'}"><i></i><i><b></b></i></div>
           <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
         <div class="set-pad"><button class="scene-card${s.skin === 'sakura' ? ' on' : ''}" data-skin="sakura" aria-pressed="${s.skin === 'sakura'}">
-          <span class="scene-prev sakura-prev" aria-hidden="true"><b></b><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="scene-text"><b>Cherry blossom</b><span>Mount Fuji across a lake, framed by cherry trees. Petals drift on the wind, by day or by night.</span></span></button></div>
+          <span class="scene-prev sakura-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          <span class="scene-text"><b>Cherry blossom</b><span>Cherry trees in full bloom over hills of blossom. Petals drift on the wind, by day or by night.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}

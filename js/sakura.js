@@ -1,14 +1,13 @@
 /* Chronos — "Cherry blossom" scene.
 
-   Mount Fuji across a lake in spring, framed by cherry trees. Everything is painted in code:
-   - a sky with drifting clouds, a summit cloud and mist along the foot of the mountain,
-   - the mountain itself: concave slopes, a ragged snow cap and gullies running down from the crater,
-   - a lakeside town and a lake that ripples and reflects the mountain,
-   - cherry trees made of thousands of five-petal flowers, whose branches sway in the wind and in gusts,
+   A spring hillside in full bloom. Everything is painted in code:
+   - a sky with drifting clouds and mist settling over the hills,
+   - rolling hills covered in blossom and a row of flowering cherry trees on a meadow strewn with fallen petals,
+   - foreground cherry trees made of thousands of five-petal flowers, whose branches sway in the wind and in gusts,
    - petals that tumble and flip as they fall, and burst off the trees when a gust comes through.
-   A night version swaps in a moon, stars, moonlight glitter on the water, town lights and paper lanterns.
+   A night version swaps in a moon, stars and paper lanterns glowing in the branches.
 
-   Static layers (sky, mountain, shore, every branch) are painted once into offscreen canvases; each frame only
+   Static layers (sky, hills, every branch) are painted once into offscreen canvases; each frame only
    moves them around, so it stays light. It pauses in background tabs and draws one still frame for reduced motion. */
 (function () {
   'use strict';
@@ -41,10 +40,8 @@
   const PAL = {
     day: {
       sky: [[0, '#2a5db4'], [.32, '#5f92d8'], [.58, '#a9c4ec'], [.8, '#dcdcef'], [1, '#f3e1e8']],
-      mtnTop: '#7d86ab', mtnBase: '#a7b5d0', mtnLit: 'rgba(255,255,255,.16)', mtnShade: 'rgba(28,36,80,.30)', light: -1,
-      haze: '224,231,246', hazeA: .62, snow: '#ffffff', snowShade: '#bfcae6', gully: '74,88,140',
-      hills: ['#8396b8', '#5f7790', '#3f5848'], shoreBloom: '#f4c5d5', town: '#ece6ea', roof: '#8d7f8c',
-      water: [[0, '#9cbbe0'], [.4, '#5e8cc4'], [1, '#2f5d98']], reflA: .55, ripple: '255,255,255', glint: '255,250,235',
+      hillFar: '#b4bfdc', hillNear: '#9fb0cd', bloomFar: '#f3d3e1', bloomNear: '#f2bfd3', ground: ['#c9d9b4', '#9fbb8c'], fallen: '#f7cfdc',
+      light: -1, haze: '224,231,246',
       cloudLit: '255,255,255', cloudShade: '200,205,232', cloudPink: '250,222,232', mist: '236,240,250',
       bark: '#4a3335', barkHi: 'rgba(255,226,232,.30)', backShade: '#a5678a', bud: '#e5779e',
       flowers: [['#fff6f9', '#f8c5d5', '#e2789e'], ['#ffeef4', '#f3aec6', '#d6648e'], ['#fffbfc', '#fbd8e4', '#ea8bad'], ['#fde3ec', '#ee9cb9', '#c94f7d'], ['#ffffff', '#f6cfdc', '#df7aa1']],
@@ -52,10 +49,8 @@
     },
     night: {
       sky: [[0, '#02040d'], [.4, '#0a1230'], [.7, '#1c2149'], [.88, '#33294f'], [1, '#43304f']],
-      mtnTop: '#2b3456', mtnBase: '#1b2240', mtnLit: 'rgba(170,185,240,.16)', mtnShade: 'rgba(0,0,10,.40)', light: 1,
-      haze: '40,44,80', hazeA: .55, snow: '#e4eaf8', snowShade: '#7584ad', gully: '20,24,50',
-      hills: ['#1c2440', '#121a30', '#0a1020'], shoreBloom: '#5e4a6e', town: '#1a2034', roof: '#10141f',
-      water: [[0, '#1d2a50'], [.4, '#0f1834'], [1, '#060b1c']], reflA: .62, ripple: '170,185,235', glint: '235,238,255',
+      hillFar: '#1d2445', hillNear: '#171d38', bloomFar: '#5d4f78', bloomNear: '#7a6290', ground: ['#1a1f33', '#0e1222'], fallen: '#8a6f99',
+      light: 1, haze: '40,44,80',
       cloudLit: '150,162,205', cloudShade: '38,44,78', cloudPink: '90,80,120', mist: '70,80,120',
       bark: '#170f18', barkHi: 'rgba(170,180,235,.16)', backShade: '#2b2140', bud: '#a35a8e',
       flowers: [['#f7e6f0', '#d7a3c4', '#a2427e'], ['#fbeef5', '#e2b2cf', '#b2508c'], ['#eedcea', '#c493b8', '#8c3a72'], ['#fff4f9', '#e9c3da', '#bd5f99']],
@@ -64,40 +59,26 @@
   };
 
   /* ============================================================
-     Layout + the mountain's silhouette
+     Layout
      ============================================================ */
   function layout(W, H) {
-    const horizon = H * .735;
-    return { W, H, horizon, waterY: horizon + H * .012, peakX: W * .4, peakY: H * .255, crater: W * .03, spanL: W * .56, spanR: W * .64, moonX: W * .73, moonY: H * .15 };
+    return { W, H, horizon: H * .68, moonX: W * .73, moonY: H * .15 };
   }
-  function makeProfile(L) {
-    const n = noise1(11), n2 = noise1(29), h = L.horizon + 8 - L.peakY;
-    return x => {
-      const dx = x - L.peakX, ax = Math.abs(dx);
-      if (ax <= L.crater) return L.peakY + (n(x * .08) - .5) * 5 * Math.sin(Math.PI * (dx + L.crater) / (2 * L.crater));
-      const span = dx < 0 ? L.spanL : L.spanR, d = Math.min(1.25, (ax - L.crater) / span);
-      let y = L.peakY + h * (1 - Math.pow(Math.max(0, 1 - d), 1.8));
-      y += ((n(x * .012) - .5) * 10 + (n2(x * .06) - .5) * 3) * Math.min(1, d);
-      if (dx > 0) y -= 14 * Math.exp(-Math.pow((d - .52) / .07, 2)); /* the shoulder on the right flank */
-      return y;
-    };
-  }
-
   /* ============================================================
      Static paintings (done once per size and per day/night)
      ============================================================ */
   function paintSky(L, P, q, night) {
     const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d'); g.scale(q, q);
-    const grd = g.createLinearGradient(0, 0, 0, L.waterY);
+    const grd = g.createLinearGradient(0, 0, 0, H * .85);
     for (const [s, col] of P.sky) grd.addColorStop(s, col);
-    g.fillStyle = grd; g.fillRect(0, 0, W, L.waterY + 2);
+    g.fillStyle = grd; g.fillRect(0, 0, W, H);
     if (!night) {
       const sun = g.createRadialGradient(W * .06, -H * .06, 0, W * .06, -H * .06, W * .65);
       sun.addColorStop(0, 'rgba(255,246,228,.42)'); sun.addColorStop(1, 'rgba(255,246,228,0)');
       g.fillStyle = sun; g.fillRect(0, 0, W, H);
       const pink = g.createLinearGradient(0, L.horizon - H * .28, 0, L.horizon);
       pink.addColorStop(0, 'rgba(250,220,232,0)'); pink.addColorStop(1, 'rgba(250,220,232,.38)');
-      g.fillStyle = pink; g.fillRect(0, 0, W, L.waterY);
+      g.fillStyle = pink; g.fillRect(0, 0, W, H);
     } else {
       const halo = g.createRadialGradient(L.moonX, L.moonY, 0, L.moonX, L.moonY, H * .55);
       halo.addColorStop(0, 'rgba(185,198,255,.26)'); halo.addColorStop(.25, 'rgba(150,165,240,.10)'); halo.addColorStop(1, 'rgba(150,165,240,0)');
@@ -115,146 +96,69 @@
       }
       const glow = g.createLinearGradient(0, L.horizon - H * .2, 0, L.horizon);
       glow.addColorStop(0, 'rgba(120,80,130,0)'); glow.addColorStop(1, 'rgba(140,90,130,.3)');
-      g.fillStyle = glow; g.fillRect(0, 0, W, L.waterY);
+      g.fillStyle = glow; g.fillRect(0, 0, W, H);
     }
     return c;
   }
 
-  function paintMountain(L, P, q, profile) {
+  /* Hills covered in blossom, a row of flowering trees and a meadow of fallen petals */
+  function paintLand(L, P, q, night, sp) {
     const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d'); g.scale(q, q);
-    const h = L.horizon - L.peakY, path = new Path2D();
-    path.moveTo(-60, L.horizon + 40);
-    for (let x = -60; x <= W + 60; x += 2) path.lineTo(x, profile(x));
-    path.lineTo(W + 60, L.horizon + 40); path.closePath();
-    const body = g.createLinearGradient(0, L.peakY, 0, L.horizon);
-    body.addColorStop(0, P.mtnTop); body.addColorStop(1, P.mtnBase);
-    g.fillStyle = body; g.fill(path);
-    g.save(); g.clip(path);
-    /* light falls on one flank, the other is in shadow */
-    const side = g.createLinearGradient(L.peakX - W * .35, 0, L.peakX + W * .35, 0);
-    const [a, b] = P.light < 0 ? [P.mtnLit, P.mtnShade] : [P.mtnShade, P.mtnLit];
-    side.addColorStop(0, a); side.addColorStop(.48, 'rgba(0,0,0,0)'); side.addColorStop(1, b);
-    g.fillStyle = side; g.fillRect(0, 0, W, H);
-    /* gullies fanning down from the crater */
-    const R = rng(5), spanAvg = (L.spanL + L.spanR) / 2;
-    if (canFilter) g.filter = 'blur(1.2px)';
-    for (let i = 0; i < 170; i++) {
-      const u = R() * 2 - 1, start = .08 + R() * .35;
-      const ex = L.peakX + u * spanAvg * .95, ey = L.horizon - R() * (L.horizon - profile(ex)) * .6;
-      const sx = lerp(L.peakX + u * L.crater, ex, start), sy = lerp(profile(L.peakX + u * L.crater), ey, start) + 2;
-      const lit = R() < .45;
-      g.strokeStyle = lit ? `rgba(255,255,255,${(.015 + R() * .045).toFixed(3)})` : `rgba(${P.gully},${(.03 + R() * .07).toFixed(3)})`;
-      g.lineWidth = 1 + R() * 3.5;
-      g.beginPath(); g.moveTo(sx, sy); g.quadraticCurveTo(lerp(sx, ex, .55), lerp(sy, ey, .3), ex, ey); g.stroke();
+    const R = rng(77), u = Math.min(W, H * 1.6) / 1440;
+    const hill = (base, amp, freq, seed, col, bloom, clumps, dotR, haze) => {
+      const nn = noise1(seed), top = x => base - amp * nn(x * freq) - amp * .35 * nn(x * freq * 3 + 5);
+      const path = new Path2D(); path.moveTo(0, H);
+      for (let x = 0; x <= W; x += 3) path.lineTo(x, top(x));
+      path.lineTo(W, H); path.closePath();
+      g.fillStyle = col; g.fill(path);
+      g.save(); g.clip(path);
+      /* clumps of soft pink dots read as distant trees in bloom */
+      for (let i = 0; i < clumps; i++) {
+        const x = R() * W, y = top(x) + Math.pow(R(), 1.3) * (H - top(x)) * .7, n = 4 + (R() * 8 | 0), cr = dotR * (1.5 + R() * 2);
+        for (let k = 0; k < n; k++) {
+          g.fillStyle = bloom; g.globalAlpha = .35 + R() * .5;
+          g.beginPath(); g.arc(x + (R() - .5) * cr * 2, y + (R() - .5) * cr * 1.3, dotR * (.5 + R() * .8), 0, TAU); g.fill();
+        }
+      }
+      g.globalAlpha = 1;
+      const hz = g.createLinearGradient(0, base - amp, 0, H);
+      hz.addColorStop(0, `rgba(${P.haze},${haze})`); hz.addColorStop(1, `rgba(${P.haze},${haze * .3})`);
+      g.fillStyle = hz; g.fillRect(0, 0, W, H);
+      g.restore();
+    };
+    hill(L.horizon, H * .09, .0035, 21, P.hillFar, P.bloomFar, 900 * u + 300, 2.6 * u + .8, .5);
+    hill(L.horizon + H * .09, H * .07, .005, 33, P.hillNear, P.bloomNear, 1000 * u + 300, 4 * u + 1, .25);
+    /* the meadow */
+    const gy = H * .88, mg = g.createLinearGradient(0, gy - H * .04, 0, H);
+    mg.addColorStop(0, P.ground[0]); mg.addColorStop(1, P.ground[1]);
+    const gn = noise1(47);
+    g.fillStyle = mg; g.beginPath(); g.moveTo(0, H);
+    for (let x = 0; x <= W; x += 4) g.lineTo(x, gy - H * .03 * gn(x * .004));
+    g.lineTo(W, H); g.closePath(); g.fill();
+    /* a row of cherry trees in full bloom */
+    const crowns = Math.round(W / (95 * u)) + 2;
+    for (let k = 0; k < crowns; k++) {
+      const x = (k - .5) / (crowns - 2) * W + (R() - .5) * 40 * u, by = gy + R() * H * .02;
+      const cr = (34 + R() * 30) * u, cy = by - cr * 1.25;
+      g.strokeStyle = P.bark; g.lineCap = 'round';
+      g.lineWidth = 4 * u; g.beginPath(); g.moveTo(x, by); g.lineTo(x + (R() - .5) * 6 * u, cy); g.stroke();
+      g.lineWidth = 2 * u;
+      for (let b = 0; b < 3; b++) { g.beginPath(); g.moveTo(x, cy + cr * .3); g.lineTo(x + (R() - .5) * cr * 1.4, cy - R() * cr * .6); g.stroke(); }
+      const n = Math.round(cr * cr / (6 * u * u));
+      for (let i = 0; i < n; i++) {
+        const a = R() * TAU, rr = Math.sqrt(R()) * cr, back = i < n * .45;
+        const set = back ? sp.back : sp.front, spr = set[(R() * set.length) | 0], fs = (4 + R() * 4) * u;
+        g.drawImage(spr, x + Math.cos(a) * rr * 1.2 - fs / 2, cy + Math.sin(a) * rr * .85 - fs / 2, fs, fs);
+      }
     }
-    g.filter = 'none';
-    /* atmospheric haze thickens toward the foot */
-    const haze = g.createLinearGradient(0, lerp(L.peakY, L.horizon, .4), 0, L.horizon);
-    haze.addColorStop(0, `rgba(${P.haze},0)`); haze.addColorStop(1, `rgba(${P.haze},${P.hazeA})`);
-    g.fillStyle = haze; g.fillRect(0, 0, W, H);
-    g.restore();
-
-    /* snow cap with ragged fingers running down the gullies */
-    const ns = noise1(41), nf = noise1(73), nf2 = noise1(97);
-    const snowBottom = x => L.peakY + h * (.24 + .08 * ns(x * .008)) + Math.pow(nf(x * .1), 2.6) * h * .17 + Math.pow(nf2(x * .27), 3) * h * .08 + Math.abs(x - L.peakX) * .03;
-    let xl = L.peakX, xr = L.peakX;
-    while (xl > -60 && profile(xl) < snowBottom(xl)) xl -= 2;
-    while (xr < W + 60 && profile(xr) < snowBottom(xr)) xr += 2;
-    const snow = new Path2D();
-    snow.moveTo(xl, profile(xl));
-    for (let x = xl; x <= xr; x += 2) snow.lineTo(x, profile(x));
-    for (let x = xr; x >= xl; x -= 2) snow.lineTo(x, Math.max(profile(x), snowBottom(x)));
-    snow.closePath();
-    const sg = g.createLinearGradient(L.peakX - W * .2, 0, L.peakX + W * .2, 0);
-    const [s0, s1] = P.light < 0 ? [P.snow, P.snowShade] : [P.snowShade, P.snow];
-    sg.addColorStop(0, s0); sg.addColorStop(.47, mix(s0, s1, .35)); sg.addColorStop(.53, mix(s0, s1, .7)); sg.addColorStop(1, s1);
-    g.save(); g.shadowColor = P.snow; g.shadowBlur = 2; g.fillStyle = sg; g.fill(snow); g.restore();
-    g.save(); g.clip(snow);
-    if (canFilter) g.filter = 'blur(.8px)';
-    for (let i = 0; i < 110; i++) {
-      const u = R() * 2 - 1, ex = L.peakX + u * (xr - xl) * .55, ey = snowBottom(ex) + 20, start = .1 + R() * .3;
-      const sx = lerp(L.peakX + u * L.crater, ex, start), sy = lerp(profile(L.peakX + u * L.crater), ey, start);
-      g.strokeStyle = R() < .65 ? `rgba(${P.gully},${(.05 + R() * .1).toFixed(3)})` : `rgba(255,255,255,${(.12 + R() * .2).toFixed(3)})`;
-      g.lineWidth = .8 + R() * 2.4;
-      g.beginPath(); g.moveTo(sx, sy); g.quadraticCurveTo(lerp(sx, ex, .5), lerp(sy, ey, .25), ex, ey); g.stroke();
-    }
-    g.filter = 'none';
-    const sb = g.createLinearGradient(0, L.peakY, 0, L.peakY + h * .5);
-    sb.addColorStop(0, 'rgba(255,255,255,0)'); sb.addColorStop(1, `rgba(${P.haze},.35)`);
-    g.fillStyle = sb; g.fillRect(0, 0, W, H);
-    g.restore();
-    return c;
-  }
-
-  function paintShore(L, P, q, night) {
-    const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d'); g.scale(q, q);
-    const R = rng(77), n = noise1(55), n2 = noise1(61);
-    /* low hills on either side of the lake */
-    g.fillStyle = P.hills[0]; g.beginPath(); g.moveTo(0, L.waterY);
-    for (let x = 0; x <= W; x += 4) g.lineTo(x, L.horizon - H * .085 * Math.pow(Math.min(1, Math.abs(x / W - .42) / .58), 1.7) * (.45 + .55 * n(x * .006)));
-    g.lineTo(W, L.waterY); g.closePath(); g.fill();
-    g.fillStyle = P.hills[1]; g.beginPath(); g.moveTo(0, L.waterY);
-    for (let x = 0; x <= W; x += 4) g.lineTo(x, L.horizon + 2 - H * .045 * Math.pow(Math.min(1, Math.abs(x / W - .5) / .5), 2.2) * (.4 + .6 * n2(x * .01)));
-    g.lineTo(W, L.waterY); g.closePath(); g.fill();
-    /* the tree line along the shore */
-    g.fillStyle = P.hills[2]; g.beginPath(); g.moveTo(0, L.waterY);
-    for (let x = 0; x <= W; x += 3) g.lineTo(x, L.horizon + 2 - n(x * .05) * 7 - n2(x * .2) * 3);
-    g.lineTo(W, L.waterY); g.closePath(); g.fill();
-    /* cherry trees in bloom along the far shore */
-    for (let i = 0; i < 160; i++) {
-      const x = R() * W, y = L.horizon + 1 - R() * 7, r = 1.5 + R() * 3.5;
-      g.fillStyle = P.shoreBloom; g.globalAlpha = .55 + R() * .35;
-      g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
+    /* petals already fallen on the grass */
+    for (let i = 0; i < 900 * u + 200; i++) {
+      const y = gy + Math.pow(R(), .8) * (H - gy), k = (y - gy) / (H - gy);
+      g.fillStyle = P.fallen; g.globalAlpha = .45 + R() * .5;
+      g.beginPath(); g.ellipse(R() * W, y, (1.2 + k * 2.5) * u + .5, (.7 + k * 1.4) * u + .3, R() * TAU, 0, TAU); g.fill();
     }
     g.globalAlpha = 1;
-    /* a small lakeside town */
-    for (let i = 0; i < 90; i++) {
-      const x = W * (.16 + R() * .62), w = 3 + R() * 8, h = 3 + R() * 7, y = L.waterY - h - R() * 2;
-      g.fillStyle = P.town; g.fillRect(x, y, w, h);
-      g.fillStyle = P.roof; g.fillRect(x - .5, y - 1, w + 1, 1.6);
-      if (night && R() < .7) { g.fillStyle = `rgba(255,${190 + R() * 40 | 0},120,${(.6 + R() * .4).toFixed(2)})`; g.fillRect(x + 1 + R() * (w - 3), y + 1.5 + R() * (h - 3), 1.4, 1.4); }
-    }
-    if (night) {
-      g.globalCompositeOperation = 'lighter';
-      for (let i = 0; i < 30; i++) {
-        const x = W * (.12 + R() * .72), y = L.waterY - 2 - R() * 6, r = 3 + R() * 6;
-        const gl = g.createRadialGradient(x, y, 0, x, y, r);
-        gl.addColorStop(0, 'rgba(255,200,130,.75)'); gl.addColorStop(1, 'rgba(255,200,130,0)');
-        g.fillStyle = gl; g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill();
-      }
-      g.globalCompositeOperation = 'source-over';
-    }
-    g.fillStyle = night ? 'rgba(150,160,210,.25)' : 'rgba(255,255,255,.45)';
-    g.fillRect(0, L.waterY - .8, W, 1.2);
     return c;
-  }
-
-  function paintLake(L, P, q, layers) {
-    const { W, H } = L, wh = H - L.waterY;
-    const water = makeCanvas(W, wh), wg = water.getContext('2d');
-    const grd = wg.createLinearGradient(0, 0, 0, wh);
-    for (const [s, col] of P.water) grd.addColorStop(s, col);
-    wg.fillStyle = grd; wg.fillRect(0, 0, W, wh);
-    /* the mirror image of everything above the water line */
-    const refl = makeCanvas(W * q, wh * q), rg = refl.getContext('2d');
-    rg.setTransform(q, 0, 0, -q, 0, L.waterY * q);
-    if (canFilter) rg.filter = 'blur(1.2px)';
-    for (const l of layers) rg.drawImage(l, 0, 0, W, H);
-    rg.filter = 'none';
-    rg.setTransform(q, 0, 0, q, 0, 0);
-    rg.globalCompositeOperation = 'destination-in';
-    const fade = rg.createLinearGradient(0, 0, 0, wh);
-    fade.addColorStop(0, `rgba(0,0,0,${P.reflA})`); fade.addColorStop(.7, `rgba(0,0,0,${P.reflA * .35})`); fade.addColorStop(1, 'rgba(0,0,0,.05)');
-    rg.fillStyle = fade; rg.fillRect(0, 0, W, wh);
-    rg.globalCompositeOperation = 'source-over';
-    /* ripple highlights, thin near the far shore and longer up close */
-    const ripples = makeCanvas(W, wh), pg = ripples.getContext('2d'), R = rng(13);
-    for (let i = 0; i < 1100; i++) {
-      const k = Math.pow(R(), 1.3), y = k * wh, len = lerp(5, 70, k) * (.4 + R()), th = lerp(.5, 1.8, k);
-      pg.fillStyle = `rgba(${P.ripple},${(.05 + R() * .16).toFixed(3)})`;
-      pg.fillRect(R() * W, y, len, th);
-    }
-    return { water, refl, ripples, wh };
   }
 
   /* Soft cumulus and wisp sprites */
@@ -359,12 +263,13 @@
   function treeSpecs(W, H) {
     const u = Math.min(W, H * 1.6) / 1440;
     const specs = [
-      { seed: 101, x: W + 40 * u, y: -40 * u, angle: Math.PI * .87, len: 250 * u, width: 40 * u, depth: 6, spread: .5, droop: .17, swayAt: [1, 3], clusterR: [24 * u, 44 * u], clusterN: 28, bloomFrom: 2, flower: [9 * u, 16 * u], lanterns: 4 },
-      { seed: 202, x: -30 * u, y: H * .03, angle: .16, len: 190 * u, width: 24 * u, depth: 5, spread: .55, droop: .13, swayAt: [1, 3], clusterR: [20 * u, 36 * u], clusterN: 26, bloomFrom: 2, flower: [8 * u, 14 * u], lanterns: 1 },
+      { seed: 101, x: W + 40 * u, y: -40 * u, angle: Math.PI * .87, len: 240 * u, width: 22 * u, depth: 5, spread: .55, droop: .17, swayAt: [1, 3], clusterR: [34 * u, 58 * u], clusterN: 60, along: 2, flower: [10 * u, 17 * u], lanterns: 4 },
+      { seed: 202, x: -30 * u, y: H * .03, angle: .16, len: 180 * u, width: 14 * u, depth: 5, spread: .58, droop: .13, swayAt: [1, 3], clusterR: [28 * u, 48 * u], clusterN: 48, along: 2, flower: [9 * u, 15 * u], lanterns: 1 },
+      { seed: 404, x: W * .5, y: -60 * u, angle: Math.PI * .55, len: 120 * u, width: 12 * u, depth: 4, spread: .7, droop: .2, swayAt: [1, 2], clusterR: [26 * u, 44 * u], clusterN: 44, along: 1, flower: [9 * u, 15 * u], lanterns: 1 },
     ];
-    [[-.03, .22], [.1, .1], [.21, -.05], [.8, .05], [.9, -.1], [1.03, -.22]].forEach(([fx, lean], i) => specs.push({
-      seed: 300 + i * 17, x: W * fx, y: H + 40 * u, angle: -Math.PI / 2 + lean, len: 96 * u, width: 30 * u, depth: 5, spread: .62, droop: .03,
-      swayAt: [2], clusterR: [30 * u, 50 * u], clusterN: 30, bloomFrom: 2, flower: [9 * u, 15 * u], lanterns: 0, bottom: true,
+    [[-.03, .22], [.09, .1], [.19, -.05], [.81, .05], [.91, -.1], [1.03, -.22]].forEach(([fx, lean], i) => specs.push({
+      seed: 300 + i * 17, x: W * fx, y: H + 40 * u, angle: -Math.PI / 2 + lean, len: 92 * u, width: 17 * u, depth: 5, spread: .66, droop: .03,
+      swayAt: [2], clusterR: [38 * u, 62 * u], clusterN: 62, along: 2, flower: [10 * u, 16 * u], lanterns: 0, bottom: true,
     }));
     return specs;
   }
@@ -379,7 +284,8 @@
       const nx = -Math.sin(ang), ny = Math.cos(ang), bow = (R() - .5) * len * .22;
       g.ops.push({ t: 'b', x0: x, y0: y, cx: lerp(x, ex, .5) + nx * bow, cy: lerp(y, ey, .5) + ny * bow, x1: ex, y1: ey, w0: wid, w1: wid * .66 });
       if (g.ops.length === 1) g.dir = Math.sin(a1) > 0 ? -1 : 1;
-      if (depth >= spec.bloomFrom && R() < .55) g.ops.push({ t: 'c', x: lerp(x, ex, .5 + R() * .3), y: lerp(y, ey, .5 + R() * .3), r: lerp(spec.clusterR[0], spec.clusterR[1], R()) * .7, n: spec.clusterN * .6 | 0, seed: R() * 1e9 | 0 });
+      /* blossom all along the limbs, so the wood mostly hides behind flowers */
+      if (depth >= 1) for (let k = 0; k < spec.along; k++) g.ops.push({ t: 'c', x: lerp(x, ex, .25 + R() * .6), y: lerp(y, ey, .25 + R() * .6), r: lerp(spec.clusterR[0], spec.clusterR[1], R()) * .8, n: spec.clusterN * .7 | 0, seed: R() * 1e9 | 0 });
       if (depth >= spec.depth || len < 8) {
         g.ops.push({ t: 'c', x: ex, y: ey, r: lerp(spec.clusterR[0], spec.clusterR[1], R()), n: spec.clusterN, seed: R() * 1e9 | 0 });
         if (lanternsLeft > 0 && R() < .14) { lanternsLeft--; g.ops.push({ t: 'l', x: ex, y: ey, len: (30 + R() * 50) * (spec.len / 250), s: 11 * (spec.width / 40) + 6 }); }
@@ -438,20 +344,25 @@
   function drawCluster(g, op, P, sp, spec) {
     const R = rng(op.seed);
     g.strokeStyle = P.bark; g.lineCap = 'round';
-    for (let k = 0; k < 4; k++) {
-      const a = R() * TAU, l = op.r * (.4 + R() * .55);
-      g.lineWidth = .7 + R() * 1.1;
+    for (let k = 0; k < 2; k++) {
+      const a = R() * TAU, l = op.r * (.3 + R() * .4);
+      g.lineWidth = .6 + R() * .8;
       g.beginPath(); g.moveTo(op.x, op.y); g.lineTo(op.x + Math.cos(a) * l, op.y + Math.sin(a) * l); g.stroke();
     }
     const N = op.n;
+    /* lay flowers out first, then paint the shaded underside before the sunlit top so each cluster has volume */
+    const fl = [];
     for (let i = 0; i < N; i++) {
-      const back = i < N * .42;
       const a = R() * TAU, rr = Math.sqrt(R()) * op.r;
-      const fx = op.x + Math.cos(a) * rr * 1.3, fy = op.y + Math.sin(a) * rr;
-      const s = lerp(spec.flower[0], spec.flower[1], Math.pow(R(), .8)) * (back ? .82 : 1) * (R() < .1 ? .6 : 1);
-      const set = back ? sp.back : sp.front, spr = set[(R() * set.length) | 0];
-      g.save(); g.translate(fx, fy); g.rotate(R() * TAU); g.drawImage(spr, -s / 2, -s / 2, s, s); g.restore();
-      if (R() < .07) { g.fillStyle = P.bud; g.beginPath(); g.arc(fx + (R() - .5) * s, fy + (R() - .5) * s, s * .16, 0, TAU); g.fill(); }
+      fl.push([op.x + Math.cos(a) * rr * 1.3, op.y + Math.sin(a) * rr, R(), R(), R(), R(), R(), R()]);
+    }
+    fl.sort((p1, p2) => p2[1] - p1[1]);
+    for (const [fx, fy, r1, r2, r3, r4, r5, r6] of fl) {
+      const back = (fy - op.y) / op.r > r6 * 1.3 - .45;
+      const s = lerp(spec.flower[0], spec.flower[1], Math.pow(r1, .8)) * (back ? .85 : 1) * (r2 < .1 ? .6 : 1);
+      const set = back ? sp.back : sp.front, spr = set[(r3 * set.length) | 0];
+      g.save(); g.translate(fx, fy); g.rotate(r4 * TAU); g.drawImage(spr, -s / 2, -s / 2, s, s); g.restore();
+      if (r5 < .07) { g.fillStyle = P.bud; g.beginPath(); g.arc(fx + (r2 - .5) * s, fy + (r6 - .5) * s, s * .16, 0, TAU); g.fill(); }
     }
   }
   function drawLantern(g, op) {
@@ -502,25 +413,22 @@
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = Math.round(W * q); canvas.height = Math.round(H * q);
     ctx.setTransform(q, 0, 0, q, 0, 0);
-    const L = layout(W, H), profile = makeProfile(L);
+    const L = layout(W, H);
     const specs = treeSpecs(W, H), trees = specs.map(sp => ({ spec: sp, root: buildTree(sp) }));
     const blooms = []; for (const t of trees) bloomPoints(t.root, 0, 0, blooms);
     const R = rng(3);
     const stars = Array.from({ length: 260 }, () => ({ x: R() * W, y: Math.pow(R(), 1.4) * L.horizon * .85, r: Math.pow(R(), 3) * 1.5 + .35, a: .3 + R() * .7, tw: .5 + R() * 2, ph: R() * TAU }))
-      .filter(s => s.y < profile(s.x) - 4 && Math.hypot(s.x - L.moonX, s.y - L.moonY) > H * .07);
+      .filter(s => s.y < L.horizon - H * .1 && Math.hypot(s.x - L.moonX, s.y - L.moonY) > H * .07);
     const clouds = Array.from({ length: 6 }, (_, i) => ({ x: R() * W * 1.2 - W * .1, y: H * (.05 + R() * .26), w: W * (.16 + R() * .14), h: H * (.07 + R() * .05), v: 3 + R() * 6, seed: 500 + i, a: .75 + R() * .25 }));
-    S = { L, profile, trees, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8, glitter: [], glitterT: 0 };
+    S = { L, trees, blooms, stars, clouds, petals: S ? S.petals : [], birds: [], nextBirds: 8 };
     builtKey = '';
   }
   function buildLook() {
     const P = PAL[opts.mode], n = night(), L = S.L;
     S.P = P; S.sp = makeSprites(P);
     S.sky = paintSky(L, P, q, n);
-    S.mtn = paintMountain(L, P, q, S.profile);
-    S.shore = paintShore(L, P, q, n);
-    S.lake = paintLake(L, P, Math.min(q, 1.25), [S.sky, S.mtn, S.shore]);
+    S.land = paintLand(L, P, q, n, S.sp);
     for (const c of S.clouds) c.sprite = cloudSprite(c.w, c.h, P, c.seed, false);
-    S.wisp = cloudSprite(W * .34, H * .08, P, 77, true);
     S.mist = cloudSprite(W * .8, H * .09, P, 91, true);
     for (const t of S.trees) renderGroup(t.root, t.spec, P, S.sp, q, n && opts.lanterns);
     builtKey = `${W}x${H}:${opts.mode}:${n && opts.lanterns}`;
@@ -590,36 +498,6 @@
     else { g.globalAlpha = p.z < .6 ? .75 : 1; g.drawImage((c >= 0 ? sp.petal : sp.petalBack)[p.k % sp.petal.length], -p.s / 2, -p.s / 2, p.s, p.s); }
     g.restore();
   }
-  function drawLake(g, t) {
-    const L = S.L, lk = S.lake, wh = lk.wh, qq = lk.refl.width / W;
-    g.drawImage(lk.water, 0, L.waterY, W, wh);
-    const strip = 3;
-    for (let yy = 0; yy < wh; yy += strip) {
-      const k = yy / wh, amp = .6 + 6 * k;
-      const dx = (Math.sin(yy * .11 - t * 1.6) + .6 * Math.sin(yy * .037 + t * .7)) * amp;
-      g.drawImage(lk.refl, 0, yy * qq, lk.refl.width, (strip + 1) * qq, dx, L.waterY + yy, W, strip + 1);
-    }
-    const off = (t * 7) % W;
-    g.globalAlpha = .55 + .25 * Math.sin(t * .9);
-    g.drawImage(lk.ripples, -off, L.waterY, W, wh); g.drawImage(lk.ripples, W - off, L.waterY, W, wh);
-    g.globalAlpha = .45 + .25 * Math.sin(t * .9 + 2);
-    g.drawImage(lk.ripples, off * .6 - W, L.waterY + 2, W, wh); g.drawImage(lk.ripples, off * .6, L.waterY + 2, W, wh);
-    g.globalAlpha = 1;
-    /* glitter on the water: moonlight at night, sun glints by day */
-    S.glitterT -= 1 / 60;
-    if (S.glitterT <= 0) {
-      S.glitterT = .12;
-      const n = night(), cx = n ? L.moonX : W * .32;
-      S.glitter = Array.from({ length: n ? 90 : 40 }, () => {
-        const k = Math.pow(Math.random(), 1.2), y = L.waterY + k * wh;
-        const spread = (n ? 14 : 60) + k * (n ? 90 : 260);
-        return [cx + (Math.random() + Math.random() + Math.random() - 1.5) * spread, y, 3 + k * 26 * Math.random(), Math.random() * (n ? .85 : .5)];
-      });
-    }
-    const P = S.P;
-    for (const [x, y, l, a] of S.glitter) { g.fillStyle = `rgba(${P.glint},${a.toFixed(3)})`; g.fillRect(x - l / 2, y, l, 1.1); }
-  }
-
   function frameDraw(t) {
     const g = ctx, L = S.L, n = night();
     g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
@@ -630,17 +508,13 @@
     }
     if (opts.clouds) for (const c of S.clouds) { g.globalAlpha = c.a * (n ? .8 : 1); g.drawImage(c.sprite, c.x, c.y, c.w, c.h); }
     g.globalAlpha = 1;
-    g.drawImage(S.mtn, 0, 0, W, H);
     if (opts.clouds) {
-      const ww = W * .34, wx = L.peakX - ww * .3 + Math.sin(t * .045) * W * .035, wy = L.peakY + H * .015;
-      g.globalAlpha = .6 + .2 * Math.sin(t * .2); g.drawImage(S.wisp, wx, wy, ww, H * .08);
       const mw = W * .8, mx = ((t * 6) % (W + mw)) - mw;
       g.globalAlpha = .5; g.drawImage(S.mist, mx, L.horizon - H * .075, mw, H * .09);
       g.globalAlpha = .38; g.drawImage(S.mist, W - mx - mw * .6, L.horizon - H * .05, mw, H * .08);
       g.globalAlpha = 1;
     }
-    g.drawImage(S.shore, 0, 0, W, H);
-    drawLake(g, t);
+    g.drawImage(S.land, 0, 0, W, H);
     if (!n && S.birds.length) {
       g.strokeStyle = 'rgba(40,40,60,.55)'; g.lineWidth = 1.2; g.lineCap = 'round';
       for (const b of S.birds) {

@@ -61,21 +61,22 @@
   color-scheme: dark;
 }
 
-/* Cherry blossom scene (js/sakura.js). By day: light frosted glass and dark text; by night: dark glass. */
+/* Cherry blossom scene (js/sakura.js). The whole site turns sakura: blush-pink glass, plum text and rose accents by day;
+   deep plum glass with pale pink text by night. */
 :root[data-scene="sakura"][data-tone="day"] {
-  --bg: #eef0f8;
-  --surface: rgb(255 255 255 / .55); --surface-2: rgb(255 255 255 / .5); --surface-3: rgb(60 40 80 / .08);
-  --line: rgb(70 45 90 / .1); --line-strong: rgb(70 45 90 / .2); --panel-line: rgb(255 255 255 / .6);
-  --fg: #1e1628; --fg-2: rgb(40 28 56 / .64); --fg-3: rgb(40 28 56 / .4); --accent: #c23c70; --danger: #cf2f3a;
-  --shadow-pop: 0 1px 2px rgb(60 30 70 / .08), 0 16px 44px rgb(60 30 70 / .18); --scrim: rgb(40 20 50 / .16);
+  --bg: #fbeef3;
+  --surface: rgb(255 244 248 / .62); --surface-2: rgb(255 236 243 / .62); --surface-3: rgb(214 92 140 / .12);
+  --line: rgb(190 80 125 / .14); --line-strong: rgb(190 80 125 / .26); --panel-line: rgb(255 214 229 / .85);
+  --fg: #4a1832; --fg-2: rgb(122 48 86 / .78); --fg-3: rgb(122 48 86 / .48); --accent: #d6457f; --danger: #c8283f;
+  --shadow-pop: 0 1px 2px rgb(140 40 90 / .08), 0 16px 44px rgb(140 40 90 / .2); --scrim: rgb(90 20 55 / .16);
   color-scheme: light;
 }
 :root[data-scene="sakura"][data-tone="night"] {
-  --bg: #0b0d1d;
-  --surface: rgb(16 14 34 / .45); --surface-2: rgb(255 255 255 / .07); --surface-3: rgb(255 255 255 / .12);
-  --line: rgb(255 255 255 / .08); --line-strong: rgb(255 255 255 / .17); --panel-line: rgb(255 255 255 / .09);
-  --fg: #f4f1f8; --fg-2: rgb(236 230 245 / .64); --fg-3: rgb(236 230 245 / .36); --accent: #f3b5cf; --danger: #ff6b7a;
-  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 0 0 / .55); --scrim: rgb(0 0 0 / .35);
+  --bg: #1c0d1c;
+  --surface: rgb(46 18 44 / .5); --surface-2: rgb(255 190 220 / .08); --surface-3: rgb(255 170 210 / .14);
+  --line: rgb(255 180 215 / .1); --line-strong: rgb(255 180 215 / .2); --panel-line: rgb(255 180 215 / .14);
+  --fg: #ffeef5; --fg-2: rgb(250 200 222 / .72); --fg-3: rgb(250 200 222 / .42); --accent: #f59bc1; --danger: #ff6b82;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(20 0 15 / .6); --scrim: rgb(20 0 15 / .4);
   color-scheme: dark;
 }
 
@@ -937,24 +938,29 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 .set-group .range[data-scene-range] { width: 160px; }
 .set-row .hint { flex: 1; line-height: 1.4; }
 
-/* Cherry blossom by day: light glass, and a soft white halo instead of a dark shadow behind text */
-:root[data-tone="day"] .pop, :root[data-tone="day"] .menu, :root[data-tone="day"] .search-results { background: rgb(255 255 255 / .8); }
-:root[data-tone="day"] .modal { background: rgb(255 255 255 / .86); }
-:root[data-tone="day"] .drawer { background: rgb(248 246 252 / .78); }
-:root[data-tone="day"] .topbar, :root[data-tone="day"] .board-head, :root[data-tone="day"] .board, :root[data-tone="day"] .today-strip, :root[data-tone="day"] .stage { text-shadow: 0 0 10px rgb(255 255 255 / .9), 0 0 2px rgb(255 255 255 / .8); }
+/* Cherry blossom: pop-ups, menus, the settings drawer and the modal take the same sakura glass */
+:root[data-tone="day"] .pop, :root[data-tone="day"] .menu, :root[data-tone="day"] .search-results { background: rgb(255 242 247 / .86); }
+:root[data-tone="day"] .modal { background: rgb(255 244 248 / .9); }
+:root[data-tone="day"] .drawer { background: rgb(255 238 245 / .82); }
+:root[data-tone="day"] .topbar, :root[data-tone="day"] .board-head, :root[data-tone="day"] .board, :root[data-tone="day"] .today-strip, :root[data-tone="day"] .stage { text-shadow: 0 0 10px rgb(255 240 246 / .95), 0 0 2px rgb(255 240 246 / .85); }
 :root[data-tone="day"] .toggle input:checked + .tr::after { background: #fff; }
+:root[data-scene="sakura"][data-tone="night"] .pop, :root[data-scene="sakura"][data-tone="night"] .menu, :root[data-scene="sakura"][data-tone="night"] .search-results { background: rgb(42 16 40 / .82); }
+:root[data-scene="sakura"][data-tone="night"] .modal { background: rgb(42 16 40 / .88); }
+:root[data-scene="sakura"][data-tone="night"] .drawer { background: rgb(34 12 32 / .74); }
+:root[data-scene="sakura"][data-tone="night"] .topbar, :root[data-scene="sakura"][data-tone="night"] .board-head, :root[data-scene="sakura"][data-tone="night"] .board, :root[data-scene="sakura"][data-tone="night"] .today-strip, :root[data-scene="sakura"][data-tone="night"] .stage { text-shadow: 0 1px 10px rgb(30 0 20 / .7); }
+:root[data-scene="sakura"] ::selection { background: rgb(240 120 170 / .3); }
 
 .sakura-prev {
   background:
-    radial-gradient(circle at 100% 0%, #f7c9d8 0 18%, #f3b2c8 24%, transparent 36%),
-    radial-gradient(circle at 0% 100%, #f9d3e0 0 16%, #f0a9c1 22%, transparent 32%),
-    radial-gradient(circle at 100% 100%, #f9d3e0 0 14%, #f0a9c1 20%, transparent 30%),
-    linear-gradient(to bottom, transparent 72%, #6e93c6 72%, #3d6aa3),
+    radial-gradient(circle at 100% 0%, #f7c9d8 0 22%, #f3b2c8 30%, transparent 42%),
+    radial-gradient(circle at 0% 0%, #fbd6e2 0 14%, #f3b2c8 20%, transparent 30%),
+    radial-gradient(circle at 0% 100%, #f9d3e0 0 20%, #f0a9c1 27%, transparent 38%),
+    radial-gradient(circle at 100% 100%, #f9d3e0 0 20%, #f0a9c1 27%, transparent 38%),
+    radial-gradient(ellipse 30% 14% at 50% 78%, #f6c3d4 60%, transparent 62%),
+    linear-gradient(to bottom, transparent 82%, #b6cfa0 82%),
+    linear-gradient(to bottom, transparent 66%, #c3cbe4 66%),
     linear-gradient(#3f75c4, #a9c4ec 60%, #f1dfe8);
 }
-.sakura-prev b { position: absolute; left: 12%; right: 22%; top: 28%; bottom: 28%;
-  background: linear-gradient(#fff 0 34%, #8b93b7 35%, #a9b6d0);
-  clip-path: polygon(0 100%, 30% 22%, 40% 0, 52% 0, 62% 20%, 100% 100%); }
 .sakura-prev i { position: absolute; width: 5px; height: 4px; border-radius: 60% 60% 50% 50%; background: #f7b9cd; left: var(--x); top: var(--y); animation: prevPetal 5s var(--d) infinite linear; opacity: .95; }
 .sakura-prev i:nth-child(2) { --x: 30%; --y: -10%; --d: 0s; }
 .sakura-prev i:nth-child(3) { --x: 55%; --y: -10%; --d: -1.2s; }
