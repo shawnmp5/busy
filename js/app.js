@@ -51,55 +51,53 @@ const MON3 = MONTHS.map(m => m.slice(0, 3));
 const DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DOW3 = DOW.map(d => d.slice(0, 3));
 const NOTE_COLORS = [
-  { id: 'lemon', name: 'Lemon', c: '#ffe57a' },
-  { id: 'peach', name: 'Peach', c: '#ffc08f' },
-  { id: 'rose', name: 'Rose', c: '#ffacc9' },
-  { id: 'lilac', name: 'Lilac', c: '#d4bfff' },
-  { id: 'sky', name: 'Sky', c: '#a8d7ff' },
-  { id: 'mint', name: 'Mint', c: '#aeecca' },
-  { id: 'lime', name: 'Lime', c: '#dcef8a' },
-  { id: 'cloud', name: 'Cloud', c: '#e8ebf2' },
+  { id: 'paper', name: 'Paper', c: '#ffffff' },
+  { id: 'mist', name: 'Mist', c: '#f2f2f2' },
+  { id: 'linen', name: 'Linen', c: '#f3f0e9' },
+  { id: 'stone', name: 'Stone', c: '#e4e4e4' },
+  { id: 'silver', name: 'Silver', c: '#c8c8c8' },
+  { id: 'graphite', name: 'Graphite', c: '#48484a' },
+  { id: 'ink', name: 'Ink', c: '#111111' },
 ];
+/* Paper colours from before the monochrome redesign, mapped to their nearest new shade */
+const OLD_NOTE_COLORS = { lemon: 'paper', peach: 'linen', rose: 'mist', lilac: 'mist', sky: 'mist', mint: 'stone', lime: 'linen', cloud: 'stone' };
 const noteColor = id => (NOTE_COLORS.find(c => c.id === id) || NOTE_COLORS[0]).c;
-const EVENT_COLORS = ['#7c9cff', '#5cc8e0', '#3fbf8f', '#a8c94a', '#f2b45a', '#ff8a65', '#f06292', '#b388ff', '#8d99ae'];
-const ACCENTS = ['#8fa8ff', '#4a5fe0', '#5cc8e0', '#3fbf8f', '#9ccfa8', '#e6b17e', '#f2b45a', '#ff9e7a', '#f06292', '#d9577f', '#b388ff', '#c8b6ff'];
+const EVENT_COLORS = ['#111111', '#3a3a3c', '#636366', '#8e8e93', '#aeaeb2', '#c7c7cc'];
+const OLD_EVENT_COLORS = { '#7c9cff': '#111111', '#5cc8e0': '#3a3a3c', '#3fbf8f': '#aeaeb2', '#a8c94a': '#8e8e93', '#f2b45a': '#636366', '#ff8a65': '#8e8e93', '#f06292': '#3a3a3c', '#b388ff': '#636366', '#8d99ae': '#c7c7cc' };
+const ACCENTS = ['#48484a'];
 const MOODS = ['😊', '🤩', '😌', '🥱', '😤', '😢', '🤒', '🎉', '💪', '📚', '💼', '❤️'];
 const SKINS = [
+  { id: 'light', name: 'Light', bg: '#f5f5f5', sf: '#ffffff', ac: '#111111' },
+  { id: 'paper', name: 'Paper', bg: '#ffffff', sf: '#f2f2f2', ac: '#111111' },
   { id: 'auto', name: 'Auto' },
-  { id: 'aether', name: 'Aether', bg: '#040a1c', sf: '#0f1f45', ac: '#6fd3ff', g1: '#1e4fd6', g2: '#7a5a1c' },
-  { id: 'nocturne', name: 'Nocturne', bg: '#0c0d12', sf: '#1b1e28', ac: '#8fa8ff', g1: '#2f3fb0', g2: '#6a2fb0' },
-  { id: 'daylight', name: 'Daylight', bg: '#eef0f5', sf: '#ffffff', ac: '#4a5fe0', g1: '#c4cdff', g2: '#ffd3e6' },
-  { id: 'sakura', name: 'Sakura', bg: '#fbf1f4', sf: '#fffafb', ac: '#d9577f', g1: '#ffc4d6', g2: '#ffe1c4' },
-  { id: 'glacier', name: 'Glacier', bg: '#eaf2f7', sf: '#fbfdff', ac: '#1f7ad1', g1: '#bfe0ff', g2: '#ddd3ff' },
-  { id: 'moss', name: 'Moss', bg: '#0c120f', sf: '#19241e', ac: '#9ccfa8', g1: '#1d5a38', g2: '#4b5a1d' },
-  { id: 'dusk', name: 'Dusk', bg: '#130e19', sf: '#231b2e', ac: '#ff9e7a', g1: '#6a2c7a', g2: '#a8432f' },
-  { id: 'ocean', name: 'Ocean', bg: '#091118', sf: '#14222e', ac: '#5cc8e0', g1: '#0e4a6a', g2: '#0e6a5a' },
-  { id: 'mocha', name: 'Mocha', bg: '#14100d', sf: '#251e19', ac: '#e6b17e', g1: '#6a3d1d', g2: '#3b3819' },
-  { id: 'void', name: 'Void', bg: '#000000', sf: '#121214', ac: '#c8b6ff', g1: '#241a4a', g2: '#0f2a2a' },
+  { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
+  { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
 ];
+const HELVETICA = '"Helvetica Neue", Helvetica, Arial';
 const FONTS = [
-  { id: 'studio', name: 'Studio', display: '"Bricolage Grotesque"', body: '"Inter"', gf: null },
-  { id: 'editorial', name: 'Editorial', display: '"Playfair Display"', body: '"Source Sans 3"', gf: 'family=Playfair+Display:wght@400..900&family=Source+Sans+3:wght@400..700' },
-  { id: 'geometric', name: 'Geometric', display: '"Outfit"', body: '"Outfit"', gf: 'family=Outfit:wght@300..800' },
-  { id: 'terminal', name: 'Terminal', display: '"Space Grotesk"', body: '"JetBrains Mono"', gf: 'family=Space+Grotesk:wght@400..700&family=JetBrains+Mono:wght@400..700' },
-  { id: 'soft', name: 'Soft', display: '"Nunito"', body: '"Nunito"', gf: 'family=Nunito:wght@400..900' },
+  { id: 'helvetica', name: 'Helvetica Neue', display: HELVETICA, body: HELVETICA, gf: null },
+  { id: 'system', name: 'System', display: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto', body: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto', gf: null },
+  { id: 'rounded', name: 'Rounded', display: `ui-rounded, "SF Pro Rounded", ${HELVETICA}`, body: `ui-rounded, "SF Pro Rounded", ${HELVETICA}`, gf: null },
+  { id: 'serif', name: 'Serif', display: '"New York", "Iowan Old Style", Georgia, "Times New Roman"', body: '"New York", "Iowan Old Style", Georgia, "Times New Roman"', gf: null },
+  { id: 'mono', name: 'Mono', display: 'ui-monospace, "SF Mono", Menlo, Consolas', body: 'ui-monospace, "SF Mono", Menlo, Consolas', gf: null },
 ];
 const NOTE_FONTS = [
-  { id: 'caveat', name: 'Caveat', family: '"Caveat"', size: 21, gf: null },
+  { id: 'clean', name: 'Clean', family: 'var(--font-body)', size: 14, gf: null },
+  { id: 'caveat', name: 'Caveat', family: '"Caveat"', size: 21, gf: 'family=Caveat:wght@500..700' },
   { id: 'kalam', name: 'Kalam', family: '"Kalam"', size: 16, gf: 'family=Kalam:wght@400;700' },
   { id: 'patrick', name: 'Patrick Hand', family: '"Patrick Hand"', size: 18, gf: 'family=Patrick+Hand' },
   { id: 'gochi', name: 'Gochi Hand', family: '"Gochi Hand"', size: 18, gf: 'family=Gochi+Hand' },
-  { id: 'clean', name: 'Clean', family: 'var(--font-body)', size: 14, gf: null },
 ];
+const attrFont = f => f.replace(/"/g, "'");
 const REMINDERS = [[null, 'No reminder'], [0, 'At start time'], [5, '5 minutes before'], [10, '10 minutes before'], [15, '15 minutes before'], [30, '30 minutes before'], [60, '1 hour before'], [120, '2 hours before'], [1440, '1 day before']];
 const REPEATS = [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays', 'Every weekday (Mon–Fri)'], ['weekly', 'Every week'], ['biweekly', 'Every 2 weeks'], ['monthly', 'Every month'], ['yearly', 'Every year']];
 const DEFAULT_SETTINGS = {
-  skin: 'auto', accent: null, font: 'studio', noteFont: 'caveat',
+  skin: 'light', accent: null, font: 'helvetica', noteFont: 'clean',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
-  ambient: true, grain: true, glass: true, density: 'comfortable', radius: 14,
+  ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
-  sidebarOpen: true, boardOpen: true, view: 'month',
+  sidebarOpen: true, boardOpen: true, view: 'month', design: 2,
 };
 const KEY = 'chronos.v1';
 
@@ -111,10 +109,10 @@ function defaultState() {
     v: 1,
     settings: { ...DEFAULT_SETTINGS },
     calendars: [
-      { id: 'personal', name: 'Personal', color: '#7c9cff', visible: true },
-      { id: 'work', name: 'Work', color: '#f2b45a', visible: true },
-      { id: 'fitness', name: 'Fitness', color: '#3fbf8f', visible: true },
-      { id: 'birthdays', name: 'Birthdays', color: '#f06292', visible: true },
+      { id: 'personal', name: 'Personal', color: '#111111', visible: true },
+      { id: 'work', name: 'Work', color: '#636366', visible: true },
+      { id: 'fitness', name: 'Fitness', color: '#aeaeb2', visible: true },
+      { id: 'birthdays', name: 'Birthdays', color: '#3a3a3c', visible: true },
     ],
     events: [], notes: [], moods: {}, fired: {}, snoozes: [],
   };
@@ -128,12 +126,12 @@ function seed(s) {
     { id: uid(), title: 'Deep work block', date: k(0), start: '13:00', end: '15:00', allDay: false, calendarId: 'work', color: null, location: '', description: ex, reminder: null, repeat: 'none', until: null, exceptions: [] },
     { id: uid(), title: 'Team sync', date: k(1), start: '10:00', end: '10:30', allDay: false, calendarId: 'work', color: null, location: 'Video call', description: ex, reminder: 10, repeat: 'weekly', until: null, exceptions: [] },
     { id: uid(), title: 'Dinner with friends', date: k(3), start: '19:00', end: '21:00', allDay: false, calendarId: 'personal', color: null, location: 'That ramen place', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
-    { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#5cc8e0', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
+    { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#8e8e93', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
   );
   s.notes.push(
-    { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'lemon', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
-    { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mint', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
-    { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'rose', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
+    { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'paper', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
+    { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mist', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
+    { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'linen', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
   );
   s.moods[k(0)] = '😊';
 }
@@ -146,6 +144,15 @@ function migrate(s) {
   for (const key of ['moods', 'fired']) if (!out[key] || typeof out[key] !== 'object') out[key] = {};
   out.notes.forEach(n => { n.items = n.items || []; n.mode = n.mode || 'text'; if (n.x > 1) n.x = 0.5; });
   out.events.forEach(e => { e.exceptions = e.exceptions || []; e.repeat = e.repeat || 'none'; });
+  if (((s.settings && s.settings.design) || 1) < 2) {
+    /* One-time move to the monochrome design: reset appearance, turn default colours into grays */
+    Object.assign(out.settings, { skin: 'light', accent: null, font: 'helvetica', noteFont: 'clean', radius: 14, ambient: false, grain: false, glass: false, design: 2 });
+    const mono = c => (c && OLD_EVENT_COLORS[String(c).toLowerCase()]) || c;
+    out.calendars.forEach(c => { c.color = mono(c.color); });
+    out.events.forEach(e => { if (e.color) e.color = mono(e.color); });
+  }
+  out.notes.forEach(n => { if (OLD_NOTE_COLORS[n.color]) n.color = OLD_NOTE_COLORS[n.color]; });
+  if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
   const cutoff = Date.now() - 14 * 864e5;
   for (const k in out.fired) if (out.fired[k] < cutoff) delete out.fired[k];
   return out;
@@ -160,6 +167,7 @@ function load() {
   return s;
 }
 let state = load();
+try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ }
 const S = () => state.settings;
 let saveTimer;
 function save() {
@@ -198,7 +206,17 @@ const ui = {
    ============================================================ */
 const calById = id => state.calendars.find(c => c.id === id);
 const calVisible = id => { const c = calById(id); return c ? c.visible : true; };
-const evColor = ev => ev.color || calById(ev.calendarId)?.color || '#7c9cff';
+/* Grays are stored as picked; on a dark theme they are shown with their lightness flipped so black stays visible */
+let darkUI = false;
+function paint(c) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(String(c || '').trim());
+  if (!darkUI || !m) return c;
+  const n = parseInt(m[1], 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (Math.max(r, g, b) - Math.min(r, g, b) > 14) return c;
+  const v = 255 - Math.round((r + g + b) / 3);
+  return '#' + [v, v, v].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+const evColor = ev => paint(ev.color || calById(ev.calendarId)?.color || '#111111');
 const findEvent = id => state.events.find(e => e.id === id);
 const findNote = id => state.notes.find(n => n.id === id);
 
@@ -328,9 +346,6 @@ function ensureFont(gf) {
 function applySettings() {
   const s = S(), root = document.documentElement;
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
-  root.classList.toggle('glass', !!s.glass);
-  root.classList.toggle('no-ambient', !s.ambient);
-  root.classList.toggle('has-grain', !!s.grain);
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
   root.classList.toggle('ev-outline', s.eventStyle === 'outline');
@@ -346,11 +361,15 @@ function applySettings() {
   ensureFont(nf.gf);
   root.style.setProperty('--font-note', `${nf.family}, "Segoe Print", cursive`);
   root.style.setProperty('--note-size', nf.size + 'px');
+  const bg = getComputedStyle(root).getPropertyValue('--bg').trim() || '#f5f5f5';
+  darkUI = readable(bg) === '#ffffff';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = bg;
   const app = $('#app');
   app.classList.toggle('sb-closed', !s.sidebarOpen);
   app.classList.toggle('bd-closed', !s.boardOpen);
 }
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { applySettings(); });
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
 /* ============================================================
    Rendering — shell
@@ -458,7 +477,7 @@ function renderMonth() {
           <button class="daynum" data-goto-day="${key}" aria-label="${fmtDayLong(key)}">${d.getDate() === 1 ? `<span class="mon">${MON3[d.getMonth()]}</span>` : ''}${d.getDate()}</button>
           ${mood ? `<span class="mood" title="Mood">${mood}</span>` : ''}
           <div class="cell-actions">
-            <button data-quick-note="${key}" title="Add sticky note" aria-label="Add sticky note">${icon('sticky')}</button>
+            <button data-quick-note="${key}" title="Add note" aria-label="Add note">${icon('sticky')}</button>
             <button data-quick-event="${key}" title="Add event" aria-label="Add event">${icon('plus')}</button>
           </div>
         </div>
@@ -543,7 +562,7 @@ function renderTimeGrid(days) {
     return `<div class="tg-dh${k === tk ? ' today' : ''}${k === ui.selected ? ' selected' : ''}" data-date="${k}">
       <span class="dow">${DOW3[d.getDay()]}</span>
       <button class="dnum" data-goto-day="${k}" aria-label="${fmtDayLong(k)}">${d.getDate()}</button>
-      <div class="dh-extra">${mood ? `<span class="mood">${mood}</span>` : ''}${notes.length ? `<button class="dh-notes" data-open-board="${k}" title="${notes.length} sticky note${notes.length > 1 ? 's' : ''}">${notes.slice(0, 3).map(n => `<span class="mini-note" style="--nc:${noteColor(n.color)};--rot:${n.rot * 2}deg"></span>`).join('')}${notes.length}</button>` : ''}</div>
+      <div class="dh-extra">${mood ? `<span class="mood">${mood}</span>` : ''}${notes.length ? `<button class="dh-notes" data-open-board="${k}" title="${notes.length} note${notes.length > 1 ? 's' : ''}">${notes.slice(0, 3).map(n => `<span class="mini-note" style="--nc:${noteColor(n.color)};--rot:${n.rot * 2}deg"></span>`).join('')}${notes.length}</button>` : ''}</div>
     </div>`;
   }).join('');
   const allday = keys.map(k => {
@@ -729,20 +748,31 @@ function renderSidebar() {
 }
 function renderNowCard() {
   const now = new Date();
-  const h = now.getHours();
+  const h = now.getHours(), mi = now.getMinutes();
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
   const tk = todayKey();
   const evs = eventsOn(tk).length, notes = notesOn(tk).length;
-  const time = S().hour12 ? `${h % 12 || 12}:${pad(now.getMinutes())}<small>${h < 12 ? 'AM' : 'PM'}</small>` : `${pad(h)}:${pad(now.getMinutes())}`;
-  const left = 24 * 60 - (h * 60 + now.getMinutes());
+  const time = S().hour12 ? `${h % 12 || 12}:${pad(mi)} ${h < 12 ? 'AM' : 'PM'}` : `${pad(h)}:${pad(mi)}`;
+  const mins = h * 60 + mi, left = 1440 - mins;
+  const leftTxt = `${Math.floor(left / 60)}h ${left % 60}m left`;
+  const dots = Array.from({ length: 24 }, (_, i) => `<i class="${i < h ? 'on' : i === h ? 'now' : ''}"></i>`).join('');
   $('#now-card').innerHTML = `
     <div class="now-greet">${greet}</div>
-    <div class="now-time">${time}</div>
-    <div class="now-date">${fmtDayLong(tk)}</div>
+    <div class="w-tiles">
+      <button class="w-tile" data-goto-day="${tk}" aria-label="Open today, ${fmtDayLong(tk)}">
+        <span class="w-head"><span>${DOW3[now.getDay()]} <span class="muted">${MON3[now.getMonth()]}</span></span></span>
+        <span class="w-big">${now.getDate()}</span>
+        <span class="w-foot">${time}</span>
+      </button>
+      <div class="w-tile" title="Time left today: ${leftTxt.replace(' left', '')}">
+        <span class="w-head"><span>Day</span><span class="muted">${Math.round(mins / 1440 * 100)}%</span></span>
+        <span class="w-dots" aria-hidden="true">${dots}</span>
+        <span class="w-foot">${leftTxt}</span>
+      </div>
+    </div>
     <div class="now-stats">
-      <button class="chip" data-goto-day="${tk}"><span class="dot"></span>${evs} event${evs === 1 ? '' : 's'}</button>
-      <button class="chip" data-open-board="${tk}"><span class="dot" style="background:#f5c542;border-radius:2px"></span>${notes} note${notes === 1 ? '' : 's'}</button>
-      <span class="chip" title="Time left today">${Math.floor(left / 60)}h ${left % 60}m left</span>
+      <button data-goto-day="${tk}">${evs} event${evs === 1 ? '' : 's'}</button><span>·</span>
+      <button data-open-board="${tk}">${notes} note${notes === 1 ? '' : 's'}</button><span>today</span>
     </div>`;
 }
 function renderMini() {
@@ -799,11 +829,11 @@ function renderUpNext() {
 }
 function renderCalendars() {
   $('#cal-list').innerHTML = state.calendars.map(c => `
-    <li class="cal-row${c.visible ? ' on' : ''}" style="--c:${c.color}">
+    <li class="cal-row${c.visible ? ' on' : ''}" style="--c:${paint(c.color)};--on-c:${readable(paint(c.color))}">
       <button class="cal-toggle" data-cal-toggle="${c.id}" aria-pressed="${c.visible}"><span class="cbox">${icon('check')}</span><span>${esc(c.name)}</span></button>
       <button class="icon-btn sm" data-cal-edit="${c.id}" aria-label="Edit ${esc(c.name)}">${icon('pencil')}</button>
     </li>`).join('') + `
-    <li class="cal-row${S().showHolidays ? ' on' : ''}" style="--c:#3fae7f">
+    <li class="cal-row${S().showHolidays ? ' on' : ''}" style="--c:#8e8e93">
       <button class="cal-toggle" data-cal-toggle="__holidays" aria-pressed="${S().showHolidays}"><span class="cbox">${icon('check')}</span><span>US holidays</span></button>
     </li>`;
 }
@@ -832,7 +862,7 @@ function renderBoard() {
   board.innerHTML = `
     <div class="board-head">
       <div class="bh-num">${d.getDate()}</div>
-      <div class="bh-text"><span class="bh-dow">${DOW[d.getDay()]}</span><span class="bh-my">${MONTHS[d.getMonth()]} ${d.getFullYear()}</span><span class="bh-rel">${relDay(key)}</span></div>
+      <div class="bh-text"><span class="bh-dow">${DOW[d.getDay()]}</span><span class="bh-my">${MONTHS[d.getMonth()]} ${d.getFullYear()} · ${relDay(key)}</span></div>
       <div class="bh-actions">
         <button class="icon-btn sm" data-board-shift="-1" aria-label="Previous day" title="Previous day">${icon('left')}</button>
         <button class="icon-btn sm" data-board-shift="1" aria-label="Next day" title="Next day">${icon('right')}</button>
@@ -845,9 +875,9 @@ function renderBoard() {
       ${agenda ? `<ul class="agenda">${agenda}</ul>` : `<div class="board-empty">Nothing scheduled. <button data-quick-event="${key}">Add an event</button></div>`}
     </div>
     <div class="cork-wrap">
-      <div class="sec-title"><h3>Sticky notes</h3>${notes.length ? `<span class="count">${notes.length}</span>` : ''}<span class="sp"></span><button class="btn sm" data-quick-note="${key}">${icon('plus')}Note</button></div>
+      <div class="sec-title"><h3>Notes</h3>${notes.length ? `<span class="count">${notes.length}</span>` : ''}<span class="sp"></span><button class="btn sm" data-quick-note="${key}">${icon('plus')}Note</button></div>
       <div class="cork" data-cork="${key}" title="Double-click to add a note here">
-        ${notes.length ? '' : `<div class="cork-empty"><div><strong>A blank board</strong>Double-click anywhere to stick a note.</div></div>`}
+        ${notes.length ? '' : `<div class="cork-empty"><div><strong>No notes yet</strong>Double-click anywhere to add one.</div></div>`}
         ${notes.map(noteHTML).join('')}
       </div>
     </div>`;
@@ -870,7 +900,7 @@ function noteHTML(n) {
   const body = list
     ? `<ul class="note-list">${n.items.map((it, i) => `<li class="nl-item${it.done ? ' checked' : ''}" data-i="${i}"><button class="nl-check" data-na="check" aria-label="Toggle item">${icon('check')}</button><span contenteditable="true" spellcheck="false" data-item-edit>${esc(it.text)}</span><button class="nl-del" data-na="del-item" aria-label="Remove item">${icon('x')}</button></li>`).join('')}<li><input class="nl-add" placeholder="+ add item" aria-label="Add checklist item"></li></ul>${n.items.length ? `<div class="nl-progress"><i style="width:${doneCount / n.items.length * 100}%"></i></div>` : ''}`
     : `<textarea class="note-text" rows="3" placeholder="Write something…" aria-label="Note text">${esc(n.text)}</textarea>`;
-  return `<div class="note${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg;left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}">
+  return `<div class="note${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--ni:${readable(noteColor(n.color))};--rot:${n.rot}deg;left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}">
     <div class="note-tape"></div>
     <div class="note-bar" data-note-drag title="Drag to move. Drop on a calendar day to move it there.">
       ${icon('grip', 'grip')}
@@ -914,9 +944,7 @@ function maxZ(key) { return Math.max(0, ...notesOn(key).map(n => n.z || 0)); }
 function addNote(key, opts = {}) {
   snapshot();
   const spot = opts.x != null ? { x: opts.x, y: opts.y } : findSpot(key);
-  const last = state.notes[state.notes.length - 1];
-  const palette = NOTE_COLORS.slice(0, 7).map(c => c.id).filter(c => c !== last?.color);
-  const n = { id: uid(), date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || palette[Math.floor(Math.random() * palette.length)], x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
+  const n = { id: uid(), date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || 'paper', x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
   state.notes.push(n);
   save();
   ui.selected = key;
@@ -1048,7 +1076,7 @@ function showEventPopover(ev, occ, anchor) {
       ${cal ? `<div class="pop-row">${icon('cal')}<span>${esc(cal.name)}</span></div>` : ''}
       ${ev.description ? `<div class="pop-row">${icon('text')}<span class="desc">${esc(ev.description)}</span></div>` : ''}
     </div>
-    <div class="pop-foot"><span class="hint">Colour:</span><div class="swatches">${EVENT_COLORS.map(col => `<button class="swatch${ev.color === col ? ' on' : ''}" style="--sw:${col};width:20px;height:20px" data-recolor="${col}" aria-label="Colour ${col}"></button>`).join('')}</div></div>`, anchor);
+    <div class="pop-foot"><span class="hint">Colour:</span><div class="swatches">${EVENT_COLORS.map(col => `<button class="swatch${ev.color === col ? ' on' : ''}" style="--sw:${paint(col)};width:20px;height:20px" data-recolor="${col}" aria-label="Colour ${col}"></button>`).join('')}</div></div>`, anchor);
   el.dataset.ev = ev.id;
   el.dataset.occ = occ;
   el.addEventListener('click', e => {
@@ -1068,6 +1096,7 @@ function openMenu(items, point) {
     if (it === '-') return '<hr>';
     if (it.label && it.header) return `<div class="menu-label">${it.label}</div>`;
     if (it.html) return it.html;
+    if (!it.label) return '';
     return `<button data-mi="${it.id}" class="${it.danger ? 'danger' : ''}">${it.icon ? icon(it.icon) : ''}${it.label}${it.kbd ? `<kbd>${it.kbd}</kbd>` : ''}</button>`;
   }).join('');
   const el = openPop(html, point, 'menu');
@@ -1087,8 +1116,6 @@ function openMenu(items, point) {
 function openModal(html, cls = '') {
   const wrap = document.createElement('div');
   wrap.className = 'modal-wrap';
-  wrap.style.background = 'rgb(6 8 14 / .45)';
-  wrap.style.backdropFilter = 'blur(3px)';
   wrap.innerHTML = `<div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div>`;
   layer.appendChild(wrap);
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) wrap._close?.(); });
@@ -1137,11 +1164,11 @@ function openEditor(init = {}) {
           <div class="field tfield"><label for="ev-end">Ends</label><input class="input" type="time" id="ev-end" name="end" value="${d.end}" step="300"></div>
         </div>
         <label class="toggle"><input type="checkbox" id="ev-allday" name="allDay" ${d.allDay ? 'checked' : ''}><span class="tr"></span>All day</label>
-        <div class="field"><span class="field-label">Calendar</span><div class="pill-group" id="ev-cals">${state.calendars.map(c => `<button type="button" class="pill${c.id === d.calendarId ? ' on' : ''}" data-cal="${c.id}" style="--c:${c.color}"><span class="d"></span>${esc(c.name)}</button>`).join('')}</div></div>
+        <div class="field"><span class="field-label">Calendar</span><div class="pill-group" id="ev-cals">${state.calendars.map(c => `<button type="button" class="pill${c.id === d.calendarId ? ' on' : ''}" data-cal="${c.id}" style="--c:${paint(c.color)}"><span class="d"></span>${esc(c.name)}</button>`).join('')}</div></div>
         <div class="field"><span class="field-label">Colour</span><div class="swatches" id="ev-colors">
           <button type="button" class="pill${!d.color ? ' on' : ''}" data-color="" style="height:26px">Calendar colour</button>
-          ${EVENT_COLORS.map(c => `<button type="button" class="swatch${d.color === c ? ' on' : ''}" style="--sw:${c}" data-color="${c}" aria-label="Colour ${c}"></button>`).join('')}
-          <label class="swatch custom" title="Custom colour"><input type="color" id="ev-custom-color" value="${d.color || '#7c9cff'}" aria-label="Custom colour"></label>
+          ${EVENT_COLORS.map(c => `<button type="button" class="swatch${d.color === c ? ' on' : ''}" style="--sw:${paint(c)}" data-color="${c}" aria-label="Colour ${c}"></button>`).join('')}
+          <label class="swatch custom" title="Custom colour"><input type="color" id="ev-custom-color" value="${d.color || '#111111'}" aria-label="Custom colour"></label>
         </div></div>
         <div class="row">
           <div class="field"><label for="ev-repeat">Repeat</label><select class="input" id="ev-repeat" name="repeat">${REPEATS.map(([v, l]) => `<option value="${v}"${d.repeat === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
@@ -1255,7 +1282,7 @@ function openCalEditor(cal, anchor) {
   const el = openPop(`
     <div class="pop-body" style="padding-top:16px">
       <div class="field"><label for="cal-name">${isNew ? 'New calendar' : 'Calendar name'}</label><input class="input" id="cal-name" value="${esc(c.name)}" placeholder="e.g. School, Family, Side project"></div>
-      <div class="swatches">${EVENT_COLORS.map(col => `<button class="swatch${c.color === col ? ' on' : ''}" style="--sw:${col}" data-col="${col}" aria-label="Colour ${col}"></button>`).join('')}<label class="swatch custom"><input type="color" id="cal-color" value="${c.color}" aria-label="Custom colour"></label></div>
+      <div class="swatches">${EVENT_COLORS.map(col => `<button class="swatch${c.color === col ? ' on' : ''}" style="--sw:${paint(col)}" data-col="${col}" aria-label="Colour ${col}"></button>`).join('')}<label class="swatch custom"><input type="color" id="cal-color" value="${c.color}" aria-label="Custom colour"></label></div>
     </div>
     <div class="pop-foot">${!isNew && state.calendars.length > 1 ? `<button class="btn sm danger" data-del>Delete</button>` : ''}<span style="flex:1"></span><button class="btn sm primary" data-save>${isNew ? 'Create' : 'Save'}</button></div>`, anchor);
   const name = $('#cal-name', el);
@@ -1314,53 +1341,60 @@ const tgl = (id, label, on) => `<label class="set-row toggle"><span>${label}</sp
 function renderSettings(el) {
   const s = S();
   const scroll = $('.drawer-body', el)?.scrollTop || 0;
-  el.innerHTML = drawerShell('Customize', `
-    <section class="set-sec"><h3>Theme</h3>
-      <div class="skins">${SKINS.map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}">
-        <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac};--p-g1:${k.g1};--p-g2:${k.g2}` : '--p-sf:rgb(127 127 127 / .35);--p-ac:var(--accent);--p-g1:transparent;--p-g2:transparent'}"><i></i><i><b></b></i></div>
-        <span class="skin-name">${k.name}${k.id === 'auto' ? ' <span class="hint">(system)</span>' : ''}</span></button>`).join('')}</div>
+  const row = (label, control) => `<div class="set-row"><span>${label}</span>${control}</div>`;
+  NOTE_FONTS.forEach(f => ensureFont(f.gf));
+  el.innerHTML = drawerShell('Settings', `
+    <section class="set-sec"><h3>Appearance</h3>
+      <div class="set-group">
+        <div class="set-pad"><div class="skins">${SKINS.map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
+          <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac}` : '--p-sf:rgb(127 127 127 / .3);--p-ac:#888'}"><i></i><i><b></b></i></div>
+          <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
+        ${row('Accent', `<div class="swatches">
+          <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
+          ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
+          <label class="swatch custom${s.accent && !ACCENTS.includes(s.accent) ? ' on' : ''}" title="Custom accent"><input type="color" id="set-accent" value="${s.accent || '#111111'}" aria-label="Custom accent"></label></div>`)}
+      </div>
     </section>
-    <section class="set-sec"><h3>Accent colour</h3>
-      <div class="swatches">${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
-        <label class="swatch custom" title="Custom accent"><input type="color" id="set-accent" value="${s.accent || '#8fa8ff'}" aria-label="Custom accent"></label>
-        <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Theme default</button></div>
+    <section class="set-sec"><h3>Typeface</h3>
+      <div class="font-cards">${FONTS.map(f => `<button class="font-card${s.font === f.id ? ' on' : ''}" data-font="${f.id}"><span class="fc-a" style="font-family:${attrFont(f.display)}, sans-serif;font-weight:700">Aa 23</span><span class="fc-n">${f.name}</span></button>`).join('')}</div>
     </section>
-    <section class="set-sec"><h3>Typography</h3>
-      <div class="font-cards">${FONTS.map(f => `<button class="font-card${s.font === f.id ? ' on' : ''}" data-font="${f.id}"><span class="fc-a" style="font-family:${f.display}, sans-serif;font-weight:700">Aa 23</span><span class="fc-n">${f.name}</span></button>`).join('')}</div>
-      <span class="field-label">Sticky note handwriting</span>
-      <div class="font-cards">${NOTE_FONTS.map(f => `<button class="font-card${s.noteFont === f.id ? ' on' : ''}" data-notefont="${f.id}"><span class="fc-a" style="font-family:${f.family}, cursive;font-size:${f.size + 3}px">Buy milk!</span><span class="fc-n">${f.name}</span></button>`).join('')}</div>
+    <section class="set-sec"><h3>Note font</h3>
+      <div class="font-cards">${NOTE_FONTS.map(f => `<button class="font-card${s.noteFont === f.id ? ' on' : ''}" data-notefont="${f.id}"><span class="fc-a" style="font-family:${attrFont(f.family)}, cursive;font-size:${f.size + 3}px">Buy milk</span><span class="fc-n">${f.name}</span></button>`).join('')}</div>
     </section>
-    <section class="set-sec"><h3>Atmosphere</h3>
-      ${tgl('ambient', 'Ambient glow', s.ambient)}
-      ${tgl('grain', 'Film grain', s.grain)}
-      ${tgl('glass', 'Frosted glass panels', s.glass)}
-      <div class="set-row"><span>Corner roundness</span><input type="range" class="range" min="2" max="22" step="1" value="${s.radius}" id="set-radius" aria-label="Corner roundness"></div>
-      <div class="set-row"><span>Density</span><div class="seg"><button data-density="comfortable" class="${s.density === 'comfortable' ? 'active' : ''}">Cozy</button><button data-density="compact" class="${s.density === 'compact' ? 'active' : ''}">Compact</button></div></div>
-      <div class="set-row"><span>Event style</span><div class="seg">${['tinted', 'solid', 'outline'].map(v => `<button data-evstyle="${v}" class="${s.eventStyle === v ? 'active' : ''}">${v[0].toUpperCase() + v.slice(1)}</button>`).join('')}</div></div>
+    <section class="set-sec"><h3>Layout</h3>
+      <div class="set-group">
+        ${row('Corner roundness', `<input type="range" class="range" min="2" max="22" step="1" value="${s.radius}" id="set-radius" aria-label="Corner roundness">`)}
+        ${row('Density', `<div class="seg"><button data-density="comfortable" class="${s.density === 'comfortable' ? 'active' : ''}">Comfortable</button><button data-density="compact" class="${s.density === 'compact' ? 'active' : ''}">Compact</button></div>`)}
+        ${row('Event style', `<div class="seg">${[['tinted', 'Gray'], ['solid', 'Solid'], ['outline', 'Outline']].map(([v, l]) => `<button data-evstyle="${v}" class="${s.eventStyle === v ? 'active' : ''}">${l}</button>`).join('')}</div>`)}
+      </div>
     </section>
     <section class="set-sec"><h3>Calendar</h3>
-      <div class="set-row"><span>Week starts on</span><select class="input" id="set-weekstart">${[[0, 'Sunday'], [1, 'Monday'], [6, 'Saturday']].map(([v, l]) => `<option value="${v}"${s.weekStart === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
-      <div class="set-row"><span>Clock</span><div class="seg"><button data-hour12="1" class="${s.hour12 ? 'active' : ''}">12-hour</button><button data-hour12="0" class="${!s.hour12 ? 'active' : ''}">24-hour</button></div></div>
-      ${tgl('showWeekends', 'Show weekends', s.showWeekends)}
-      ${tgl('showWeekNumbers', 'Show week numbers', s.showWeekNumbers)}
-      ${tgl('showHolidays', 'Show US holidays', s.showHolidays)}
-      ${tgl('notesInGrid', 'Show sticky notes in month view', s.notesInGrid)}
-      <div class="set-row"><span>Day view starts at</span><select class="input" id="set-dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}"${s.dayStartHour === h ? ' selected' : ''}>${fmtHour(h)}</option>`).join('')}</select></div>
-      <div class="set-row"><span>Default event length</span><select class="input" id="set-defaultDuration">${[15, 30, 45, 60, 90, 120].map(v => `<option value="${v}"${s.defaultDuration === v ? ' selected' : ''}>${v < 60 ? v + ' min' : v / 60 + ' hr'}</option>`).join('')}</select></div>
-      <div class="set-row"><span>Default reminder</span><select class="input" id="set-defaultReminder">${REMINDERS.map(([v, l]) => `<option value="${v ?? ''}"${s.defaultReminder === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+      <div class="set-group">
+        ${row('Week starts on', `<select class="input" id="set-weekstart">${[[0, 'Sunday'], [1, 'Monday'], [6, 'Saturday']].map(([v, l]) => `<option value="${v}"${s.weekStart === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}
+        ${row('Clock', `<div class="seg"><button data-hour12="1" class="${s.hour12 ? 'active' : ''}">12-hour</button><button data-hour12="0" class="${!s.hour12 ? 'active' : ''}">24-hour</button></div>`)}
+        ${tgl('showWeekends', 'Show weekends', s.showWeekends)}
+        ${tgl('showWeekNumbers', 'Show week numbers', s.showWeekNumbers)}
+        ${tgl('showHolidays', 'Show US holidays', s.showHolidays)}
+        ${tgl('notesInGrid', 'Show notes in month view', s.notesInGrid)}
+        ${row('Day view starts at', `<select class="input" id="set-dayStartHour">${Array.from({ length: 13 }, (_, h) => `<option value="${h}"${s.dayStartHour === h ? ' selected' : ''}>${fmtHour(h)}</option>`).join('')}</select>`)}
+        ${row('Default event length', `<select class="input" id="set-defaultDuration">${[15, 30, 45, 60, 90, 120].map(v => `<option value="${v}"${s.defaultDuration === v ? ' selected' : ''}>${v < 60 ? v + ' min' : v / 60 + ' hr'}</option>`).join('')}</select>`)}
+        ${row('Default reminder', `<select class="input" id="set-defaultReminder">${REMINDERS.map(([v, l]) => `<option value="${v ?? ''}"${s.defaultReminder === v ? ' selected' : ''}>${l}</option>`).join('')}</select>`)}
+      </div>
     </section>
     <section class="set-sec"><h3>Reminders</h3>
       ${permCard()}
-      ${tgl('sound', 'Play a sound', s.sound)}
-      <div class="set-row"><span>Sound</span><div style="display:flex;gap:6px"><select class="input" id="set-soundType">${['chime', 'marimba', 'ping'].map(v => `<option value="${v}"${s.soundType === v ? ' selected' : ''}>${v[0].toUpperCase() + v.slice(1)}</option>`).join('')}</select><button class="btn sm" data-test-sound>${icon('volume')}Test</button></div></div>
-      <button class="btn sm" data-test-reminder style="align-self:flex-start">${icon('bell')}Send a test reminder</button>
+      <div class="set-group">
+        ${tgl('sound', 'Play a sound', s.sound)}
+        ${row('Sound', `<div style="display:flex;gap:6px"><select class="input" id="set-soundType">${['chime', 'marimba', 'ping'].map(v => `<option value="${v}"${s.soundType === v ? ' selected' : ''}>${v[0].toUpperCase() + v.slice(1)}</option>`).join('')}</select><button class="btn sm" data-test-sound>${icon('volume')}Test</button></div>`)}
+        ${row('Preview a reminder', `<button class="btn sm" data-test-reminder>${icon('bell')}Send test</button>`)}
+      </div>
     </section>
     <section class="set-sec"><h3>Your data</h3>
-      <p class="hint" style="margin:0">Everything is saved in this browser. Back it up to move it to another device.</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn sm" data-export>${icon('download')}Export backup</button>
-        <button class="btn sm" data-copy-backup>${icon('copy')}Copy backup</button>
-        <button class="btn sm" data-import>${icon('upload')}Import backup</button>
+      <p class="hint" style="margin:0 4px">Everything is saved in this browser. Back it up to move it to another device.</p>
+      <div class="set-actions">
+        <button class="btn sm" data-export>${icon('download')}Export</button>
+        <button class="btn sm" data-copy-backup>${icon('copy')}Copy</button>
+        <button class="btn sm" data-import>${icon('upload')}Import</button>
         <button class="btn sm danger" data-reset>${icon('trash')}Erase everything</button>
       </div>
     </section>`);
@@ -1390,11 +1424,11 @@ function renderReminders(el) {
   for (const n of state.notes) {
     if (!n.remindAt || n.done) continue;
     const at = parseLocal(n.remindAt);
-    if (at > now) items.push({ at, html: `<li class="rem-item" style="--c:${noteColor(n.color)}"><div class="rem-ico is-note">${icon('sticky')}</div><button class="rem-main" style="text-align:left" data-open-board="${n.date}"><b>${esc(noteSummary(n))}</b><span>Sticky note · ${fmtDayShort(n.date)}</span></button><span class="rem-when">${fmtTime(n.remindAt.slice(11))}</span></li>` });
+    if (at > now) items.push({ at, html: `<li class="rem-item" style="--c:${noteColor(n.color)}"><div class="rem-ico is-note">${icon('sticky')}</div><button class="rem-main" style="text-align:left" data-open-board="${n.date}"><b>${esc(noteSummary(n))}</b><span>Note · ${fmtDayShort(n.date)}</span></button><span class="rem-when">${fmtTime(n.remindAt.slice(11))}</span></li>` });
   }
   items.sort((a, b) => a.at - b.at);
   let body = permCard();
-  if (!items.length) body += `<div class="board-empty">No reminders in the next two weeks.<br>Set one on any event, or tap the alarm on a sticky note.</div>`;
+  if (!items.length) body += `<div class="board-empty">No reminders in the next two weeks.<br>Set one on any event, or tap the alarm on a note.</div>`;
   let lastDay = '';
   let list = '';
   for (const it of items) {
@@ -1408,16 +1442,16 @@ function renderReminders(el) {
 function renderShortcuts(el) {
   const rows = [
     ['Go to today', ['T']], ['Previous / next', ['←', '→']], ['Day · Week · Month · Year', ['D', 'W', 'M', 'Y']],
-    ['New event', ['C']], ['New sticky note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
-    ['Toggle sidebar', ['[']], ['Customize', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
+    ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
+    ['Toggle sidebar', ['[']], ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
   ];
   el.innerHTML = drawerShell('Shortcuts', `<div class="keys">${rows.map(([l, k]) => `<span>${l}</span><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span>`).join('')}</div>
-    <section class="set-sec"><h3>Mouse & touch</h3><div class="keys" style="grid-template-columns:1fr">
+    <section class="set-sec"><h3>Mouse & touch</h3><div class="keys tips">
       <span>Drag across empty time in Week or Day view to create an event.</span>
       <span>Drag an event to move it, or drag its bottom edge to change its length.</span>
       <span>Drag event chips between days in Month view.</span>
-      <span>Drag a sticky note by its top edge. Drop it on any day in the calendar to move it there.</span>
-      <span>Double-click the corkboard to stick a note exactly where you clicked.</span>
+      <span>Drag a note by its top edge. Drop it on any day in the calendar to move it there.</span>
+      <span>Double-click the notes area to add a note exactly where you clicked.</span>
       <span>Right-click a day, event or note for more options.</span>
       <span>Swipe left or right on a phone to change months.</span>
     </div></section>`);
@@ -1475,7 +1509,7 @@ function confetti(originEl) {
   const r = originEl ? originEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
   const ox = r.left + r.width / 2, oy = r.top + r.height / 3;
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  const cols = [...NOTE_COLORS.slice(0, 7).map(x => x.c), accent];
+  const cols = ['#111111', '#3a3a3c', '#8e8e93', '#c7c7cc', accent];
   const parts = Array.from({ length: 90 }, () => ({
     x: ox, y: oy, vx: (Math.random() - 0.5) * 11, vy: -Math.random() * 11 - 3, w: 5 + Math.random() * 6, h: 3 + Math.random() * 5,
     rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, col: cols[Math.floor(Math.random() * cols.length)],
@@ -1559,14 +1593,14 @@ function fireReminder(d, missed) {
     title = ev.title || '(No title)';
     sub = `${fmtDayShort(d.occ)} · ${ev.allDay ? 'All day' : fmtRange(ev)}${ev.location ? ' · ' + ev.location : ''}`;
     ntitle = `${title} · ${when}`;
-    t.innerHTML = `<div class="rt-kicker" style="color:${evColor(ev)}">${icon('bell')}${missed ? 'Missed reminder' : when}</div><div class="rt-title">${esc(title)}</div><div class="rt-sub">${esc(sub)}</div>
+    t.innerHTML = `<div class="rt-kicker">${icon('bell')}${missed ? 'Missed reminder' : when}</div><div class="rt-title">${esc(title)}</div><div class="rt-sub">${esc(sub)}</div>
       <div class="rt-actions"><button class="main" data-rt="open">Open</button><button data-rt="snooze">Snooze 10 min</button><button data-rt="dismiss">Dismiss</button></div>`;
   } else {
     const n = d.n;
     t.className = 'rtoast is-note';
     t.style.setProperty('--nc', noteColor(n.color));
     title = noteSummary(n);
-    ntitle = 'Sticky note reminder';
+    ntitle = 'Note reminder';
     sub = fmtDayShort(n.date);
     const full = n.mode === 'list' ? n.items.filter(i => !i.done).map(i => '• ' + i.text).join('\n') || title : (n.text || 'Empty note');
     t.innerHTML = `<div class="rt-kicker">${icon('bell')}${missed ? 'Missed reminder' : 'Reminder'} · ${esc(sub)}</div><div class="rt-title">${esc(full.slice(0, 220))}</div>
@@ -1675,6 +1709,7 @@ $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
 $('#btn-shortcuts').addEventListener('click', () => openDrawer('shortcuts'));
 $('#btn-create').addEventListener('click', () => openEditor({ date: ui.selected }));
+$('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-create-note').addEventListener('click', () => addNote(ui.selected));
 $('#btn-add-cal').addEventListener('click', e => openCalEditor(null, e.currentTarget));
 $('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
@@ -1764,7 +1799,7 @@ document.addEventListener('contextmenu', e => {
       { id: 'edit', label: 'Edit', icon: 'pencil', fn: () => openEditor({ id: ev.id }) },
       { id: 'dup', label: 'Duplicate', icon: 'copy', fn: () => duplicateEvent(ev, occ) },
       { id: 'tom', label: 'Move to next day', icon: 'right', fn: () => changeOccurrence(ev, occ, { date: toKey(addDays(fromKey(occ), 1)) }, 'Moved to the next day') },
-      { html: `<div class="menu-label">Colour</div><div class="mood-line">${EVENT_COLORS.map(c => `<button data-mi="c${c}" aria-label="Colour ${c}"><span class="swatch" style="--sw:${c};width:16px;height:16px"></span></button>`).join('')}</div>` },
+      { html: `<div class="menu-label">Colour</div><div class="mood-line">${EVENT_COLORS.map(c => `<button data-mi="c${c}" aria-label="Colour ${c}"><span class="swatch" style="--sw:${paint(c)};width:16px;height:16px"></span></button>`).join('')}</div>` },
       ...EVENT_COLORS.map(c => ({ id: 'c' + c, fn: () => { snapshot(); ev.color = c; save(); render(); } })),
       '-',
       { id: 'del', label: 'Delete', icon: 'trash', danger: true, fn: () => deleteEvent(ev, occ) },
@@ -1795,7 +1830,7 @@ document.addEventListener('contextmenu', e => {
     openMenu([
       { label: fmtDayLong(key), header: true },
       { id: 'ev', label: 'New event', icon: 'plus', kbd: 'C', fn: () => openEditor({ date: key }) },
-      { id: 'note', label: 'New sticky note', icon: 'sticky', kbd: 'N', fn: () => addNote(key) },
+      { id: 'note', label: 'New note', icon: 'sticky', kbd: 'N', fn: () => addNote(key) },
       { id: 'list', label: 'New checklist', icon: 'check', fn: () => addNote(key, { mode: 'list' }) },
       { id: 'day', label: 'Open in Day view', icon: 'cal', fn: () => goTo(key, 'day') },
       '-',
@@ -1930,7 +1965,7 @@ board.addEventListener('pointermove', e => {
     if (!d.ghost) {
       d.ghost = d.el.cloneNode(true);
       d.ghost.className = 'note note-drag-ghost';
-      d.ghost.style.cssText = `--nc:${noteColor(d.n.color)};left:0;top:0;animation:none`;
+      d.ghost.style.cssText = `--nc:${noteColor(d.n.color)};--ni:${readable(noteColor(d.n.color))};left:0;top:0;animation:none`;
       document.body.appendChild(d.ghost);
       d.el.style.opacity = '.25';
     }
@@ -1982,7 +2017,7 @@ function runSearch() {
   const notes = state.notes.filter(n => (n.text + ' ' + n.items.map(i => i.text).join(' ')).toLowerCase().includes(q)).slice(0, 8);
   let html = '';
   if (evs.length) html += `<div class="sr-group">Events</div>` + evs.map(ev => { const k = nextOccurrence(ev); return `<button class="sr-item" data-sr-ev="${ev.id}" data-occ="${k}"><span class="chip-ev" style="--c:${evColor(ev)};width:auto;padding:0;background:none"><span class="d"></span></span><span class="sr-title">${hl(ev.title || '(No title)', q)}</span><span class="sr-date">${fmtDayShort(k)}</span></button>`; }).join('');
-  if (notes.length) html += `<div class="sr-group">Sticky notes</div>` + notes.map(n => { const txt = n.mode === 'list' ? n.items.map(i => i.text).join(' · ') : n.text; const i = txt.toLowerCase().indexOf(q); const snip = txt.slice(Math.max(0, i - 20), i + 50).replace(/\n/g, ' '); return `<button class="sr-item" data-sr-note="${n.date}"><span class="mini-note" style="--nc:${noteColor(n.color)};--rot:-6deg"></span><span class="sr-title">${hl(snip, q)}</span><span class="sr-date">${fmtDayShort(n.date)}</span></button>`; }).join('');
+  if (notes.length) html += `<div class="sr-group">Notes</div>` + notes.map(n => { const txt = n.mode === 'list' ? n.items.map(i => i.text).join(' · ') : n.text; const i = txt.toLowerCase().indexOf(q); const snip = txt.slice(Math.max(0, i - 20), i + 50).replace(/\n/g, ' '); return `<button class="sr-item" data-sr-note="${n.date}"><span class="mini-note" style="--nc:${noteColor(n.color)};--rot:-6deg"></span><span class="sr-title">${hl(snip, q)}</span><span class="sr-date">${fmtDayShort(n.date)}</span></button>`; }).join('');
   sResults.innerHTML = html || `<div class="sr-empty">No events or notes match “${esc(sInput.value.trim())}”.</div>`;
   sResults.hidden = false;
 }
@@ -2021,7 +2056,7 @@ layer.addEventListener('click', e => {
   const s = S();
   let el;
   const rerender = () => { save(); render(); if (dr.dataset.kind === 'settings') renderSettings(dr); };
-  if ((el = e.target.closest('[data-skin]'))) { s.skin = el.dataset.skin; s.accent = null; rerender(); }
+  if ((el = e.target.closest('button[data-skin]'))) { s.skin = el.dataset.skin; s.accent = null; rerender(); }
   else if ((el = e.target.closest('[data-accent]'))) { s.accent = el.dataset.accent || null; rerender(); }
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
@@ -2031,7 +2066,7 @@ layer.addEventListener('click', e => {
   else if (e.target.closest('[data-perm]')) requestNotify();
   else if (e.target.closest('[data-test-sound]')) playSound(S().soundType, true);
   else if (e.target.closest('[data-test-reminder]')) {
-    const n = { id: 'test', date: todayKey(), mode: 'text', text: 'This is a test reminder. Real ones look just like this.', items: [], color: 'lemon', done: false };
+    const n = { id: 'test', date: todayKey(), mode: 'text', text: 'This is a test reminder. Real ones look just like this.', items: [], color: 'paper', done: false };
     fireReminder({ kind: 'note', key: 'test:' + Date.now(), n, trig: Date.now() }, false);
     playSound(S().soundType, true);
   }
