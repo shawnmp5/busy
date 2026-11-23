@@ -503,7 +503,6 @@ function renderMonth() {
       if (key === tk) cls.push('today');
       if (key === ui.selected) cls.push('selected');
       if (d.getDay() === 0 || d.getDay() === 6) cls.push('weekend');
-      if (evs.some(ev => ev.important)) cls.push('important');
       html += `<div class="${cls.join(' ')}" data-date="${key}">
         <div class="cell-top">
           <button class="daynum" data-goto-day="${key}" aria-label="${fmtDayLong(key)}">${d.getDate() === 1 ? `<span class="mon">${MON3[d.getMonth()]}</span>` : ''}${d.getDate()}</button>
