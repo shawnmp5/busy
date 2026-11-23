@@ -212,6 +212,7 @@ mark { background: color-mix(in oklab, var(--fg) 12%, transparent); color: inher
 .drawer .seg button.active { background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / .08); }
 
 .fab { display: none; }
+.new-top { height: 36px; margin: 0 4px; }
 
 /* ---------- Sidebar ---------- */
 .sidebar {
@@ -849,6 +850,7 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
   .drawer { top: auto; bottom: 0; right: 0; left: 0; width: auto; max-width: none; max-height: 90vh; border-radius: 26px 26px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
   .board, .app.bd-closed .board { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-width: none; height: 88vh; border-radius: 26px 26px 0 0; transform: translateY(105%); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
   .app.bd-open .board { transform: none; }
+  .new-top { display: none; }
   .fab {
     display: grid; place-items: center; position: fixed; z-index: 70;
     right: max(18px, env(safe-area-inset-right, 0px)); bottom: max(18px, env(safe-area-inset-bottom, 0px));
