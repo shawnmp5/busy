@@ -759,7 +759,8 @@ function renderNowCard() {
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
   const tk = todayKey();
   const evs = eventsOn(tk).length, notes = notesOn(tk).length;
-  const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}`;
+  const sec = `<span class="nt-sec">:${pad(now.getSeconds())}</span>`;
+  const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}${sec}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}${sec}`;
   const mins = h * 60 + mi, left = 1440 - mins;
   const pct = mins / 1440 * 100;
   const dur = m => `${Math.floor(m / 60)}h ${m % 60}m`;
@@ -2207,4 +2208,12 @@ render();
 document.fonts?.ready?.then(() => { placeSegPill(); fitMonthChips(); });
 setTimeout(tick, 800);
 setInterval(tick, 15000);
+/* Seconds on the sidebar clock; a full redraw still happens each minute */
+setInterval(() => {
+  const el = $('.nt-sec');
+  const now = new Date();
+  if (!el) return;
+  if (now.getMinutes() !== lastMinute) tick();
+  else el.textContent = ':' + pad(now.getSeconds());
+}, 1000);
 })();
