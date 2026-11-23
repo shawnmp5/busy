@@ -177,8 +177,6 @@ kbd {
 .btn.danger { color: var(--danger); background: transparent; }
 .btn.danger:hover { background: color-mix(in oklab, var(--danger) 8%, transparent); }
 .btn.sm { height: 30px; padding: 0 12px; font-size: 12.5px; border-radius: 9px; }
-#btn-today { background: var(--surface); height: 34px; padding: 0 14px; border-radius: 10px; box-shadow: inset 0 0 0 1px var(--line); }
-#btn-today:hover { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line-strong); }
 
 .search {
   position: relative; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px 0 11px; border-radius: 11px;
@@ -826,7 +824,6 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
   .view-title { font-size: 22px; margin-left: 6px; flex: 1; }
   .brand { margin: 0 2px; }
   .brand-mark { width: 20px; height: 20px; }
-  #btn-today { order: 5; height: 32px; padding: 0 12px; }
   .nav-arrows { order: 6; }
   .seg { flex: 1; margin-right: 6px; }
   .seg button { padding: 0 6px; flex: 1; }

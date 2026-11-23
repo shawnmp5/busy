@@ -45,7 +45,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 
 | Key | Action |
 | --- | --- |
-| `T` | Today |
+| `T` | Jump to today |
 | `←` `→` | Previous / next |
 | `D` `W` `M` `Y` | Day, Week, Month, Year |
 | `C` | New event |

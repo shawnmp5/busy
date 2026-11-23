@@ -1722,7 +1722,7 @@ function toggleBoard() {
 /* ============================================================
    Event wiring
    ============================================================ */
-$('#btn-today').addEventListener('click', () => { const tk = todayKey(); ui.animate = tk < ui.selected ? 'left' : 'in'; ui.resetScroll = true; ui.selected = tk; ui.mini = new Date(); render(); });
+function goToday() { const tk = todayKey(); ui.animate = tk < ui.selected ? 'left' : 'in'; ui.resetScroll = true; ui.selected = tk; ui.mini = new Date(); render(); }
 $('#btn-prev').addEventListener('click', () => shift(-1));
 $('#btn-next').addEventListener('click', () => shift(1));
 $('#view-seg').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
@@ -1730,9 +1730,7 @@ $('#btn-sidebar').addEventListener('click', toggleSidebar);
 $('#btn-board').addEventListener('click', toggleBoard);
 $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
-$('#btn-create').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
-$('#btn-create-note').addEventListener('click', () => addNote(ui.selected));
 layer.addEventListener('click', e => { const b = e.target.closest('[data-add-cal]'); if (b) openCalEditor(null, b); });
 $('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
 
@@ -2165,7 +2163,7 @@ document.addEventListener('keydown', e => {
   if (pop && e.key.toLowerCase() === 'e') { const id = pop.dataset.ev; closeFloating(); openEditor({ id }); return; }
   const k = e.key;
   const map = {
-    t: () => $('#btn-today').click(), ArrowLeft: () => shift(-1), ArrowRight: () => shift(1), j: () => shift(1), k: () => shift(-1),
+    t: goToday, ArrowLeft: () => shift(-1), ArrowRight: () => shift(1), j: () => shift(1), k: () => shift(-1),
     d: () => setView('day'), w: () => setView('week'), m: () => setView('month'), y: () => setView('year'),
     c: () => openEditor({ date: ui.selected }), n: () => addNote(ui.selected), '/': () => sInput.focus(),
     b: toggleBoard, '[': toggleSidebar, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
