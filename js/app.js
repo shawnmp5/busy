@@ -74,6 +74,13 @@ const SKINS = [
   { id: 'auto', name: 'Auto' },
   { id: 'graphite', name: 'Graphite', bg: '#1c1c1e', sf: '#2c2c2e', ac: '#f2f2f2' },
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
+  /* Animated scenes (js/scenes.js): the app floats on frosted glass over a moving backdrop */
+  { id: 'nebula', name: 'Nebula', scene: true, prev: 'radial-gradient(circle at 35% 40%, #b06cff 0, #4a2a9a 22%, transparent 55%), radial-gradient(circle at 70% 70%, #ff7ac8 0, #5b1d6e 20%, transparent 50%), #07051a' },
+  { id: 'rain', name: 'Rain', scene: true, prev: 'repeating-linear-gradient(100deg, rgb(200 215 235 / .22) 0 1px, transparent 1px 9px), radial-gradient(circle at 30% 85%, rgb(255 180 100 / .35), transparent 30%), linear-gradient(#07090d, #151a22)' },
+  { id: 'aurora', name: 'Aurora', scene: true, prev: 'linear-gradient(to top, #03080d 18%, transparent 18%), radial-gradient(ellipse 80% 30% at 50% 45%, rgb(80 255 180 / .7), transparent 70%), radial-gradient(ellipse 70% 25% at 40% 28%, rgb(170 80 255 / .6), transparent 70%), linear-gradient(#02040b, #0a2230)' },
+  { id: 'snow', name: 'Snow', scene: true, prev: 'radial-gradient(circle at 20% 30%, #fff 0 1.5px, transparent 2px), radial-gradient(circle at 70% 20%, #fff 0 2px, transparent 2.5px), radial-gradient(circle at 50% 60%, #fff 0 1px, transparent 1.5px), radial-gradient(circle at 80% 70%, #fff 0 1.5px, transparent 2px), radial-gradient(circle at 30% 80%, #fff 0 1px, transparent 1.5px), linear-gradient(#0a0f1c, #2a3247)' },
+  { id: 'fireflies', name: 'Fireflies', scene: true, prev: 'radial-gradient(circle at 30% 55%, #e4ff8a 0 1.5px, rgb(214 255 120 / .3) 3px, transparent 8px), radial-gradient(circle at 68% 40%, #e4ff8a 0 1.5px, rgb(214 255 120 / .3) 3px, transparent 8px), radial-gradient(circle at 55% 75%, #e4ff8a 0 1px, transparent 6px), linear-gradient(to top, #020604 20%, transparent 20%), linear-gradient(#040a10, #0b1f14)' },
+  { id: 'synthwave', name: 'Synthwave', scene: true, prev: 'linear-gradient(to bottom, transparent 62%, #ff3cc8 62% 63%, #1a0430 63%), radial-gradient(circle at 50% 56%, #ffb35e 0 22%, transparent 23%), linear-gradient(#07021a, #6b1460)' },
 ];
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
@@ -378,6 +385,9 @@ function ensureFont(gf) {
 function applySettings() {
   const s = S(), root = document.documentElement;
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
+  const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
+  if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
+  window.ChronosScenes?.set(scene);
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
   root.classList.toggle('ev-outline', s.eventStyle === 'outline');
@@ -1367,8 +1377,11 @@ function renderSettings(el) {
     </section>
     <section class="set-sec"><h3>Appearance</h3>
       <div class="set-group">
-        <div class="set-pad"><div class="skins">${SKINS.map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
+        <div class="set-pad"><div class="skins">${SKINS.filter(k => !k.scene).map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
           <div class="skin-prev${k.id === 'auto' ? ' auto' : ''}" style="${k.bg ? `--p-bg:${k.bg};--p-sf:${k.sf};--p-ac:${k.ac}` : '--p-sf:rgb(127 127 127 / .3);--p-ac:#888'}"><i></i><i><b></b></i></div>
+          <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
+        <div class="set-pad"><div class="scenes-label">Animated scenes</div><div class="skins scenes">${SKINS.filter(k => k.scene).map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
+          <div class="skin-prev scene-prev" style="background:${k.prev}"></div>
           <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
