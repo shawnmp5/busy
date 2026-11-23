@@ -1,9 +1,8 @@
 """Generate the Chronos logo set as SVG.
 
-The mark: a glass hourglass of glowing blue sand, framed like a small Greek temple
-(gold plates with a Greek key frieze and Ionic volutes, held by two fluted columns),
-set inside an arcane ring. Two orbits cross behind it to form a Χ (chi), the first
-letter of Χρόνος.
+The mark: a glass hourglass of glowing blue sand in a glowing blue frame, on a
+transparent background. (hourglass(..., ornate=True) adds Greek temple details:
+columns, a Greek key frieze, Ionic volutes and a pediment.)
 
 Usage: python3 tools/make_logo.py FONT_DIR
 FONT_DIR must contain Cinzel-600.ttf and GFSDidot.ttf (SIL Open Font License, from
@@ -149,14 +148,14 @@ def glow_filter(fid, blur, soft, haze, opacity):
 def defs(p, light=False):
     """Gradients and filters, ids prefixed with p so several SVGs can share one page."""
     if light:
-        return (f'<defs><linearGradient id="{p}gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c99a45"/><stop offset="1" stop-color="#7a4c15"/></linearGradient>'
+        return (f'<defs><linearGradient id="{p}gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f8dff"/><stop offset="1" stop-color="#1a3f9e"/></linearGradient>'
                 f'<linearGradient id="{p}col" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7a4c15"/><stop offset=".45" stop-color="#d2a453"/><stop offset="1" stop-color="#6b4212"/></linearGradient>'
                 f'<linearGradient id="{p}sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4f8dff"/><stop offset="1" stop-color="#1d3fb8"/></linearGradient>'
                 f'<linearGradient id="{p}glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2456d6" stop-opacity=".12"/><stop offset=".5" stop-color="#2456d6" stop-opacity=".03"/><stop offset="1" stop-color="#2456d6" stop-opacity=".12"/></linearGradient>'
                 f'<radialGradient id="{p}neb" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#4f8dff" stop-opacity=".25"/><stop offset="1" stop-color="#4f8dff" stop-opacity="0"/></radialGradient>'
                 f'<radialGradient id="{p}core" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>')
     return ('<defs>'
-            f'<linearGradient id="{p}gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3c8"/><stop offset=".35" stop-color="#f1c76c"/><stop offset=".7" stop-color="#c08a35"/><stop offset="1" stop-color="#7a4c15"/></linearGradient>'
+            f'<linearGradient id="{p}gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2fcff"/><stop offset=".35" stop-color="#9fe6ff"/><stop offset=".7" stop-color="#3f9bff"/><stop offset="1" stop-color="#1a4fd0"/></linearGradient>'
             f'<linearGradient id="{p}col" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#6b4212"/><stop offset=".38" stop-color="#ffe7a6"/><stop offset=".62" stop-color="#d09a43"/><stop offset="1" stop-color="#5e3a0f"/></linearGradient>'
             f'<linearGradient id="{p}sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3fbff"/><stop offset=".35" stop-color="#6fd8ff"/><stop offset="1" stop-color="#2560ff"/></linearGradient>'
             f'<linearGradient id="{p}glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9fe4ff" stop-opacity=".22"/><stop offset=".5" stop-color="#9fe4ff" stop-opacity=".04"/><stop offset="1" stop-color="#9fe4ff" stop-opacity=".16"/></linearGradient>'
@@ -168,12 +167,12 @@ def defs(p, light=False):
             + glow_filter(f'{p}glow', 7, 1.4, HAZE, 0.85)
             + glow_filter(f'{p}hot', 11, 2.6, '#3aa0ff', 1)
             + glow_filter(f'{p}soft', 9, 1, HAZE, 0.7)
-            + f'<filter id="{p}warm" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="5" result="a"/><feFlood flood-color="#ffb84d" flood-opacity=".35"/><feComposite in2="a" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+            + f'<filter id="{p}warm" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceAlpha" stdDeviation="8" result="a"/><feFlood flood-color="#2a8cff" flood-opacity=".85"/><feComposite in2="a" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
             + '</defs>')
 
 
 # ---------------- the hourglass ----------------
-def hourglass(p, cx, cy, s, detail=True, light=False, boost=1.0, animated=False):
+def hourglass(p, cx, cy, s, detail=True, light=False, boost=1.0, animated=False, ornate=False):
     """Hourglass drawn in a local frame (height ±190) scaled by s about (cx, cy)."""
     glass_stroke = LIGHT_INK if light else ICE
     fx = (lambda name: '') if light else (lambda name: f' filter="url(#{p}{name})"')
@@ -206,7 +205,7 @@ def hourglass(p, cx, cy, s, detail=True, light=False, boost=1.0, animated=False)
         out.append('<path d="M-60 -140 C-60 -92 -42 -62 -22 -40" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="3.2" stroke-linecap="round"/>')
         out.append('<path d="M-61 140 C-61 112 -50 92 -37 78" fill="none" stroke="#fff" stroke-opacity=".3" stroke-width="2.4" stroke-linecap="round"/>')
     # columns
-    if detail:
+    if ornate:
         for sx in (-1, 1):
             x = sx * 93
             out.append(f'<rect x="{f(x - 6.5)}" y="-150" width="13" height="300" fill="url(#{p}col)"/>')
@@ -222,97 +221,35 @@ def hourglass(p, cx, cy, s, detail=True, light=False, boost=1.0, animated=False)
         y_step = -166 if sgn < 0 else 156
         plates.append(f'<rect x="-112" y="{y_outer}" width="224" height="24" rx="5" fill="{gold}"/>')
         plates.append(f'<rect x="-98" y="{y_step}" width="196" height="10" rx="2" fill="{gold}"/>')
-        if detail:
+        if ornate:
             plates.append(meander_strip(-98, 98, y_outer + 5, 14, 1.6, BRONZE_DARK))
         yv = y_outer + 12
         for vx in (-1, 1):
             X = vx * 112
-            plates.append(f'<circle cx="{X}" cy="{yv}" r="{f(12 if detail else 13)}" fill="{gold}"/>')
-            if detail:
+            plates.append(f'<circle cx="{X}" cy="{yv}" r="{f(12 if ornate else 13)}" fill="{gold}"/>')
+            if ornate:
                 plates.append(f'<path d="M{X} {yv - 8} A8 8 0 1 {1 if vx > 0 else 0} {X + vx * .01} {yv - 8} M{X} {yv - 4.5} A4.5 4.5 0 1 {1 if vx > 0 else 0} {X + vx * .01} {yv - 4.5}" '
                               f'fill="none" stroke="{BRONZE_DARK}" stroke-opacity=".55" stroke-width="1.3"/>')
                 plates.append(f'<circle cx="{X}" cy="{yv}" r="2" fill="{BRONZE_DARK}" fill-opacity=".6"/>')
-    if detail:
+    if ornate:
         plates.append('<path d="M-84 -190 L0 -216 L84 -190 Z" fill="' + gold + '"/>')
         plates.append(f'<path d="M-66 -193 L0 -211 L66 -193 Z" fill="none" stroke="{BRONZE_DARK}" stroke-opacity=".5" stroke-width="1.3"/>')
     out.append(f'<g{fx("warm")}>' + ''.join(plates) + '</g>')
-    if detail:
+    if ornate:
         gem = f'url(#{p}orb)' if not light else LIGHT_DEEP
         out.append(f'<g{fx("hot")}><path d="M0 -209 L7 -200 L0 -191 L-7 -200 Z" fill="{gem}"/></g>')
     out.append('</g>')
     return ''.join(out)
 
 
-def arcane(p, cx, cy, light=False, animated=False):
-    """Ring behind the hourglass: Greek key band, the three Greek words for time, crossed orbits forming Χ."""
-    ink = LIGHT_DEEP if light else INK
-    deep = LIGHT_DEEP if light else DEEP
-    cls = lambda c: f' class="{c}"' if animated else ''
-    fx = '' if light else f' filter="url(#{p}glow)"'
-    o = []
-    if not light:
-        o.append(f'<circle cx="{cx}" cy="{cy}" r="200" fill="url(#{p}core)"/>')
-        rnd = random.Random(3)
-        stars = []
-        for _ in range(26):
-            a, r = rnd.uniform(0, 360), rnd.uniform(120, 200)
-            x, y = polar(a, r, cx, cy)
-            stars.append(f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(rnd.uniform(.6, 1.5))}" fill="{STAR}" opacity="{f(rnd.uniform(.4, .95))}"/>')
-        o.append(f'<g{cls("twinkle")}>' + ''.join(stars) + '</g>')
-    o.append(f'<g{fx}>')
-    o.append(orbits(p, cx, cy, 'back', light, animated))
-    o.append(f'<g{cls("spin-slow")}>' + f'<circle cx="{cx}" cy="{cy}" r="246" fill="none" stroke="{ink}" stroke-width="1.2" opacity=".6"/>'
-             + meander_ring(220, 234, 60, 1.7, ink, cx, cy) + '</g>')
-    words = ''.join(word_on_circle(DIDOT, w, a, 205, 10, 3.4, cx, cy, flip=90 < a % 360 < 270) for w, a in (('ΧΡΟΝΟΣ', -60), ('ΚΑΙΡΟΣ', 60), ('ΑΙΩΝ', 180)))
-    dots = ''
-    for a in (120, 240):
-        x, y = polar(a, 205, cx, cy)
-        dots += sparkle(x, y, 4, ink)
-    o.append(f'<g{cls("spin-rev")} fill="{ink}">' + words + dots + '</g>')
-    o.append(f'<circle cx="{cx}" cy="{cy}" r="190" fill="none" stroke="{ink}" stroke-width="1" opacity=".55"/>')
-    o.append('</g>')
-    return ''.join(o)
-
-
-ORBIT_TILT = (-21, 21)
-
-
-def orbits(p, cx, cy, half, light=False, animated=False, rx=238, ry=60, sw=1.6, orb=6.5):
-    """Two tilted rings that cross in a Χ. 'back' draws the far half, 'front' the near half plus orbs."""
-    stroke = LIGHT_DEEP if light else '#5aa8ff'
-    fx = '' if light else f' filter="url(#{p}glow)"'
-    sweep = 1 if half == 'back' else 0
-    out = []
-    for i, tilt in enumerate(ORBIT_TILT):
-        cls = f' class="orbit-{"ab"[i]}"' if animated else ''
-        arc = f'M{f(cx - rx)} {f(cy)} A{f(rx)} {f(ry)} 0 0 {sweep} {f(cx + rx)} {f(cy)}'
-        g = f'<path d="{arc}" fill="none" stroke="{stroke}" stroke-width="{f(sw)}" opacity="{".55" if half == "back" else ".95"}"/>'
-        if half == 'front' and orb:
-            t = math.radians(118 if i == 0 else 62)
-            ox, oy = cx + rx * math.cos(t), cy + ry * math.sin(t)
-            fill = LIGHT_DEEP if light else f'url(#{p}orb)'
-            g += f'<circle cx="{f(ox)}" cy="{f(oy)}" r="{f(orb)}" fill="{fill}"/>'
-        out.append(f'<g transform="rotate({tilt} {cx} {cy})"><g{cls}>{g}</g></g>')
-    return f'<g{fx}>' + ''.join(out) + '</g>'
-
-
-def mark(p, light=False, animated=False):
-    return (arcane(p, 256, 256, light, animated) + hourglass(p, 256, 256, 1, True, light, animated=animated)
-            + orbits(p, 256, 256, 'front', light, animated))
+def mark(p, light=False, animated=False, s=1.15):
+    """The glowing hourglass on its own, on a transparent background."""
+    return hourglass(p, 256, 256, s, True, light, animated=animated)
 
 
 ANIM_CSS = ('<style>'
-            '.spin-slow,.spin-rev,.orbit-a,.orbit-b{transform-box:view-box;transform-origin:256px 256px}'
-            '.spin-slow{animation:spin 140s linear infinite}'
-            '.spin-rev{animation:spin 100s linear infinite reverse}'
-            '.orbit-a{animation:wob 7s ease-in-out infinite alternate}'
-            '.orbit-b{animation:wob 9s ease-in-out infinite alternate-reverse}'
             '.sand{animation:fall 1s linear infinite}'
-            '.twinkle{animation:tw 3.5s ease-in-out infinite alternate}'
-            '@keyframes spin{to{transform:rotate(360deg)}}'
-            '@keyframes wob{to{transform:rotate(6deg)}}'
             '@keyframes fall{to{stroke-dashoffset:-16}}'
-            '@keyframes tw{to{opacity:.45}}'
             '@media (prefers-reduced-motion:reduce){*{animation:none!important}}'
             '</style>')
 
@@ -332,39 +269,26 @@ write('chronos-mark.svg', svg(512, 512, defs('m') + mark('m')))
 write('chronos-mark-animated.svg', svg(512, 512, ANIM_CSS + defs('a') + mark('a', animated=True)))
 write('chronos-mark-light.svg', svg(512, 512, defs('l', light=True) + mark('l', light=True)))
 
-# App icon: night-blue tile, crossed orbits, large hourglass
-rnd = random.Random(11)
-tile_stars = ''.join(f'<circle cx="{f(rnd.uniform(30, 482))}" cy="{f(rnd.uniform(30, 482))}" r="{f(rnd.uniform(.7, 1.8))}" fill="{STAR}" opacity="{f(rnd.uniform(.3, .85))}"/>' for _ in range(40))
-icon = (defs('i') + '<rect width="512" height="512" rx="116" fill="url(#itile)"/>' + tile_stars
-        + '<circle cx="256" cy="256" r="230" fill="url(#icore)"/>'
-        + orbits('i', 256, 256, 'back', rx=226, ry=62, sw=3.2, orb=0)
-        + hourglass('i', 256, 262, 1.0, True, boost=1.4)
-        + orbits('i', 256, 256, 'front', rx=226, ry=62, sw=3.2, orb=10)
-        + '<rect x="2" y="2" width="508" height="508" rx="114" fill="none" stroke="#8fdcff" stroke-opacity=".2" stroke-width="2"/>')
-write('chronos-icon.svg', svg(512, 512, icon))
-
-# Favicon: same idea, stripped to what reads at 16–32 px
-fav = (defs('f') + '<rect width="512" height="512" rx="116" fill="url(#ftile)"/>'
-       + '<circle cx="256" cy="256" r="230" fill="url(#fcore)"/>'
-       + hourglass('f', 256, 256, 1.16, False, boost=3.2))
-write('chronos-favicon.svg', svg(64, 64, fav, '0 0 512 512'))
+# App icon and favicon: the same hourglass, no background
+write('chronos-icon.svg', svg(512, 512, defs('i') + hourglass('i', 256, 256, 1.18, True, boost=1.4)))
+write('chronos-favicon.svg', svg(64, 64, defs('f') + hourglass('f', 256, 256, 1.22, False, boost=3.2), '0 0 512 512'))
 
 
 def lockup(light=False):
     p = 'L' if light else 'D'
-    W, H = 1240, 360
-    ms = 320 / 512
+    W, H = 1120, 360
+    ms = 340 / 512
     word_size = 118
     word_w = text_width(CINZEL, 'CHRONOS', word_size, 18)
-    gx = 382
+    gx = 300
     body = defs(p, light)
-    body += f'<g transform="translate(20 20) scale({f(ms)})">{mark(p, light)}</g>'
+    body += f'<g transform="translate(10 10) scale({f(ms)})">{mark(p, light)}</g>'
     if light:
         body += text_line(CINZEL, 'CHRONOS', gx, 200, word_size, 18, LIGHT_INK)
-        accent = '#9a6a22'
+        accent = LIGHT_DEEP
     else:
         body += text_line(CINZEL, 'CHRONOS', gx, 200, word_size, 18, f'url(#{p}word)', f' filter="url(#{p}soft)"')
-        accent = '#e9c472'
+        accent = '#7fd8ff'
     g_size, gy = 30, 262
     g_w = text_width(DIDOT, 'ΧΡΟΝΟΣ', g_size, 14)
     mid = gx + word_w / 2

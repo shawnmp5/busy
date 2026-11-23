@@ -249,11 +249,11 @@ kbd {
 .tb-left { flex: 1 1 auto; }
 .brand { display: flex; align-items: center; gap: 10px; margin-right: 10px; }
 .brand-tile {
-  width: 36px; height: 36px; border-radius: 10px; display: block; flex: none;
-  box-shadow: 0 0 0 1px rgb(143 220 255 / .18), 0 6px 18px rgb(30 107 255 / .35);
-  transition: transform .3s cubic-bezier(.2,1.4,.4,1), box-shadow .3s;
+  width: 34px; height: 34px; display: block; flex: none;
+  filter: drop-shadow(0 0 6px rgb(42 140 255 / .55));
+  transition: transform .5s cubic-bezier(.2,1.2,.4,1), filter .3s;
 }
-.brand:hover .brand-tile { transform: rotate(180deg); box-shadow: 0 0 0 1px rgb(143 220 255 / .35), 0 8px 26px rgb(30 107 255 / .6); }
+.brand:hover .brand-tile { transform: rotate(180deg); filter: drop-shadow(0 0 10px rgb(42 140 255 / .85)); }
 .brand-name { font-family: "Cinzel", var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: .14em; }
 .view-title {
   margin: 0 0 0 6px; font-family: var(--font-display); font-weight: 650; font-size: 24px; letter-spacing: -.02em;
