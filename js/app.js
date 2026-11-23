@@ -758,32 +758,18 @@ function renderNowCard() {
   const h = now.getHours(), mi = now.getMinutes();
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
   const tk = todayKey();
-  const todays = eventsOn(tk);
-  const evs = todays.length, notes = notesOn(tk).length;
+  const evs = eventsOn(tk).length, notes = notesOn(tk).length;
   const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}`;
   const mins = h * 60 + mi, left = 1440 - mins;
   const pct = mins / 1440 * 100;
   const dur = m => `${Math.floor(m / 60)}h ${m % 60}m`;
-  /* Today's timed events as marks along the bar */
-  const marks = todays.filter(e => !e.allDay).map(e => {
-    const s0 = minutesOf(e.start), e0 = Math.max(minutesOf(e.end), s0 + 15);
-    return `<i class="dp-ev${e0 <= mins ? ' past' : ''}" style="left:${s0 / 14.4}%;width:${(e0 - s0) / 14.4}%" title="${esc(e.title || '(No title)')} · ${fmtRange(e)}"></i>`;
-  }).join('');
-  const ticks = [0, 6, 12, 18, 24].map(t => `<span style="left:${t / 24 * 100}%">${t === 24 ? '' : S().hour12 ? `${t % 12 || 12}${t < 12 ? 'a' : 'p'}` : pad(t)}</span>`).join('');
-  const next = todays.filter(e => !e.allDay && minutesOf(e.start) > mins)[0];
   $('#now-card').innerHTML = `
     <div class="now-greet">${greet}</div>
     <button class="now-time" data-goto-day="${tk}" aria-label="Open today, ${fmtDayLong(tk)}">${clock}</button>
-    <div class="dp">
+    <div class="dp" title="${dur(mins)} gone · ${dur(left)} left">
       <div class="dp-head"><span>Day</span><span class="dp-pct">${Math.round(pct)}%</span></div>
-      <div class="dp-track">
-        <div class="dp-fill" style="width:${pct}%"></div>
-        ${marks}
-        <div class="dp-now" style="left:${pct}%"></div>
-      </div>
-      <div class="dp-ticks">${ticks}</div>
-      <div class="dp-foot"><span>${dur(mins)} gone</span><span>${dur(left)} left</span></div>
-      ${next ? `<div class="dp-next">Next: <b>${esc(next.title || '(No title)')}</b> in ${dur(minutesOf(next.start) - mins).replace(/^0h /, '')}</div>` : ''}
+      <div class="dp-track"><div class="dp-fill" style="width:${pct}%"></div></div>
+      <div class="dp-foot">${dur(left)} left</div>
     </div>
     <div class="now-stats">
       <button data-goto-day="${tk}">${evs} event${evs === 1 ? '' : 's'}</button><span>·</span>
