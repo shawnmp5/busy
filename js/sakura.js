@@ -17,7 +17,7 @@
   const rand = (a, b) => a + Math.random() * (b - a);
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const DEFAULTS = { season: 'spring', mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true, rays: true, parallax: true };
+  const DEFAULTS = { season: 'spring', orb: true, mode: 'day', petals: 55, wind: 40, brightness: 100, clouds: true, sway: true, lanterns: true, rays: true, parallax: true };
 
   function makeCanvas(w, h) {
     const c = document.createElement('canvas');
@@ -97,19 +97,21 @@
   /* ============================================================
      Static paintings (done once per size and per day/night)
      ============================================================ */
-  function paintSky(L, P, q, night) {
+  function paintSky(L, P, q, night, orb = true) {
     const { W, H } = L, c = makeCanvas(W * q, H * q), g = c.getContext('2d'); g.scale(q, q);
     const grd = g.createLinearGradient(0, 0, 0, H * .85);
     for (const [s, col] of P.sky) grd.addColorStop(s, col);
     g.fillStyle = grd; g.fillRect(0, 0, W, H);
     if (!night) {
-      const sun = g.createRadialGradient(W * .06, -H * .06, 0, W * .06, -H * .06, W * .65);
-      sun.addColorStop(0, `rgba(${P.sunGlow},.42)`); sun.addColorStop(1, `rgba(${P.sunGlow},0)`);
-      g.fillStyle = sun; g.fillRect(0, 0, W, H);
+      if (orb) {
+        const sun = g.createRadialGradient(W * .06, -H * .06, 0, W * .06, -H * .06, W * .65);
+        sun.addColorStop(0, `rgba(${P.sunGlow},.42)`); sun.addColorStop(1, `rgba(${P.sunGlow},0)`);
+        g.fillStyle = sun; g.fillRect(0, 0, W, H);
+      }
       const pink = g.createLinearGradient(0, L.horizon - H * .28, 0, L.horizon);
       pink.addColorStop(0, `rgba(${P.horizonTint},0)`); pink.addColorStop(1, `rgba(${P.horizonTint},.38)`);
       g.fillStyle = pink; g.fillRect(0, 0, W, H);
-    } else {
+    } else if (orb) {
       const halo = g.createRadialGradient(L.moonX, L.moonY, 0, L.moonX, L.moonY, H * .55);
       halo.addColorStop(0, `rgba(${P.halo},.28)`); halo.addColorStop(.25, `rgba(${P.halo},.1)`); halo.addColorStop(1, `rgba(${P.halo},0)`);
       g.fillStyle = halo; g.fillRect(0, 0, W, H);
@@ -124,6 +126,8 @@
         const a = R() * TAU, d = R() * mr * .6, r = mr * (.12 + R() * .22);
         g.fillStyle = 'rgba(150,150,140,.16)'; g.beginPath(); g.arc(L.moonX + Math.cos(a) * d, L.moonY + Math.sin(a) * d, r, 0, TAU); g.fill();
       }
+    }
+    if (night) {
       const glow = g.createLinearGradient(0, L.horizon - H * .2, 0, L.horizon);
       glow.addColorStop(0, `rgba(${P.nightGlow},0)`); glow.addColorStop(1, `rgba(${P.nightGlow},.3)`);
       g.fillStyle = glow; g.fillRect(0, 0, W, H);
@@ -570,12 +574,12 @@
   function buildLook() {
     const P = (opts.season === 'autumn' ? PAL_AUTUMN : PAL)[opts.mode], n = night(), L = S.L;
     S.P = P; S.sp = makeSprites(P);
-    S.sky = paintSky(L, P, q, n);
-    S.far = paintFar(L, P, q, n);
+    S.sky = paintSky(L, P, q, n, opts.orb);
+    S.far = paintFar(L, P, q, n && opts.orb);
     S.fore = paintFore(L, P, q, S.sp);
     S.ray = raySprite(P.ray);
     S.mid = paintMid(L, P, q, S.sp, S.mids);
-    if (n) for (const c of [S.far, S.mid]) { /* a soft opening in the canopy where the moon shows through */
+    if (n && opts.orb) for (const c of [S.far, S.mid]) { /* a soft opening in the canopy where the moon shows through */
       const g = c.getContext('2d'); g.setTransform(q, 0, 0, q, 0, 0); g.globalCompositeOperation = 'destination-out';
       const hole = g.createRadialGradient(L.moonX, L.moonY, 0, L.moonX, L.moonY, H * .2);
       hole.addColorStop(0, 'rgba(0,0,0,1)'); hole.addColorStop(.45, 'rgba(0,0,0,.95)'); hole.addColorStop(1, 'rgba(0,0,0,0)');
@@ -583,7 +587,7 @@
     }
     for (const c of S.clouds) c.sprite = cloudSprite(c.w, c.h, P, c.seed, false);
     for (const t of S.trees) renderGroup(t.root, t.spec, P, S.sp, q, n && opts.lanterns);
-    builtKey = `${W}x${H}:${opts.season}:${opts.mode}:${n && opts.lanterns}`;
+    builtKey = `${W}x${H}:${opts.season}:${opts.mode}:${n && opts.lanterns}:${opts.orb}`;
   }
 
   function spawnPetal(anywhere) {
@@ -741,7 +745,7 @@
         buildGeometry(); buildLook(); prefill(); start();
         return;
       }
-      if (builtKey !== `${W}x${H}:${opts.season}:${opts.mode}:${night() && opts.lanterns}`) { buildLook(); prefill(); }
+      if (builtKey !== `${W}x${H}:${opts.season}:${opts.mode}:${night() && opts.lanterns}:${opts.orb}`) { buildLook(); prefill(); }
       if (!raf) once();
     },
   };
