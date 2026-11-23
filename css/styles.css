@@ -131,8 +131,8 @@ kbd {
 }
 .tb-left, .tb-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tb-left { flex: 1 1 auto; }
-.brand { display: flex; align-items: center; gap: 9px; margin: 0 14px 0 4px; color: var(--fg); }
-.brand-mark { width: 20px; height: 20px; flex: none; transition: transform .5s var(--ease); }
+.brand { display: flex; align-items: center; gap: 9px; margin: 0 8px 0 2px; color: var(--fg); }
+.brand-mark { width: 28px; height: 28px; flex: none; transition: transform .5s var(--ease); }
 .brand:hover .brand-mark { transform: rotate(180deg); }
 .brand-name { font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
 .view-title {
@@ -806,7 +806,7 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
   .tb-right { flex: 1 1 100%; justify-content: space-between; gap: 2px; }
   .view-title { font-size: 22px; margin-left: 6px; flex: 1; }
   .brand { margin: 0 2px; }
-  .brand-mark { width: 20px; height: 20px; }
+  .brand-mark { width: 24px; height: 24px; }
   .nav-arrows { order: 6; }
   .seg { flex: 1; margin-right: 6px; }
   .seg button { padding: 0 6px; flex: 1; }
