@@ -15,7 +15,6 @@
 <div class="app" id="app">
   <header class="topbar">
     <div class="tb-left">
-      <button class="icon-btn" id="btn-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
       <div class="brand">
         <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3h13M5.5 21h13"/><path d="M7.5 3c0 4.6 4.5 6.2 4.5 9s-4.5 4.4-4.5 9M16.5 3c0 4.6-4.5 6.2-4.5 9s4.5 4.4 4.5 9"/><path d="M8.8 20.2c.9-1.7 2-2.5 3.2-2.5s2.3.8 3.2 2.5z" fill="currentColor" stroke="none"/></svg>
         <span class="brand-name">Chronos</span>
@@ -45,13 +44,13 @@
     </div>
   </header>
 
-  <aside class="sidebar panel" id="sidebar">
-    <section class="now-card" id="now-card"></section>
-    <section class="side-sec">
-      <div class="side-head"><h2>Up next</h2></div>
+  <section class="today-strip" id="today-strip" aria-label="Today">
+    <div class="now-card" id="now-card"></div>
+    <div class="ts-next">
+      <h2 class="ts-label">Up next</h2>
       <ul class="upnext" id="upnext"></ul>
-    </section>
-  </aside>
+    </div>
+  </section>
 
   <main class="stage panel" id="stage"></main>
 

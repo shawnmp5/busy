@@ -52,7 +52,6 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 | `N` | New note |
 | `/` | Search |
 | `B` | Toggle day board |
-| `[` | Toggle sidebar |
 | `,` | Settings |
 | `R` | Reminders |
 | `Ctrl` `Z` | Undo |

@@ -214,7 +214,6 @@ const ui = {
   view: ['day', 'week', 'month', 'year'].includes(S().view) ? S().view : 'month',
   selected: todayKey(),
   mini: new Date(),
-  sbOverlay: false,
   bdOverlay: false,
   animate: 'in',
   resetScroll: true,
@@ -398,7 +397,6 @@ function applySettings() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = bg;
   const app = $('#app');
-  app.classList.toggle('sb-closed', !s.sidebarOpen);
   app.classList.toggle('bd-closed', !s.boardOpen);
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
@@ -413,7 +411,7 @@ function render() {
   renderTitle();
   renderSeg();
   renderStage();
-  renderSidebar();
+  renderToday();
   renderBoard();
   updateBadge();
   ui.animate = null;
@@ -767,9 +765,9 @@ function renderYear() {
 }
 
 /* ============================================================
-   Sidebar
+   Today strip
    ============================================================ */
-function renderSidebar() {
+function renderToday() {
   renderNowCard();
   renderMini();
   renderUpNext();
@@ -977,7 +975,7 @@ function addNote(key, opts = {}) {
   return n;
 }
 function openBoardIfHidden() {
-  if (window.innerWidth <= 1320) { ui.bdOverlay = true; ui.sbOverlay = false; syncOverlays(); }
+  if (window.innerWidth <= 1320) { ui.bdOverlay = true; syncOverlays(); }
   else if (!S().boardOpen) { S().boardOpen = true; save(); }
 }
 function deleteNote(n) {
@@ -1350,7 +1348,7 @@ function closeDrawer(instant) {
   if (!el) return;
   if (instant || reduceMotion()) el.remove();
   else { el.classList.add('leaving'); setTimeout(() => el.remove(), 210); }
-  if (!ui.sbOverlay && !ui.bdOverlay) $('#scrim').hidden = true;
+  if (!ui.bdOverlay) $('#scrim').hidden = true;
 }
 function drawerShell(title, body) {
   return `<div class="drawer-head"><h2>${title}</h2><button class="icon-btn" data-drawer-close aria-label="Close">${icon('x')}</button></div><div class="drawer-body">${body}</div>`;
@@ -1466,7 +1464,7 @@ function renderShortcuts(el) {
   const rows = [
     ['Go to today', ['T']], ['Previous / next', ['←', '→']], ['Day · Week · Month · Year', ['D', 'W', 'M', 'Y']],
     ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
-    ['Toggle sidebar', ['[']], ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
+    ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
   ];
   el.innerHTML = drawerShell('Shortcuts', `<div class="keys">${rows.map(([l, k]) => `<span>${l}</span><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span>`).join('')}</div>
     <section class="set-sec"><h3>Mouse & touch</h3><div class="keys tips">
@@ -1706,16 +1704,11 @@ function selectDay(key, fromTap) {
 }
 function syncOverlays() {
   const app = $('#app');
-  app.classList.toggle('sb-open', ui.sbOverlay);
   app.classList.toggle('bd-open', ui.bdOverlay);
-  $('#scrim').hidden = !(ui.sbOverlay || ui.bdOverlay || drawerKind);
-}
-function toggleSidebar() {
-  if (window.innerWidth <= 1060) { ui.sbOverlay = !ui.sbOverlay; ui.bdOverlay = false; syncOverlays(); }
-  else { S().sidebarOpen = !S().sidebarOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
+  $('#scrim').hidden = !(ui.bdOverlay || drawerKind);
 }
 function toggleBoard() {
-  if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; ui.sbOverlay = false; syncOverlays(); }
+  if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; syncOverlays(); }
   else { S().boardOpen = !S().boardOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
 }
 
@@ -1726,22 +1719,21 @@ function goToday() { const tk = todayKey(); ui.animate = tk < ui.selected ? 'lef
 $('#btn-prev').addEventListener('click', () => shift(-1));
 $('#btn-next').addEventListener('click', () => shift(1));
 $('#view-seg').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
-$('#btn-sidebar').addEventListener('click', toggleSidebar);
 $('#btn-board').addEventListener('click', toggleBoard);
 $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
 $('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
 layer.addEventListener('click', e => { const b = e.target.closest('[data-add-cal]'); if (b) openCalEditor(null, b); });
-$('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
+$('#scrim').addEventListener('click', () => { ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
 
-/* Shared delegated clicks (sidebar, stage, board, drawers) */
+/* Shared delegated clicks (today strip, stage, board, drawers) */
 document.addEventListener('click', e => {
   const t = e.target;
   let el;
   if ((el = t.closest('[data-drawer-close]'))) { closeDrawer(); syncOverlays(); return; }
-  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); goTo(el.dataset.gotoDay, 'day'); if (window.innerWidth <= 1060) { ui.sbOverlay = false; syncOverlays(); } closeDrawer(); return; }
+  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); goTo(el.dataset.gotoDay, 'day'); closeDrawer(); return; }
   if ((el = t.closest('[data-goto-month]'))) { goTo(el.dataset.gotoMonth, 'month'); return; }
-  if ((el = t.closest('[data-pick]'))) { ui.selected = el.dataset.pick; ui.animate = 'in'; ui.resetScroll = true; render(); if (window.innerWidth <= 1060) { ui.sbOverlay = false; syncOverlays(); } return; }
+  if ((el = t.closest('[data-pick]'))) { ui.selected = el.dataset.pick; ui.animate = 'in'; ui.resetScroll = true; render(); return; }
   if ((el = t.closest('[data-mini]'))) { ui.mini = addMonths(new Date(ui.mini.getFullYear(), ui.mini.getMonth(), 1), +el.dataset.mini); renderMini(); return; }
   if ((el = t.closest('[data-open-board]'))) { e.stopPropagation(); ui.selected = el.dataset.openBoard; ui.mini = fromKey(ui.selected); openBoardIfHidden(); closeDrawer(); render(); return; }
   if ((el = t.closest('[data-quick-note]'))) { e.stopPropagation(); addNote(el.dataset.quickNote); return; }
@@ -1861,7 +1853,7 @@ function toggleNoteMode(n) {
 }
 function toggleNoteDone(n) {
   n.done = !n.done;
-  save(); rerenderNote(n); renderStage(); renderSidebar(); updateBadge();
+  save(); rerenderNote(n); renderStage(); renderToday(); updateBadge();
   if (n.done) confetti($(`.note[data-note="${n.id}"]`, board));
 }
 const saveSoon = debounce(() => { renderStage(); renderMini(); renderUpNext(); }, 600);
@@ -2151,7 +2143,7 @@ document.addEventListener('keydown', e => {
     if ($('.pop, .menu', layer)) { closeFloating(); return; }
     const m = topModal(); if (m) { m._close(); return; }
     if (drawerKind) { closeDrawer(); syncOverlays(); return; }
-    if (ui.sbOverlay || ui.bdOverlay) { ui.sbOverlay = ui.bdOverlay = false; syncOverlays(); return; }
+    if (ui.bdOverlay) { ui.bdOverlay = false; syncOverlays(); return; }
     if (typing) e.target.blur();
     return;
   }
@@ -2166,7 +2158,7 @@ document.addEventListener('keydown', e => {
     t: goToday, ArrowLeft: () => shift(-1), ArrowRight: () => shift(1), j: () => shift(1), k: () => shift(-1),
     d: () => setView('day'), w: () => setView('week'), m: () => setView('month'), y: () => setView('year'),
     c: () => openEditor({ date: ui.selected }), n: () => addNote(ui.selected), '/': () => sInput.focus(),
-    b: toggleBoard, '[': toggleSidebar, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
+    b: toggleBoard, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
   };
   const fn = map[k] || map[k.toLowerCase()];
   if (fn) { e.preventDefault(); fn(); }
@@ -2184,7 +2176,6 @@ stage.addEventListener('touchend', e => {
 
 /* Resize */
 window.addEventListener('resize', debounce(() => {
-  if (window.innerWidth > 1060 && ui.sbOverlay) ui.sbOverlay = false;
   if (window.innerWidth > 1320 && ui.bdOverlay) ui.bdOverlay = false;
   syncOverlays();
   fitMonthChips(); placeSegPill(); sizeCork();
@@ -2220,7 +2211,7 @@ render();
 document.fonts?.ready?.then(() => { placeSegPill(); fitMonthChips(); });
 setTimeout(tick, 800);
 setInterval(tick, 15000);
-/* Seconds on the sidebar clock; a full redraw still happens each minute */
+/* Seconds on the today-strip clock; a full redraw still happens each minute */
 setInterval(() => {
   const el = $('.nt-sec');
   const now = new Date();
