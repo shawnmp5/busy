@@ -16,6 +16,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 - Moving or deleting one occurrence of a repeating event leaves the rest alone
 - Calendars (Personal, Work, …) in post-it pastel colours that you can rename, recolour, hide or add to (in Settings)
 - US holidays, computed for any year, each in its own colour (Christmas red, Halloween orange, St. Patrick's green…)
+- Mark events as important (deadlines, tests…) with the star; they get their own Important section in the Today bar with a countdown
 - Search across events and notes (`/`)
 
 **Sticky notes**

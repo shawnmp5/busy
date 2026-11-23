@@ -474,7 +474,7 @@ function weekDays() {
 /* ---------- Month ---------- */
 function chipHTML(ev, key) {
   const c = evColor(ev);
-  return `<button class="chip-ev${ev.allDay ? ' allday' : ''}" style="--c:${c};--on-c:${readable(c)}" data-ev="${ev.id}" data-occ="${key}" draggable="true" title="${esc(ev.title || '(No title)')} · ${fmtRange(ev)}"><span class="d"></span>${ev.allDay ? '' : `<span class="t">${fmtTimeShort(ev.start)}</span>`}<span class="n">${esc(ev.title || '(No title)')}</span></button>`;
+  return `<button class="chip-ev${ev.allDay ? ' allday' : ''}${ev.important ? ' imp' : ''}" style="--c:${c};--on-c:${readable(c)}" data-ev="${ev.id}" data-occ="${key}" draggable="true" title="${esc(ev.title || '(No title)')} · ${fmtRange(ev)}"><span class="d"></span>${ev.allDay ? '' : `<span class="t">${fmtTimeShort(ev.start)}</span>`}<span class="n">${ev.important ? icon('star', 'imp-ic') : ''}${esc(ev.title || '(No title)')}</span></button>`;
 }
 function renderMonth() {
   const sel = fromKey(ui.selected);
@@ -772,6 +772,7 @@ function renderYear() {
 function renderToday() {
   renderNowCard();
   renderMini();
+  renderImportant();
   renderUpNext();
   renderCalendars();
 }
@@ -843,6 +844,29 @@ function renderUpNext() {
     return `<li><button data-open-board="${it.key}"><span class="u-dot is-note" style="background:${noteColor(it.n.color)}"></span><span class="u-title">${esc(noteSummary(it.n))}</span><span class="u-when">${icon('alarm', 'tiny')} ${fmtStamp(it.n.remindAt)}</span></button></li>`;
   }).join('') : `<li class="empty-small">Nothing coming up. Enjoy the quiet.</li>`;
   $$('#upnext .tiny').forEach(s => { s.style.width = '11px'; s.style.height = '11px'; s.style.verticalAlign = '-1px'; });
+}
+/* Important: deadlines, tests and anything else flagged with a star, for the next 60 days */
+function renderImportant() {
+  const now = new Date(), items = [];
+  for (let i = 0; i < 60 && items.length < 8; i++) {
+    const k = toKey(addDays(now, i));
+    for (const ev of eventsOn(k)) {
+      if (!ev.important || items.some(it => it.ev === ev)) continue;
+      if (!ev.allDay && dtOf(k, ev.end) <= now) continue;
+      items.push({ ev, key: k, days: i });
+    }
+  }
+  $('#ts-imp').hidden = !items.length;
+  $('#important').innerHTML = items.map(({ ev, key, days }) => {
+    const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+    return `<li><button class="imp-item${days <= 1 ? ' soon' : ''}" data-open-ev="${ev.id}" data-occ="${key}"><span class="u-dot u-star">${icon('star')}</span><span class="u-title">${esc(ev.title || '(No title)')}</span><span class="u-when"><b>${when}</b> · ${fmtDayShort(key) === when ? '' : fmtDayShort(key) + ' · '}${ev.allDay ? 'All day' : fmtTime(ev.start)}</span></button></li>`;
+  }).join('');
+}
+function toggleImportant(ev) {
+  snapshot();
+  ev.important = !ev.important;
+  save(); render();
+  toast(ev.important ? 'Marked as important' : 'No longer important', { label: 'Undo', fn: undo });
 }
 function renderCalendars() {
   if (!$('#cal-list')) return;
@@ -1081,6 +1105,7 @@ function showEventPopover(ev, occ, anchor) {
   const cal = calById(ev.calendarId);
   const el = openPop(`
     <div class="pop-head">
+      <button class="icon-btn sm${ev.important ? ' on' : ''}" data-p="imp" aria-label="${ev.important ? 'Unmark important' : 'Mark as important'}" title="${ev.important ? 'Unmark important' : 'Mark as important'}">${icon('star')}</button>
       <button class="icon-btn sm" data-p="edit" aria-label="Edit" title="Edit (E)">${icon('pencil')}</button>
       <button class="icon-btn sm" data-p="dup" aria-label="Duplicate" title="Duplicate">${icon('copy')}</button>
       <button class="icon-btn sm" data-p="del" aria-label="Delete" title="Delete (Del)">${icon('trash')}</button>
@@ -1103,6 +1128,7 @@ function showEventPopover(ev, occ, anchor) {
     if (b.dataset.recolor) { snapshot(); ev.color = b.dataset.recolor; save(); render(); closeFloating(); return; }
     const a = b.dataset.p;
     if (a === 'close') closeFloating();
+    if (a === 'imp') { closeFloating(); toggleImportant(ev); }
     if (a === 'edit') { closeFloating(); openEditor({ id: ev.id }); }
     if (a === 'dup') { closeFloating(); duplicateEvent(ev, occ); }
     if (a === 'del') deleteEvent(ev, occ);
@@ -1181,7 +1207,10 @@ function openEditor(init = {}) {
           <div class="field tfield"><label for="ev-start">Starts</label><input class="input" type="time" id="ev-start" name="start" value="${d.start}" step="300"></div>
           <div class="field tfield"><label for="ev-end">Ends</label><input class="input" type="time" id="ev-end" name="end" value="${d.end}" step="300"></div>
         </div>
-        <label class="toggle"><input type="checkbox" id="ev-allday" name="allDay" ${d.allDay ? 'checked' : ''}><span class="tr"></span>All day</label>
+        <div class="row" style="gap:24px">
+          <label class="toggle"><input type="checkbox" id="ev-allday" name="allDay" ${d.allDay ? 'checked' : ''}><span class="tr"></span>All day</label>
+          <label class="toggle"><input type="checkbox" id="ev-important" name="important" ${d.important ? 'checked' : ''}><span class="tr"></span>Important <span class="hint">(deadline, test…)</span></label>
+        </div>
         <div class="field"><span class="field-label">Calendar</span><div class="pill-group" id="ev-cals">${state.calendars.map(c => `<button type="button" class="pill${c.id === d.calendarId ? ' on' : ''}" data-cal="${c.id}" style="--c:${paint(c.color)}"><span class="d"></span>${esc(c.name)}</button>`).join('')}</div></div>
         <div class="field"><span class="field-label">Colour</span><div class="swatches" id="ev-colors">
           <button type="button" class="pill${!d.color ? ' on' : ''}" data-color="" style="height:26px">Calendar colour</button>
@@ -1235,7 +1264,7 @@ function openEditor(init = {}) {
     snapshot();
     const out = {
       title: f.title.value.trim(), date: f.date.value, start: allDay ? '00:00' : f.start.value, end: allDay ? '23:59' : f.end.value, allDay,
-      calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: f.description.value.trim(),
+      important: f.important.checked, calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: f.description.value.trim(),
       reminder: f.reminder.value === '' ? null : Number(f.reminder.value), repeat: f.repeat.value, until: f.repeat.value !== 'none' && f.until.value ? f.until.value : null,
     };
     lastCal = d.calendarId;
@@ -1802,6 +1831,7 @@ document.addEventListener('contextmenu', e => {
     openMenu([
       { id: 'open', label: 'Details', icon: 'text', fn: () => showEventPopover(ev, occ, evEl) },
       { id: 'edit', label: 'Edit', icon: 'pencil', fn: () => openEditor({ id: ev.id }) },
+      { id: 'imp', label: ev.important ? 'Unmark important' : 'Mark as important', icon: 'star', fn: () => toggleImportant(ev) },
       { id: 'dup', label: 'Duplicate', icon: 'copy', fn: () => duplicateEvent(ev, occ) },
       { id: 'tom', label: 'Move to next day', icon: 'right', fn: () => changeOccurrence(ev, occ, { date: toKey(addDays(fromKey(occ), 1)) }, 'Moved to the next day') },
       { html: `<div class="menu-label">Colour</div><div class="mood-line">${EVENT_COLORS.map(c => `<button data-mi="c${c}" aria-label="Colour ${c}"><span class="swatch" style="--sw:${paint(c)};width:16px;height:16px"></span></button>`).join('')}</div>` },
