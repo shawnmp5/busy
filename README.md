@@ -63,15 +63,15 @@ Right-click a day, an event or a note for more options. On a phone, swipe left o
 
 ## Logo
 
-The mark is a transparent blue glass clock. Through the glass you can see glowing gears, a nod to the Antikythera mechanism, the ancient Greek clockwork computer. Its dark rune band carries ancient Greek numerals (Αʹ to ΙΒʹ), the bezel has a Greek key pattern, and an inner ring names the three Greek words for time (ΧΡΟΝΟΣ, ΚΑΙΡΟΣ, ΑΙΩΝ). Two orbits cross around it in a Χ, the first letter of Χρόνος. In the site header the logo is a live clock showing the current time.
+The mark is a minimal, all-blue clock emblem inspired by ancient Greece. A flat ring holds a dark band where the Greek numerals for 12, 3, 6 and 9 (ΙΒʹ, Γʹ, Ϛʹ, Θʹ) glow like runes. Inside is a glowing face with hands at 10:10, and one orbit wraps around it with a single orb. The full logo leads with the name in Greek, ΧΡΟΝΟΣ, with CHRONOS beneath. In the site header the emblem is a live clock showing the current time.
 
 | File | Use |
 | --- | --- |
 | `assets/logo/chronos-logo.svg` | Horizontal logo for dark backgrounds |
 | `assets/logo/chronos-logo-light.svg` | Horizontal logo for light backgrounds |
-| `assets/logo/chronos-mark.svg` | The clock on its own |
-| `assets/logo/chronos-mark-animated.svg` | The clock with turning gears and a ticking second hand |
-| `assets/logo/chronos-mark-light.svg` | The clock for light backgrounds |
+| `assets/logo/chronos-mark.svg` | The emblem on its own |
+| `assets/logo/chronos-mark-animated.svg` | The emblem with moving hands, a turning dial and a floating orb |
+| `assets/logo/chronos-mark-light.svg` | The emblem without the glow, for light backgrounds |
 | `assets/logo/chronos-icon.svg` | App icon (plus 512, 192 and 180 px PNGs) |
 | `assets/logo/chronos-favicon.svg` | Simplified icon for browser tabs |
 | `assets/logo/chronos-brand.svg` | Header logo; its hands are set to the real time by the app |
