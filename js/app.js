@@ -63,7 +63,9 @@ const NOTE_COLORS = [
 /* Gray paper shades briefly used by the monochrome redesign, mapped back to post-it colours */
 const MONO_NOTE_COLORS = { paper: 'lemon', mist: 'sky', linen: 'peach', stone: 'cloud', silver: 'cloud', graphite: 'cloud', ink: 'cloud' };
 const noteColor = id => (NOTE_COLORS.find(c => c.id === id) || NOTE_COLORS[0]).c;
-const EVENT_COLORS = ['#111111', '#3a3a3c', '#636366', '#8e8e93', '#aeaeb2', '#c7c7cc'];
+/* Event colours share the post-it pastels */
+const EVENT_COLORS = ['#a8d7ff', '#ffacc9', '#ffc08f', '#d4bfff', '#aeecca', '#ffe57a', '#dcef8a'];
+const GRAY_TO_PASTEL = { '#111111': '#a8d7ff', '#3a3a3c': '#ffacc9', '#636366': '#ffc08f', '#8e8e93': '#d4bfff', '#aeaeb2': '#aeecca', '#c7c7cc': '#ffe57a' };
 const OLD_EVENT_COLORS = { '#7c9cff': '#111111', '#5cc8e0': '#3a3a3c', '#3fbf8f': '#aeaeb2', '#a8c94a': '#8e8e93', '#f2b45a': '#636366', '#ff8a65': '#8e8e93', '#f06292': '#3a3a3c', '#b388ff': '#636366', '#8d99ae': '#c7c7cc' };
 const ACCENTS = ['#48484a'];
 const SKINS = [
@@ -98,7 +100,7 @@ const DEFAULT_SETTINGS = {
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
-  sidebarOpen: true, boardOpen: true, view: 'month', design: 5,
+  sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
 };
 const KEY = 'chronos.v1';
 
@@ -110,10 +112,10 @@ function defaultState() {
     v: 1,
     settings: { ...DEFAULT_SETTINGS },
     calendars: [
-      { id: 'personal', name: 'Personal', color: '#111111', visible: true },
-      { id: 'work', name: 'Work', color: '#636366', visible: true },
-      { id: 'fitness', name: 'Fitness', color: '#aeaeb2', visible: true },
-      { id: 'birthdays', name: 'Birthdays', color: '#3a3a3c', visible: true },
+      { id: 'personal', name: 'Personal', color: '#a8d7ff', visible: true },
+      { id: 'work', name: 'Work', color: '#ffc08f', visible: true },
+      { id: 'fitness', name: 'Fitness', color: '#aeecca', visible: true },
+      { id: 'birthdays', name: 'Birthdays', color: '#ffacc9', visible: true },
     ],
     events: [], notes: [], moods: {}, fired: {}, snoozes: [],
   };
@@ -127,7 +129,7 @@ function seed(s) {
     { id: uid(), title: 'Deep work block', date: k(0), start: '13:00', end: '15:00', allDay: false, calendarId: 'work', color: null, location: '', description: ex, reminder: null, repeat: 'none', until: null, exceptions: [] },
     { id: uid(), title: 'Team sync', date: k(1), start: '10:00', end: '10:30', allDay: false, calendarId: 'work', color: null, location: 'Video call', description: ex, reminder: 10, repeat: 'weekly', until: null, exceptions: [] },
     { id: uid(), title: 'Dinner with friends', date: k(3), start: '19:00', end: '21:00', allDay: false, calendarId: 'personal', color: null, location: 'That ramen place', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
-    { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#8e8e93', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
+    { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#d4bfff', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
   );
   s.notes.push(
     { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'lemon', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
@@ -160,6 +162,13 @@ function migrate(s) {
     /* A short-lived version hid the left panel; open it again */
     out.settings.sidebarOpen = true;
     out.settings.design = 5;
+  }
+  if (out.settings.design < 6) {
+    /* Event colours moved from grays to post-it pastels */
+    const pastel = c => (c && GRAY_TO_PASTEL[String(c).toLowerCase()]) || c;
+    out.calendars.forEach(c => { c.color = pastel(c.color); });
+    out.events.forEach(e => { if (e.color) e.color = pastel(e.color); });
+    out.settings.design = 6;
   }
   out.notes.forEach(n => { if (MONO_NOTE_COLORS[n.color]) n.color = MONO_NOTE_COLORS[n.color]; });
   if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
@@ -227,7 +236,7 @@ function paint(c) {
   const v = 255 - Math.round((r + g + b) / 3);
   return '#' + [v, v, v].map(x => x.toString(16).padStart(2, '0')).join('');
 }
-const evColor = ev => paint(ev.color || calById(ev.calendarId)?.color || '#111111');
+const evColor = ev => paint(ev.color || calById(ev.calendarId)?.color || '#a8d7ff');
 const findEvent = id => state.events.find(e => e.id === id);
 const findNote = id => state.notes.find(n => n.id === id);
 
@@ -305,7 +314,7 @@ const HOLIDAY_COLORS = {
   "Mother's Day": '#e86fa0', 'Memorial Day': '#b3262e', 'Juneteenth': '#d9822b',
   "Father's Day": '#3f7cc4', 'Independence Day': '#c8102e', 'Labor Day': '#2f5fb3',
   "Indigenous Peoples' Day": '#a0522d', 'Halloween': '#f07b16', 'Veterans Day': '#5a6b3a',
-  'Thanksgiving Day': '#c0661c', 'Black Friday': '#222222', 'Christmas Eve': '#1f7a3e',
+  'Thanksgiving Day': '#c0661c', 'Black Friday': '#6b6b6b', 'Christmas Eve': '#1f7a3e',
   'Christmas Day': '#c8102e', "New Year's Eve": '#c9a227',
 };
 const holColor = h => HOLIDAY_COLORS[h] || '#8e8e93';
@@ -1185,7 +1194,7 @@ function openEditor(init = {}) {
         <div class="field"><span class="field-label">Colour</span><div class="swatches" id="ev-colors">
           <button type="button" class="pill${!d.color ? ' on' : ''}" data-color="" style="height:26px">Calendar colour</button>
           ${EVENT_COLORS.map(c => `<button type="button" class="swatch${d.color === c ? ' on' : ''}" style="--sw:${paint(c)}" data-color="${c}" aria-label="Colour ${c}"></button>`).join('')}
-          <label class="swatch custom" title="Custom colour"><input type="color" id="ev-custom-color" value="${d.color || '#111111'}" aria-label="Custom colour"></label>
+          <label class="swatch custom" title="Custom colour"><input type="color" id="ev-custom-color" value="${d.color || '#a8d7ff'}" aria-label="Custom colour"></label>
         </div></div>
         <div class="row">
           <div class="field"><label for="ev-repeat">Repeat</label><select class="input" id="ev-repeat" name="repeat">${REPEATS.map(([v, l]) => `<option value="${v}"${d.repeat === v ? ' selected' : ''}>${l}</option>`).join('')}</select></div>

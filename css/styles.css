@@ -284,7 +284,7 @@ button.w-tile:active { transform: scale(.98); }
 .upnext li + li button { border-top: 1px solid var(--line); }
 .upnext li button { width: 100%; display: grid; grid-template-columns: 8px 1fr; gap: 1px 12px; align-items: center; text-align: left; padding: 10px 2px; transition: opacity .15s; }
 .upnext li button:hover { opacity: .6; }
-.upnext .u-dot { width: 7px; height: 7px; border-radius: 50%; grid-row: span 2; align-self: start; margin-top: 7px; }
+.upnext .u-dot { width: 9px; height: 9px; border-radius: 50%; grid-row: span 2; align-self: start; margin-top: 7px; }
 .upnext .u-dot.is-note { width: 9px; height: 9px; border-radius: 1px 1px 3px 1px; transform: rotate(8deg); box-shadow: 0 1px 1px rgb(0 0 0 / .15); }
 .upnext .u-title { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .upnext .u-when { font-size: 12.5px; color: var(--fg-2); font-variant-numeric: tabular-nums; }
@@ -361,10 +361,10 @@ button.w-tile:active { transform: scale(.98); }
 }
 .chip-ev .t { color: var(--fg-2); font-variant-numeric: tabular-nums; font-size: 11.5px; flex: none; order: 3; margin-left: auto; padding-left: 4px; }
 .chip-ev .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; min-width: 0; }
-.chip-ev .d { width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
+.chip-ev .d { width: 8px; height: 8px; border-radius: 50%; background: var(--c); flex: none; }
 .chip-ev:hover { background: var(--surface-3); }
-.chip-ev.allday { background: color-mix(in oklab, var(--c) 9%, var(--surface)); }
-.chip-ev.allday:hover { background: color-mix(in oklab, var(--c) 15%, var(--surface)); }
+.chip-ev.allday { background: color-mix(in oklab, var(--c) 45%, var(--surface)); }
+.chip-ev.allday:hover { background: color-mix(in oklab, var(--c) 60%, var(--surface)); }
 .chip-ev.allday .d { display: none; }
 .chip-ev.holiday { --hc: #8e8e93; cursor: default; color: color-mix(in oklab, var(--hc) 75%, var(--fg)); background: color-mix(in oklab, var(--hc) 13%, var(--surface)); box-shadow: inset 2px 0 0 var(--hc); font-weight: 500; }
 .chip-ev.holiday:hover { background: color-mix(in oklab, var(--hc) 13%, var(--surface)); }
@@ -421,12 +421,12 @@ button.w-tile:active { transform: scale(.98); }
 .tg-ev {
   --c: var(--fg);
   position: absolute; z-index: 2; border-radius: 8px; padding: 5px 8px 5px 10px; overflow: hidden; cursor: grab;
-  background: color-mix(in oklab, var(--c) 8%, var(--surface));
+  background: color-mix(in oklab, var(--c) 45%, var(--surface));
   color: var(--fg); font-size: 12px; line-height: 1.3; user-select: none;
   transition: box-shadow .15s, transform .15s, opacity .15s, background .15s;
 }
-.tg-ev::before { content: ""; position: absolute; inset: 4px auto 4px 3px; width: 3px; border-radius: 2px; background: var(--c); }
-.tg-ev:hover { background: color-mix(in oklab, var(--c) 13%, var(--surface)); z-index: 5; }
+.tg-ev::before { content: ""; position: absolute; inset: 4px auto 4px 3px; width: 3px; border-radius: 2px; background: color-mix(in oklab, var(--c) 65%, var(--fg)); }
+.tg-ev:hover { background: color-mix(in oklab, var(--c) 60%, var(--surface)); z-index: 5; }
 .tg-ev .ev-t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tg-ev .ev-s { color: var(--fg-2); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tg-ev.short { padding-block: 1px; display: flex; gap: 6px; align-items: center; }
@@ -498,7 +498,7 @@ button.ag-item:hover { opacity: .6; }
 .ag-time small { display: block; color: var(--fg-2); font-weight: 400; font-size: 12px; }
 .ag-title { font-weight: 600; font-size: 14.5px; letter-spacing: -.01em; display: flex; align-items: center; gap: 7px; min-width: 0; line-height: 1.35; }
 .ag-title span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ag-title .d { width: 7px; height: 7px; border-radius: 50%; background: var(--c); flex: none; }
+.ag-title .d { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
 .ag-sub { font-size: 12.5px; color: var(--fg-2); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ag-item.past .ag-title span { color: var(--fg-2); text-decoration: line-through; text-decoration-color: var(--fg-3); }
 .ag-item.past .ag-time { color: var(--fg-2); }
@@ -844,7 +844,7 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
   .cell-actions { display: none; }
   .chip-ev { height: 17px; line-height: 17px; font-size: 10px; padding: 0 4px; gap: 3px; border-radius: 5px; }
   .chip-ev .t { display: none; }
-  .chip-ev:not(.allday):not(.holiday) { background: color-mix(in oklab, var(--c) 8%, var(--surface)); }
+  .chip-ev:not(.allday):not(.holiday) { background: color-mix(in oklab, var(--c) 45%, var(--surface)); }
   .chip-ev .d { display: none; }
   .daynum { min-width: 26px; height: 26px; font-size: 13px; padding: 0 4px; }
   .daynum .mon { display: none; }
