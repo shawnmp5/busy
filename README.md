@@ -9,16 +9,14 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 ## What you can do
 
 **Calendar**
-- A big clock with seconds at the top of the left panel
-- Day, Week, Month and Year views, with animated transitions and a live "now" line
-- Drag across empty time in Week or Day view to create an event
-- Drag an event to move it, or drag its bottom edge to change its length
+- A Today bar above the calendar with a live clock and what's up next
+- A month calendar with animated transitions between months
 - Drag event chips between days in Month view
 - Repeating events (daily, weekdays, weekly, every 2 weeks, monthly, yearly), with an optional end date
 - Moving or deleting one occurrence of a repeating event leaves the rest alone
 - Calendars (Personal, Work, …) in post-it pastel colours that you can rename, recolour, hide or add to (in Settings)
 - US holidays, computed for any year, each in its own colour (Christmas red, Halloween orange, St. Patrick's green…)
-- A Year view heatmap showing how busy each day is
+- Mark events as important (deadlines, tests…) with the star; they get their own Important section in the Today bar with a countdown
 - Search across events and notes (`/`)
 
 **Sticky notes**
@@ -27,7 +25,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 - Eight paper colours and five handwriting fonts
 - Turn a note into a checklist (with a progress bar and confetti when you finish)
 - Mark notes done, duplicate them, or delete them with undo
-- Notes show up as tiny post-its in the Month view and Week headers
+- Notes show up as tiny post-its in the month view
 
 **Reminders**
 - Event reminders (at start, 5 min … 1 day before)
@@ -48,12 +46,10 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 | --- | --- |
 | `T` | Jump to today |
 | `←` `→` | Previous / next |
-| `D` `W` `M` `Y` | Day, Week, Month, Year |
 | `C` | New event |
 | `N` | New note |
 | `/` | Search |
 | `B` | Toggle day board |
-| `[` | Toggle sidebar |
 | `,` | Settings |
 | `R` | Reminders |
 | `Ctrl` `Z` | Undo |

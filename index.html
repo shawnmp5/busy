@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chronos Calendar</title>
+<title>Busy</title>
 <meta name="description" content="A quiet, monochrome calendar with notes for every day and reminders.">
-<link rel="icon" type="image/svg+xml" href="assets/logo/chronos-favicon-mono.svg">
-<link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="assets/logo/busy-favicon.svg">
+<link rel="apple-touch-icon" href="assets/logo/busy-touch-icon.png">
 <meta name="theme-color" content="#f5f5f5">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -15,11 +15,6 @@
 <div class="app" id="app">
   <header class="topbar">
     <div class="tb-left">
-      <button class="icon-btn" id="btn-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar"><svg class="ic"><use href="#i-menu"/></svg></button>
-      <div class="brand">
-        <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3h13M5.5 21h13"/><path d="M7.5 3c0 4.6 4.5 6.2 4.5 9s-4.5 4.4-4.5 9M16.5 3c0 4.6-4.5 6.2-4.5 9s4.5 4.4 4.5 9"/><path d="M8.8 20.2c.9-1.7 2-2.5 3.2-2.5s2.3.8 3.2 2.5z" fill="currentColor" stroke="none"/></svg>
-        <span class="brand-name">Chronos</span>
-      </div>
       <div class="nav-arrows">
         <button class="icon-btn" id="btn-prev" aria-label="Previous" title="Previous (←)"><svg class="ic"><use href="#i-left"/></svg></button>
         <button class="icon-btn" id="btn-next" aria-label="Next" title="Next (→)"><svg class="ic"><use href="#i-right"/></svg></button>
@@ -33,25 +28,23 @@
         <kbd>/</kbd>
         <div class="search-results" id="search-results" hidden></div>
       </div>
-      <div class="seg" id="view-seg" role="tablist" aria-label="View">
-        <button data-view="day" role="tab">Day</button>
-        <button data-view="week" role="tab">Week</button>
-        <button data-view="month" role="tab">Month</button>
-        <button data-view="year" role="tab">Year</button>
-      </div>
       <button class="icon-btn has-badge" id="btn-bell" aria-label="Reminders" title="Reminders"><svg class="ic"><use href="#i-bell"/></svg><span class="badge" id="bell-badge" hidden>0</span></button>
       <button class="icon-btn" id="btn-settings" aria-label="Settings" title="Settings (,)"><svg class="ic"><use href="#i-sliders"/></svg></button>
       <button class="icon-btn" id="btn-board" aria-label="Toggle day board" title="Day board (B)"><svg class="ic"><use href="#i-panel"/></svg></button>
     </div>
   </header>
 
-  <aside class="sidebar panel" id="sidebar">
-    <section class="now-card" id="now-card"></section>
-    <section class="side-sec">
-      <div class="side-head"><h2>Up next</h2></div>
+  <section class="today-strip" id="today-strip" aria-label="Today">
+    <div class="now-card" id="now-card"></div>
+    <div class="ts-next ts-imp" id="ts-imp" hidden>
+      <h2 class="ts-label">Important</h2>
+      <ul class="upnext" id="important"></ul>
+    </div>
+    <div class="ts-next">
+      <h2 class="ts-label">Up next</h2>
       <ul class="upnext" id="upnext"></ul>
-    </section>
-  </aside>
+    </div>
+  </section>
 
   <main class="stage panel" id="stage"></main>
 
@@ -82,6 +75,7 @@
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></symbol>
     <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
     <symbol id="i-sticky" viewBox="0 0 24 24"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
     <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></symbol>
     <symbol id="i-alarm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3"/></symbol>

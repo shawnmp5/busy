@@ -127,17 +127,18 @@ function seed(s) {
   const t = new Date();
   const k = n => toKey(addDays(t, n));
   const ex = 'Example event. Edit it or delete it whenever you like.';
+  const ids = Array.from({ length: 5 }, uid);
   s.events.push(
-    { id: uid(), title: 'Morning run', date: k(0), start: '07:00', end: '07:45', allDay: false, calendarId: 'fitness', color: null, location: 'Riverside loop', description: ex, reminder: null, repeat: 'weekly', until: null, exceptions: [] },
-    { id: uid(), title: 'Deep work block', date: k(0), start: '13:00', end: '15:00', allDay: false, calendarId: 'work', color: null, location: '', description: ex, reminder: null, repeat: 'none', until: null, exceptions: [] },
-    { id: uid(), title: 'Team sync', date: k(1), start: '10:00', end: '10:30', allDay: false, calendarId: 'work', color: null, location: 'Video call', description: ex, reminder: 10, repeat: 'weekly', until: null, exceptions: [] },
+    { id: ids[0], title: 'Morning run', date: k(0), start: '07:00', end: '07:45', allDay: false, calendarId: 'fitness', color: null, location: 'Riverside loop', description: ex, reminder: null, repeat: 'weekly', until: null, exceptions: [] },
+    { id: ids[1], title: 'Deep work block', date: k(0), start: '13:00', end: '15:00', allDay: false, calendarId: 'work', color: null, location: '', description: ex, reminder: null, repeat: 'none', until: null, exceptions: [] },
+    { id: ids[2], title: 'Team sync', date: k(1), start: '10:00', end: '10:30', allDay: false, calendarId: 'work', color: null, location: 'Video call', description: ex, reminder: 10, repeat: 'weekly', until: null, exceptions: [] },
     { id: uid(), title: 'Dinner with friends', date: k(3), start: '19:00', end: '21:00', allDay: false, calendarId: 'personal', color: null, location: 'That ramen place', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
     { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#d4bfff', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
   );
   s.notes.push(
-    { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'lemon', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
-    { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mint', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
-    { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'rose', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
+    { id: uid(), evId: ids[1], date: k(0), mode: 'text', text: 'Notes live on events.\nClick any event (even a holiday) to add one.', items: [], color: 'lemon', x: 0, y: 0, rot: -2.5, z: 1, remindAt: null, done: false },
+    { id: uid(), evId: ids[0], date: k(0), mode: 'list', text: '', items: [{ text: 'Open Busy', done: true }, { text: 'Click an event', done: false }, { text: 'Add a note to it', done: false }], color: 'mint', x: 0, y: 0, rot: 2, z: 2, remindAt: null, done: false },
+    { id: uid(), evId: ids[2], date: k(1), mode: 'text', text: 'Example reminder: bring the slides', items: [], color: 'rose', x: 0, y: 0, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
   );
 }
 function migrate(s) {
@@ -214,10 +215,9 @@ function undo() {
 
 /* UI state */
 const ui = {
-  view: ['day', 'week', 'month', 'year'].includes(S().view) ? S().view : 'month',
+  view: 'month',
   selected: todayKey(),
   mini: new Date(),
-  sbOverlay: false,
   bdOverlay: false,
   animate: 'in',
   resetScroll: true,
@@ -265,7 +265,14 @@ function eventsOn(key) {
     .filter(ev => calVisible(ev.calendarId) && occursOn(ev, key))
     .sort((a, b) => (b.allDay - a.allDay) || (a.allDay ? 0 : minutesOf(a.start) - minutesOf(b.start)) || a.title.localeCompare(b.title));
 }
-const notesOn = key => state.notes.filter(n => n.date === key).sort((a, b) => (a.y - b.y));
+/* Notes are attached to events (evId = event id, or 'hol:<name>' for a holiday) on one date.
+   Older notes with no evId are "loose" day notes and keep their own board. */
+const notesOn = key => state.notes.filter(n => n.date === key && !n.evId).sort((a, b) => (a.y - b.y));
+const allNotesOn = key => state.notes.filter(n => n.date === key);
+const evNotes = (id, key) => state.notes.filter(n => n.evId === id && n.date === key);
+const noteEmpty = n => n.mode === 'list' ? !n.items.length : !(n.text || '').trim();
+const holId = h => 'hol:' + h;
+const noteDot = (id, key) => { const ns = evNotes(id, key).filter(n => !noteEmpty(n)); return ns.length ? `<span class="chip-note" style="--nc:${noteColor(ns[0].color)}" title="${ns.length} note${ns.length > 1 ? 's' : ''}"></span>` : ''; };
 function nextOccurrence(ev, fromK = todayKey(), span = 400) {
   if (ev.repeat === 'none') return ev.date;
   let d = fromKey(fromK > ev.date ? fromK : ev.date);
@@ -321,7 +328,7 @@ const HOLIDAY_COLORS = {
   'Christmas Day': '#c8102e', "New Year's Eve": '#c9a227',
 };
 const holColor = h => HOLIDAY_COLORS[h] || '#8e8e93';
-const holChip = h => `<div class="chip-ev allday holiday" style="--hc:${holColor(h)}" title="${esc(h)}"><span class="n">${esc(h)}</span></div>`;
+const holChip = (h, key) => `<button class="chip-ev allday holiday" style="--hc:${holColor(h)}" title="${esc(h)}" data-hol="${esc(h)}" data-occ="${key}"><span class="n">${esc(h)}</span>${noteDot(holId(h), key)}</button>`;
 const holidaysOn = key => S().showHolidays ? (holidaysFor(+key.slice(0, 4))[key] || []) : [];
 
 /* Formatting */
@@ -404,8 +411,7 @@ function applySettings() {
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = bg;
   const app = $('#app');
-  app.classList.toggle('sb-closed', !s.sidebarOpen);
-  app.classList.toggle('bd-closed', !s.boardOpen);
+  app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
@@ -419,7 +425,7 @@ function render() {
   renderTitle();
   renderSeg();
   renderStage();
-  renderSidebar();
+  renderToday();
   renderBoard();
   updateBadge();
   ui.animate = null;
@@ -440,11 +446,13 @@ function renderTitle() {
   $('#view-title').innerHTML = html;
 }
 function renderSeg() {
+  if (!$('#view-seg')) return;
   $$('#view-seg button').forEach(b => { const on = b.dataset.view === ui.view; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });
   placeSegPill();
 }
 function placeSegPill() {
   const seg = $('#view-seg');
+  if (!seg) return;
   let pill = $('.seg-pill', seg);
   if (!pill) { pill = document.createElement('span'); pill.className = 'seg-pill'; seg.prepend(pill); }
   const on = $('button.active', seg);
@@ -480,7 +488,7 @@ function weekDays() {
 /* ---------- Month ---------- */
 function chipHTML(ev, key) {
   const c = evColor(ev);
-  return `<button class="chip-ev${ev.allDay ? ' allday' : ''}" style="--c:${c};--on-c:${readable(c)}" data-ev="${ev.id}" data-occ="${key}" draggable="true" title="${esc(ev.title || '(No title)')} · ${fmtRange(ev)}"><span class="d"></span>${ev.allDay ? '' : `<span class="t">${fmtTimeShort(ev.start)}</span>`}<span class="n">${esc(ev.title || '(No title)')}</span></button>`;
+  return `<button class="chip-ev${ev.allDay ? ' allday' : ''}${ev.important ? ' imp' : ''}" style="--c:${c};--on-c:${readable(c)}" data-ev="${ev.id}" data-occ="${key}" draggable="true" title="${esc(ev.title || '(No title)')} · ${fmtRange(ev)}"><span class="d"></span>${ev.allDay ? '' : `<span class="t">${fmtTimeShort(ev.start)}</span>`}<span class="n">${ev.important ? icon('star', 'imp-ic') : ''}${esc(ev.title || '(No title)')}</span>${noteDot(ev.id, key)}</button>`;
 }
 function renderMonth() {
   const sel = fromKey(ui.selected);
@@ -513,12 +521,11 @@ function renderMonth() {
         <div class="cell-top">
           <button class="daynum" data-goto-day="${key}" aria-label="${fmtDayLong(key)}">${d.getDate() === 1 ? `<span class="mon">${MON3[d.getMonth()]}</span>` : ''}${d.getDate()}</button>
           <div class="cell-actions">
-            <button data-quick-note="${key}" title="Add note" aria-label="Add note">${icon('sticky')}</button>
             <button data-quick-event="${key}" title="Add event" aria-label="Add event">${icon('plus')}</button>
           </div>
         </div>
         <div class="cell-events" data-date="${key}">
-          ${hols.map(holChip).join('')}
+          ${hols.map(h => holChip(h, key)).join('')}
           ${evs.map(ev => chipHTML(ev, key)).join('')}
         </div>
         ${S().notesInGrid && notes.length ? `<div class="cell-notes" data-open-board="${key}">
@@ -602,7 +609,7 @@ function renderTimeGrid(days) {
   }).join('');
   const allday = keys.map(k => {
     const hols = holidaysOn(k), evs = eventsOn(k).filter(e => e.allDay);
-    return `<div class="tg-adcol" data-date="${k}">${hols.map(holChip).join('')}${evs.map(ev => chipHTML(ev, k)).join('')}</div>`;
+    return `<div class="tg-adcol" data-date="${k}">${hols.map(h => holChip(h, k)).join('')}${evs.map(ev => chipHTML(ev, k)).join('')}</div>`;
   }).join('');
   let hours = '';
   for (let h = 1; h < 24; h++) hours += `<span style="top:${h * HH}px">${fmtHour(h)}</span>`;
@@ -753,7 +760,7 @@ function renderYear() {
     for (let i = 0; i < lead; i++) cells += '<span></span>';
     for (let d = 1; d <= daysInMonth(y, m); d++) {
       const key = toKey(new Date(y, m, d));
-      const c = eventsOn(key).length + notesOn(key).length;
+      const c = eventsOn(key).length + allNotesOn(key).length;
       total += c;
       const cls = ['ym-day'];
       if (c) cls.push(c >= 4 ? 'h3' : c >= 2 ? 'h2' : 'h1');
@@ -773,11 +780,12 @@ function renderYear() {
 }
 
 /* ============================================================
-   Sidebar
+   Today strip
    ============================================================ */
-function renderSidebar() {
+function renderToday() {
   renderNowCard();
   renderMini();
+  renderImportant();
   renderUpNext();
   renderCalendars();
 }
@@ -786,7 +794,7 @@ function renderNowCard() {
   const h = now.getHours(), mi = now.getMinutes();
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
   const tk = todayKey();
-  const evs = eventsOn(tk).length, notes = notesOn(tk).length;
+  const evs = eventsOn(tk).length, notes = allNotesOn(tk).length;
   const sec = `<span class="nt-sec">:${pad(now.getSeconds())}</span>`;
   const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}${sec}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}${sec}`;
   $('#now-card').innerHTML = `
@@ -839,7 +847,7 @@ function upcomingItems(limit = 6) {
   return items.sort((a, b) => a.at - b.at).slice(0, limit);
 }
 function renderUpNext() {
-  const items = upcomingItems(5);
+  const items = upcomingItems(40).filter(it => it.kind !== 'event' || !it.ev.important).slice(0, 5); /* starred ones live in Important */
   $('#upnext').innerHTML = items.length ? items.map(it => {
     if (it.kind === 'event') {
       const now = new Date();
@@ -849,6 +857,29 @@ function renderUpNext() {
     return `<li><button data-open-board="${it.key}"><span class="u-dot is-note" style="background:${noteColor(it.n.color)}"></span><span class="u-title">${esc(noteSummary(it.n))}</span><span class="u-when">${icon('alarm', 'tiny')} ${fmtStamp(it.n.remindAt)}</span></button></li>`;
   }).join('') : `<li class="empty-small">Nothing coming up. Enjoy the quiet.</li>`;
   $$('#upnext .tiny').forEach(s => { s.style.width = '11px'; s.style.height = '11px'; s.style.verticalAlign = '-1px'; });
+}
+/* Important: deadlines, tests and anything else flagged with a star, for the next 60 days */
+function renderImportant() {
+  const now = new Date(), items = [];
+  for (let i = 0; i < 60 && items.length < 8; i++) {
+    const k = toKey(addDays(now, i));
+    for (const ev of eventsOn(k)) {
+      if (!ev.important || items.some(it => it.ev === ev)) continue;
+      if (!ev.allDay && dtOf(k, ev.end) <= now) continue;
+      items.push({ ev, key: k, days: i });
+    }
+  }
+  $('#ts-imp').hidden = !items.length;
+  $('#important').innerHTML = items.map(({ ev, key, days }) => {
+    const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+    return `<li><button class="imp-item${days <= 1 ? ' soon' : ''}" data-open-ev="${ev.id}" data-occ="${key}"><span class="u-dot u-star">${icon('star')}</span><span class="u-title">${esc(ev.title || '(No title)')}</span><span class="u-when"><b>${when}</b> · ${fmtDayShort(key) === when ? '' : fmtDayShort(key) + ' · '}${ev.allDay ? 'All day' : fmtTime(ev.start)}</span></button></li>`;
+  }).join('');
+}
+function toggleImportant(ev) {
+  snapshot();
+  ev.important = !ev.important;
+  save(); render();
+  toast(ev.important ? 'Marked as important' : 'No longer important', { label: 'Undo', fn: undo });
 }
 function renderCalendars() {
   if (!$('#cal-list')) return;
@@ -871,7 +902,7 @@ function renderBoard() {
   const evs = eventsOn(key), hols = holidaysOn(key), notes = notesOn(key);
   const now = new Date();
   const agenda = [
-    ...hols.map(h => `<li><div class="ag-item holiday" style="--c:${holColor(h)}"><div class="ag-time">All day</div><div><div class="ag-title"><span class="d"></span><span>${esc(h)}</span></div><div class="ag-sub">US holiday</div></div></div></li>`),
+    ...hols.map(h => `<li><button class="ag-item holiday" style="--c:${holColor(h)}" data-hol="${esc(h)}" data-occ="${key}"><div class="ag-time">All day</div><div><div class="ag-title"><span class="d"></span><span>${esc(h)}</span></div><div class="ag-sub">US holiday</div></div></button>${evNotesHTML(holId(h), key)}</li>`),
     ...evs.map(ev => {
       const past = !ev.allDay && dtOf(key, ev.end) < now;
       const c = evColor(ev);
@@ -879,7 +910,7 @@ function renderBoard() {
         <div class="ag-time">${ev.allDay ? 'All day' : `${fmtTime(ev.start)}<small>${fmtTime(ev.end)}</small>`}</div>
         <div style="min-width:0"><div class="ag-title"><span class="d"></span><span>${esc(ev.title || '(No title)')}</span>${ev.repeat !== 'none' ? icon('repeat', 'tiny-ic') : ''}</div>
         ${ev.location || ev.calendarId ? `<div class="ag-sub">${esc([ev.location, calById(ev.calendarId)?.name].filter(Boolean).join(' · '))}</div>` : ''}</div>
-      </button></li>`;
+      </button>${evNotesHTML(ev.id, key)}</li>`;
     }),
   ].join('');
   board.innerHTML = `
@@ -896,16 +927,17 @@ function renderBoard() {
       <div class="sec-title"><h3>Schedule</h3>${evs.length ? `<span class="count">${evs.length}</span>` : ''}<span class="sp"></span><button class="icon-btn sm" data-quick-event="${key}" aria-label="Add event" title="Add event">${icon('plus')}</button></div>
       ${agenda ? `<ul class="agenda">${agenda}</ul>` : `<div class="board-empty">Nothing scheduled. <button data-quick-event="${key}">Add an event</button></div>`}
     </div>
-    <div class="cork-wrap">
-      <div class="sec-title"><h3>Sticky notes</h3>${notes.length ? `<span class="count">${notes.length}</span>` : ''}<span class="sp"></span><button class="btn sm" data-quick-note="${key}">${icon('plus')}Note</button></div>
-      <div class="cork" data-cork="${key}" title="Double-click to add a note here">
-        ${notes.length ? '' : `<div class="cork-empty"><div><strong>A blank board</strong>Double-click anywhere to stick a note.</div></div>`}
-        ${notes.map(noteHTML).join('')}
-      </div>
-    </div>`;
+    ${notes.length ? `<div class="cork-wrap">
+      <div class="sec-title"><h3>Loose notes</h3><span class="count">${notes.length}</span><span class="sp"></span></div>
+      <div class="cork" data-cork="${key}">${notes.map(noteHTML).join('')}</div>
+    </div>` : ''}`;
   $$('.tiny-ic', board).forEach(s => { s.style.cssText = 'width:12px;height:12px;color:var(--fg-3)'; });
   requestAnimationFrame(sizeCork);
   $$('.note-text', board).forEach(autosize);
+}
+function evNotesHTML(id, key) {
+  const ns = evNotes(id, key);
+  return `<div class="ev-notes">${ns.map(noteHTML).join('')}<button class="ev-add-note" data-add-note="${esc(id)}" data-occ="${key}" title="Attach a note">${icon('sticky')}${ns.length ? '' : 'Note'}</button></div>`;
 }
 function sizeCork() {
   const cork = $('.cork', board);
@@ -922,9 +954,10 @@ function noteHTML(n) {
   const body = list
     ? `<ul class="note-list">${n.items.map((it, i) => `<li class="nl-item${it.done ? ' checked' : ''}" data-i="${i}"><button class="nl-check" data-na="check" aria-label="Toggle item">${icon('check')}</button><span contenteditable="true" spellcheck="false" data-item-edit>${esc(it.text)}</span><button class="nl-del" data-na="del-item" aria-label="Remove item">${icon('x')}</button></li>`).join('')}<li><input class="nl-add" placeholder="+ add item" aria-label="Add checklist item"></li></ul>${n.items.length ? `<div class="nl-progress"><i style="width:${doneCount / n.items.length * 100}%"></i></div>` : ''}`
     : `<textarea class="note-text" rows="3" placeholder="Write something…" aria-label="Note text">${esc(n.text)}</textarea>`;
-  return `<div class="note${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg;left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}">
+  const flow = !!n.evId;
+  return `<div class="note${flow ? ' flow' : ''}${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg;${flow ? '' : `left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}`}">
     <div class="note-tape"></div>
-    <div class="note-bar" data-note-drag title="Drag to move. Drop on a calendar day to move it there.">
+    <div class="note-bar"${flow ? '' : ' data-note-drag title="Drag to move. Drop on a calendar day to move it there."'}>
       ${icon('grip', 'grip')}
       <button data-na="palette" aria-label="Color and style" title="Color and style">${icon('drop')}</button>
       <button data-na="remind" class="${n.remindAt ? 'on' : ''}" aria-label="Reminder" title="Reminder">${icon('alarm')}</button>
@@ -965,10 +998,10 @@ function findSpot(key, w) {
 function maxZ(key) { return Math.max(0, ...notesOn(key).map(n => n.z || 0)); }
 function addNote(key, opts = {}) {
   snapshot();
-  const spot = opts.x != null ? { x: opts.x, y: opts.y } : findSpot(key);
+  const spot = opts.evId ? { x: 0, y: 0 } : opts.x != null ? { x: opts.x, y: opts.y } : findSpot(key);
   const last = state.notes[state.notes.length - 1];
   const palette = NOTE_COLORS.slice(0, 7).map(c => c.id).filter(c => c !== last?.color);
-  const n = { id: uid(), date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || palette[Math.floor(Math.random() * palette.length)], x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
+  const n = { id: uid(), evId: opts.evId || null, date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || palette[Math.floor(Math.random() * palette.length)], x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
   state.notes.push(n);
   save();
   ui.selected = key;
@@ -983,7 +1016,7 @@ function addNote(key, opts = {}) {
   return n;
 }
 function openBoardIfHidden() {
-  if (window.innerWidth <= 1320) { ui.bdOverlay = true; ui.sbOverlay = false; syncOverlays(); }
+  if (window.innerWidth <= 1320) { ui.bdOverlay = true; syncOverlays(); }
   else if (!S().boardOpen) { S().boardOpen = true; save(); }
 }
 function deleteNote(n) {
@@ -1015,9 +1048,14 @@ function changeOccurrence(ev, occ, patch, msg) {
   snapshot();
   if (ev.repeat !== 'none') {
     ev.exceptions = [...(ev.exceptions || []), occ];
-    state.events.push({ ...clone(ev), id: uid(), repeat: 'none', until: null, exceptions: [], date: occ, ...patch });
+    const nid = uid();
+    state.events.push({ ...clone(ev), id: nid, repeat: 'none', until: null, exceptions: [], date: occ, ...patch });
+    evNotes(ev.id, occ).forEach(n => { n.evId = nid; n.date = patch.date || occ; });
     msg = (msg ? msg + ' · ' : '') + 'only this occurrence';
-  } else Object.assign(ev, patch);
+  } else {
+    if (patch.date && patch.date !== ev.date) evNotes(ev.id, ev.date).forEach(n => { n.date = patch.date; });
+    Object.assign(ev, patch);
+  }
   clearFiredFor(ev.id);
   save(); render();
   if (msg) toast(msg, { label: 'Undo', fn: undo });
@@ -1040,8 +1078,12 @@ async function deleteEvent(ev, occ) {
     snapshot();
     state.events = state.events.filter(e => e !== ev);
   }
+  dropOrphanNotes();
   save(); render();
   toast('Event deleted', { label: 'Undo', fn: undo });
+}
+function dropOrphanNotes() {
+  state.notes = state.notes.filter(n => { if (!n.evId || n.evId.startsWith('hol:')) return true; const e = findEvent(n.evId); return e && occursOn(e, n.date); });
 }
 function duplicateEvent(ev, occ) {
   snapshot();
@@ -1087,6 +1129,7 @@ function showEventPopover(ev, occ, anchor) {
   const cal = calById(ev.calendarId);
   const el = openPop(`
     <div class="pop-head">
+      <button class="icon-btn sm${ev.important ? ' on' : ''}" data-p="imp" aria-label="${ev.important ? 'Unmark important' : 'Mark as important'}" title="${ev.important ? 'Unmark important' : 'Mark as important'}">${icon('star')}</button>
       <button class="icon-btn sm" data-p="edit" aria-label="Edit" title="Edit (E)">${icon('pencil')}</button>
       <button class="icon-btn sm" data-p="dup" aria-label="Duplicate" title="Duplicate">${icon('copy')}</button>
       <button class="icon-btn sm" data-p="del" aria-label="Delete" title="Delete (Del)">${icon('trash')}</button>
@@ -1099,6 +1142,7 @@ function showEventPopover(ev, occ, anchor) {
       <div class="pop-row">${icon('bell')}<span>${ev.reminder == null ? 'No reminder' : reminderLabel(ev.reminder)}</span></div>
       ${cal ? `<div class="pop-row">${icon('cal')}<span>${esc(cal.name)}</span></div>` : ''}
       ${ev.description ? `<div class="pop-row">${icon('text')}<span class="desc">${esc(ev.description)}</span></div>` : ''}
+      ${popNotesHTML(ev.id, occ)}
     </div>
     <div class="pop-foot"><span class="hint">Colour:</span><div class="swatches">${EVENT_COLORS.map(col => `<button class="swatch${ev.color === col ? ' on' : ''}" style="--sw:${paint(col)};width:20px;height:20px" data-recolor="${col}" aria-label="Colour ${col}"></button>`).join('')}</div></div>`, anchor);
   el.dataset.ev = ev.id;
@@ -1109,12 +1153,33 @@ function showEventPopover(ev, occ, anchor) {
     if (b.dataset.recolor) { snapshot(); ev.color = b.dataset.recolor; save(); render(); closeFloating(); return; }
     const a = b.dataset.p;
     if (a === 'close') closeFloating();
+    if (a === 'note') { closeFloating(); addNote(occ, { evId: ev.id }); }
+    if (a === 'imp') { closeFloating(); toggleImportant(ev); }
     if (a === 'edit') { closeFloating(); openEditor({ id: ev.id }); }
     if (a === 'dup') { closeFloating(); duplicateEvent(ev, occ); }
     if (a === 'del') deleteEvent(ev, occ);
   });
 }
 
+function popNotesHTML(id, key) {
+  const ns = evNotes(id, key).filter(n => !noteEmpty(n));
+  return `<div class="pop-row">${icon('sticky')}<div class="pop-notes">
+    ${ns.map(n => `<button class="pop-note" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg" data-open-board="${key}" title="Open note">${esc(noteSummary(n)).slice(0, 60)}</button>`).join('')}
+    <button class="btn sm" data-p="note">${icon('plus')}${ns.length ? 'Another note' : 'Attach a note'}</button></div></div>`;
+}
+function showHolidayPopover(h, key, anchor) {
+  const el = openPop(`
+    <div class="pop-head"><button class="icon-btn sm" data-p="close" aria-label="Close">${icon('x')}</button></div>
+    <div class="pop-body">
+      <div class="pop-title" style="--c:${holColor(h)}"><span class="sw"></span><div><h3>${esc(h)}</h3><p>${fmtDayLong(key)} · US holiday</p></div></div>
+      ${popNotesHTML(holId(h), key)}
+    </div>`, anchor);
+  el.addEventListener('click', e => {
+    const a = e.target.closest('[data-p]')?.dataset.p;
+    if (a === 'close') closeFloating();
+    if (a === 'note') { closeFloating(); addNote(key, { evId: holId(h) }); }
+  });
+}
 function openMenu(items, point) {
   const html = items.map(it => {
     if (it === '-') return '<hr>';
@@ -1177,6 +1242,8 @@ function openEditor(init = {}) {
     calendarId: (lastCal && calById(lastCal)) ? lastCal : firstCal.id, color: null, location: '', description: '',
     reminder: S().defaultReminder, repeat: 'none', until: null, exceptions: [],
   };
+  const edOcc = existing ? (occursOn(existing, ui.selected) ? ui.selected : existing.date) : null;
+  const newId = uid();
   const w = openModal(`
     <form class="ev-form" novalidate>
       <div class="modal-head"><h2>${existing ? 'Edit event' : 'New event'}</h2><button type="button" class="icon-btn sm" data-x aria-label="Close">${icon('x')}</button></div>
@@ -1187,7 +1254,10 @@ function openEditor(init = {}) {
           <div class="field tfield"><label for="ev-start">Starts</label><input class="input" type="time" id="ev-start" name="start" value="${d.start}" step="300"></div>
           <div class="field tfield"><label for="ev-end">Ends</label><input class="input" type="time" id="ev-end" name="end" value="${d.end}" step="300"></div>
         </div>
-        <label class="toggle"><input type="checkbox" id="ev-allday" name="allDay" ${d.allDay ? 'checked' : ''}><span class="tr"></span>All day</label>
+        <div class="row" style="gap:24px">
+          <label class="toggle"><input type="checkbox" id="ev-allday" name="allDay" ${d.allDay ? 'checked' : ''}><span class="tr"></span>All day</label>
+          <label class="toggle"><input type="checkbox" id="ev-important" name="important" ${d.important ? 'checked' : ''}><span class="tr"></span>Important <span class="hint">(deadline, test…)</span></label>
+        </div>
         <div class="field"><span class="field-label">Calendar</span><div class="pill-group" id="ev-cals">${state.calendars.map(c => `<button type="button" class="pill${c.id === d.calendarId ? ' on' : ''}" data-cal="${c.id}" style="--c:${paint(c.color)}"><span class="d"></span>${esc(c.name)}</button>`).join('')}</div></div>
         <div class="field"><span class="field-label">Colour</span><div class="swatches" id="ev-colors">
           <button type="button" class="pill${!d.color ? ' on' : ''}" data-color="" style="height:26px">Calendar colour</button>
@@ -1200,7 +1270,10 @@ function openEditor(init = {}) {
         </div>
         <div class="field" id="ev-until-f"><label for="ev-until">Repeat until (optional)</label><input class="input" type="date" id="ev-until" name="until" value="${d.until || ''}"></div>
         <div class="icon-field">${icon('pin')}<input class="input" id="ev-location" name="location" placeholder="Add a location" value="${esc(d.location)}" aria-label="Location"></div>
-        <textarea class="input" id="ev-desc" name="description" placeholder="Add a description or notes" aria-label="Description">${esc(d.description)}</textarea>
+        <div class="field"><span class="field-label">Notes</span>
+          <div class="pop-notes" id="ev-notes">${existing ? evNotes(existing.id, edOcc).filter(n => !noteEmpty(n)).map(n => `<span class="pop-note" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg">${esc(noteSummary(n)).slice(0, 60)}</span>`).join('') : ''}<button type="button" class="btn sm" data-attach>${icon('plus')}Attach a note</button></div>
+          <textarea class="ed-note" id="ev-note" placeholder="Write your note…" aria-label="Note" hidden></textarea>
+        </div>
         ${existing && existing.repeat !== 'none' ? `<p class="hint" style="margin:0">Changes apply to every repeat of this event.</p>` : ''}
         <p class="hint" id="ev-err" style="margin:0;color:var(--danger)" hidden></p>
       </div>
@@ -1227,7 +1300,9 @@ function openEditor(init = {}) {
     const col = e.target.closest('[data-color]');
     if (col) { d.color = col.dataset.color || null; $$('#ev-colors [data-color]', f).forEach(b => b.classList.toggle('on', b === col)); }
     if (e.target.closest('[data-x]')) w._close();
-    if (e.target.closest('[data-del]')) { w._close(); deleteEvent(existing, ui.selected && occursOn(existing, ui.selected) ? ui.selected : existing.date); }
+    if (e.target.closest('[data-del]')) { w._close(); deleteEvent(existing, edOcc); }
+    const att = e.target.closest('[data-attach]');
+    if (att) { att.hidden = true; const t = $('#ev-note', f); t.hidden = false; t.focus(); }
   });
   $('#ev-custom-color', f).addEventListener('input', e => { d.color = e.target.value; $$('#ev-colors [data-color]', f).forEach(b => b.classList.remove('on')); });
   f.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); f.requestSubmit(); } });
@@ -1241,12 +1316,17 @@ function openEditor(init = {}) {
     snapshot();
     const out = {
       title: f.title.value.trim(), date: f.date.value, start: allDay ? '00:00' : f.start.value, end: allDay ? '23:59' : f.end.value, allDay,
-      calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: f.description.value.trim(),
+      important: f.important.checked, calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: d.description,
       reminder: f.reminder.value === '' ? null : Number(f.reminder.value), repeat: f.repeat.value, until: f.repeat.value !== 'none' && f.until.value ? f.until.value : null,
     };
     lastCal = d.calendarId;
     if (existing) { Object.assign(existing, out); clearFiredFor(existing.id); }
-    else state.events.push({ id: uid(), exceptions: [], ...out });
+    else state.events.push({ id: newId, exceptions: [], ...out });
+    const noteText = $('#ev-note', f).value.trim();
+    if (noteText) {
+      const palette = NOTE_COLORS.slice(0, 7);
+      state.notes.push({ id: uid(), evId: existing ? existing.id : newId, date: existing && existing.repeat !== 'none' ? edOcc : out.date, mode: 'text', text: noteText, items: [], color: palette[Math.floor(Math.random() * palette.length)].id, x: 0, y: 0, rot: +(Math.random() * 6 - 3).toFixed(1), z: 1, remindAt: null, done: false });
+    }
     save();
     w._close();
     ui.selected = out.date;
@@ -1322,6 +1402,7 @@ function openCalEditor(cal, anchor) {
       snapshot();
       state.calendars = state.calendars.filter(x => x.id !== c.id);
       state.events = state.events.filter(ev => ev.calendarId !== c.id);
+      dropOrphanNotes();
       save(); render();
       toast('Calendar deleted', { label: 'Undo', fn: undo });
     }
@@ -1356,7 +1437,7 @@ function closeDrawer(instant) {
   if (!el) return;
   if (instant || reduceMotion()) el.remove();
   else { el.classList.add('leaving'); setTimeout(() => el.remove(), 210); }
-  if (!ui.sbOverlay && !ui.bdOverlay) $('#scrim').hidden = true;
+  if (!ui.bdOverlay) $('#scrim').hidden = true;
 }
 function drawerShell(title, body) {
   return `<div class="drawer-head"><h2>${title}</h2><button class="icon-btn" data-drawer-close aria-label="Close">${icon('x')}</button></div><div class="drawer-body">${body}</div>`;
@@ -1474,17 +1555,14 @@ function renderReminders(el) {
 }
 function renderShortcuts(el) {
   const rows = [
-    ['Go to today', ['T']], ['Previous / next', ['←', '→']], ['Day · Week · Month · Year', ['D', 'W', 'M', 'Y']],
-    ['New event', ['C']], ['New note on selected day', ['N']], ['Search', ['/']], ['Toggle day board', ['B']],
-    ['Toggle sidebar', ['[']], ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
+    ['Go to today', ['T']], ['Previous / next month', ['←', '→']],
+    ['New event', ['C']], ['Search', ['/']], ['Toggle day board', ['B']],
+    ['Settings', [',']], ['Reminders', ['R']], ['Undo', ['Ctrl', 'Z']], ['Close anything', ['Esc']],
   ];
   el.innerHTML = drawerShell('Shortcuts', `<div class="keys">${rows.map(([l, k]) => `<span>${l}</span><span class="k">${k.map(x => `<kbd>${x}</kbd>`).join('')}</span>`).join('')}</div>
     <section class="set-sec"><h3>Mouse & touch</h3><div class="keys tips">
-      <span>Drag across empty time in Week or Day view to create an event.</span>
-      <span>Drag an event to move it, or drag its bottom edge to change its length.</span>
       <span>Drag event chips between days in Month view.</span>
-      <span>Drag a note by its top edge. Drop it on any day in the calendar to move it there.</span>
-      <span>Double-click the notes area to add a note exactly where you clicked.</span>
+      <span>Click any event or holiday, then Attach a note to stick a post-it on it.</span>
       <span>Right-click a day, event or note for more options.</span>
       <span>Swipe left or right on a phone to change months.</span>
     </div></section>`);
@@ -1686,6 +1764,7 @@ function goTo(key, view) {
   const prev = ui.selected;
   ui.selected = key;
   ui.mini = fromKey(key);
+  view = null; /* month view only */
   if (view && view !== ui.view) { ui.view = view; S().view = view; save(); ui.animate = 'in'; ui.resetScroll = true; }
   else if (key !== prev) {
     const changedPage = ui.view === 'month' ? key.slice(0, 7) !== prev.slice(0, 7) : ui.view === 'year' ? key.slice(0, 4) !== prev.slice(0, 4) : ui.view === 'day' || !weekDays().map(toKey).includes(prev);
@@ -1716,17 +1795,12 @@ function selectDay(key, fromTap) {
 }
 function syncOverlays() {
   const app = $('#app');
-  app.classList.toggle('sb-open', ui.sbOverlay);
   app.classList.toggle('bd-open', ui.bdOverlay);
-  $('#scrim').hidden = !(ui.sbOverlay || ui.bdOverlay || drawerKind);
-}
-function toggleSidebar() {
-  if (window.innerWidth <= 1060) { ui.sbOverlay = !ui.sbOverlay; ui.bdOverlay = false; syncOverlays(); }
-  else { S().sidebarOpen = !S().sidebarOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
+  $('#scrim').hidden = !(ui.bdOverlay || drawerKind);
 }
 function toggleBoard() {
-  if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; ui.sbOverlay = false; syncOverlays(); }
-  else { S().boardOpen = !S().boardOpen; save(); applySettings(); setTimeout(() => { fitMonthChips(); }, 380); }
+  if (window.innerWidth <= 1320) { ui.bdOverlay = !ui.bdOverlay; syncOverlays(); }
+  /* wide screens: the board can't be closed */
 }
 
 /* ============================================================
@@ -1735,28 +1809,27 @@ function toggleBoard() {
 function goToday() { const tk = todayKey(); ui.animate = tk < ui.selected ? 'left' : 'in'; ui.resetScroll = true; ui.selected = tk; ui.mini = new Date(); render(); }
 $('#btn-prev').addEventListener('click', () => shift(-1));
 $('#btn-next').addEventListener('click', () => shift(1));
-$('#view-seg').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
-$('#btn-sidebar').addEventListener('click', toggleSidebar);
 $('#btn-board').addEventListener('click', toggleBoard);
 $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
 $('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
 layer.addEventListener('click', e => { const b = e.target.closest('[data-add-cal]'); if (b) openCalEditor(null, b); });
-$('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
+$('#scrim').addEventListener('click', () => { ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
 
-/* Shared delegated clicks (sidebar, stage, board, drawers) */
+/* Shared delegated clicks (today strip, stage, board, drawers) */
 document.addEventListener('click', e => {
   const t = e.target;
   let el;
   if ((el = t.closest('[data-drawer-close]'))) { closeDrawer(); syncOverlays(); return; }
-  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); goTo(el.dataset.gotoDay, 'day'); if (window.innerWidth <= 1060) { ui.sbOverlay = false; syncOverlays(); } closeDrawer(); return; }
+  if ((el = t.closest('[data-goto-day]'))) { e.stopPropagation(); selectDay(el.dataset.gotoDay, true); closeDrawer(); return; }
   if ((el = t.closest('[data-goto-month]'))) { goTo(el.dataset.gotoMonth, 'month'); return; }
-  if ((el = t.closest('[data-pick]'))) { ui.selected = el.dataset.pick; ui.animate = 'in'; ui.resetScroll = true; render(); if (window.innerWidth <= 1060) { ui.sbOverlay = false; syncOverlays(); } return; }
+  if ((el = t.closest('[data-pick]'))) { ui.selected = el.dataset.pick; ui.animate = 'in'; ui.resetScroll = true; render(); return; }
   if ((el = t.closest('[data-mini]'))) { ui.mini = addMonths(new Date(ui.mini.getFullYear(), ui.mini.getMonth(), 1), +el.dataset.mini); renderMini(); return; }
   if ((el = t.closest('[data-open-board]'))) { e.stopPropagation(); ui.selected = el.dataset.openBoard; ui.mini = fromKey(ui.selected); openBoardIfHidden(); closeDrawer(); render(); return; }
-  if ((el = t.closest('[data-quick-note]'))) { e.stopPropagation(); addNote(el.dataset.quickNote); return; }
+  if ((el = t.closest('[data-add-note]'))) { e.stopPropagation(); addNote(el.dataset.occ, { evId: el.dataset.addNote }); return; }
+  if ((el = t.closest('[data-hol]'))) { e.stopPropagation(); showHolidayPopover(el.dataset.hol, el.dataset.occ, el); return; }
   if ((el = t.closest('[data-quick-event]'))) { e.stopPropagation(); openEditor({ date: el.dataset.quickEvent }); return; }
-  if ((el = t.closest('[data-more]'))) { e.stopPropagation(); goTo(el.dataset.more, 'day'); return; }
+  if ((el = t.closest('[data-more]'))) { e.stopPropagation(); selectDay(el.dataset.more, true); return; }
   if ((el = t.closest('[data-open-ev]'))) { const ev = findEvent(el.dataset.openEv); if (ev) { if (drawerKind) { closeDrawer(); goTo(el.dataset.occ); } showEventPopover(ev, el.dataset.occ, el); } return; }
   if ((el = t.closest('[data-cal-toggle]'))) {
     const id = el.dataset.calToggle;
@@ -1820,6 +1893,8 @@ document.addEventListener('contextmenu', e => {
     openMenu([
       { id: 'open', label: 'Details', icon: 'text', fn: () => showEventPopover(ev, occ, evEl) },
       { id: 'edit', label: 'Edit', icon: 'pencil', fn: () => openEditor({ id: ev.id }) },
+      { id: 'imp', label: ev.important ? 'Unmark important' : 'Mark as important', icon: 'star', fn: () => toggleImportant(ev) },
+      { id: 'note', label: 'Attach a note', icon: 'sticky', fn: () => addNote(occ, { evId: ev.id }) },
       { id: 'dup', label: 'Duplicate', icon: 'copy', fn: () => duplicateEvent(ev, occ) },
       { id: 'tom', label: 'Move to next day', icon: 'right', fn: () => changeOccurrence(ev, occ, { date: toKey(addDays(fromKey(occ), 1)) }, 'Moved to the next day') },
       { html: `<div class="menu-label">Colour</div><div class="mood-line">${EVENT_COLORS.map(c => `<button data-mi="c${c}" aria-label="Colour ${c}"><span class="swatch" style="--sw:${paint(c)};width:16px;height:16px"></span></button>`).join('')}</div>` },
@@ -1839,8 +1914,8 @@ document.addEventListener('contextmenu', e => {
       { id: 'mode', label: n.mode === 'list' ? 'Turn into text note' : 'Turn into checklist', icon: n.mode === 'list' ? 'text' : 'check', fn: () => toggleNoteMode(n) },
       { id: 'rem', label: n.remindAt ? 'Change reminder' : 'Add reminder', icon: 'alarm', fn: () => openNoteReminder(n, noteEl) },
       { id: 'done', label: n.done ? 'Mark not done' : 'Mark done', icon: 'check', fn: () => toggleNoteDone(n) },
-      { id: 'dup', label: 'Duplicate', icon: 'copy', fn: () => addNote(n.date, { text: n.text, items: clone(n.items), mode: n.mode, color: n.color }) },
-      { id: 'tom', label: 'Move to next day', icon: 'right', fn: () => moveNoteToDate(n, toKey(addDays(fromKey(n.date), 1))) },
+      { id: 'dup', label: 'Duplicate', icon: 'copy', fn: () => addNote(n.date, { evId: n.evId, text: n.text, items: clone(n.items), mode: n.mode, color: n.color }) },
+      ...(n.evId ? [] : [{ id: 'tom', label: 'Move to next day', icon: 'right', fn: () => moveNoteToDate(n, toKey(addDays(fromKey(n.date), 1))) }]),
       '-',
       { id: 'del', label: 'Delete note', icon: 'trash', danger: true, fn: () => deleteNote(n) },
     ], pt);
@@ -1853,9 +1928,6 @@ document.addEventListener('contextmenu', e => {
     openMenu([
       { label: fmtDayLong(key), header: true },
       { id: 'ev', label: 'New event', icon: 'plus', kbd: 'C', fn: () => openEditor({ date: key }) },
-      { id: 'note', label: 'New note', icon: 'sticky', kbd: 'N', fn: () => addNote(key) },
-      { id: 'list', label: 'New checklist', icon: 'check', fn: () => addNote(key, { mode: 'list' }) },
-      { id: 'day', label: 'Open in Day view', icon: 'cal', fn: () => goTo(key, 'day') },
     ], pt);
   }
 });
@@ -1871,7 +1943,7 @@ function toggleNoteMode(n) {
 }
 function toggleNoteDone(n) {
   n.done = !n.done;
-  save(); rerenderNote(n); renderStage(); renderSidebar(); updateBadge();
+  save(); rerenderNote(n); renderStage(); renderToday(); updateBadge();
   if (n.done) confetti($(`.note[data-note="${n.id}"]`, board));
 }
 const saveSoon = debounce(() => { renderStage(); renderMini(); renderUpNext(); }, 600);
@@ -1946,7 +2018,16 @@ board.addEventListener('dblclick', e => {
   const px = clamp(e.clientX - r.left - cork.clientLeft - 75, 0, w - 150);
   addNote(cork.dataset.cork, { x: w > 150 ? px / (w - 150) : 0, y: Math.max(8, e.clientY - r.top - cork.clientTop - 20) });
 });
-board.addEventListener('focusout', e => { if (e.target.closest('.note')) saveSoon(); });
+board.addEventListener('focusout', e => {
+  const el = e.target.closest('.note');
+  if (!el) return;
+  /* a note attached to an event and left blank is removed once you click away */
+  setTimeout(() => {
+    const n = findNote(el.dataset.note);
+    if (n && n.evId && noteEmpty(n) && !el.contains(document.activeElement)) { state.notes = state.notes.filter(x => x !== n); save(); renderBoard(); }
+    saveSoon();
+  }, 150);
+});
 
 /* Dragging notes around the board, and onto calendar days */
 let ndrag = null;
@@ -2162,7 +2243,7 @@ document.addEventListener('keydown', e => {
     if ($('.pop, .menu', layer)) { closeFloating(); return; }
     const m = topModal(); if (m) { m._close(); return; }
     if (drawerKind) { closeDrawer(); syncOverlays(); return; }
-    if (ui.sbOverlay || ui.bdOverlay) { ui.sbOverlay = ui.bdOverlay = false; syncOverlays(); return; }
+    if (ui.bdOverlay) { ui.bdOverlay = false; syncOverlays(); return; }
     if (typing) e.target.blur();
     return;
   }
@@ -2175,9 +2256,8 @@ document.addEventListener('keydown', e => {
   const k = e.key;
   const map = {
     t: goToday, ArrowLeft: () => shift(-1), ArrowRight: () => shift(1), j: () => shift(1), k: () => shift(-1),
-    d: () => setView('day'), w: () => setView('week'), m: () => setView('month'), y: () => setView('year'),
-    c: () => openEditor({ date: ui.selected }), n: () => addNote(ui.selected), '/': () => sInput.focus(),
-    b: toggleBoard, '[': toggleSidebar, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
+    c: () => openEditor({ date: ui.selected }), '/': () => sInput.focus(),
+    b: toggleBoard, ',': () => openDrawer('settings'), r: () => openDrawer('reminders'), '?': () => openDrawer('shortcuts'),
   };
   const fn = map[k] || map[k.toLowerCase()];
   if (fn) { e.preventDefault(); fn(); }
@@ -2195,7 +2275,6 @@ stage.addEventListener('touchend', e => {
 
 /* Resize */
 window.addEventListener('resize', debounce(() => {
-  if (window.innerWidth > 1060 && ui.sbOverlay) ui.sbOverlay = false;
   if (window.innerWidth > 1320 && ui.bdOverlay) ui.bdOverlay = false;
   syncOverlays();
   fitMonthChips(); placeSegPill(); sizeCork();
@@ -2231,7 +2310,7 @@ render();
 document.fonts?.ready?.then(() => { placeSegPill(); fitMonthChips(); });
 setTimeout(tick, 800);
 setInterval(tick, 15000);
-/* Seconds on the sidebar clock; a full redraw still happens each minute */
+/* Seconds on the today-strip clock; a full redraw still happens each minute */
 setInterval(() => {
   const el = $('.nt-sec');
   const now = new Date();
