@@ -758,24 +758,32 @@ function renderNowCard() {
   const h = now.getHours(), mi = now.getMinutes();
   const greet = h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 22 ? 'Good evening' : 'Good night';
   const tk = todayKey();
-  const evs = eventsOn(tk).length, notes = notesOn(tk).length;
-  const time = S().hour12 ? `${h % 12 || 12}:${pad(mi)} ${h < 12 ? 'AM' : 'PM'}` : `${pad(h)}:${pad(mi)}`;
+  const todays = eventsOn(tk);
+  const evs = todays.length, notes = notesOn(tk).length;
+  const clock = S().hour12 ? `${h % 12 || 12}:${pad(mi)}<span class="nt-ampm">${h < 12 ? 'AM' : 'PM'}</span>` : `${pad(h)}:${pad(mi)}`;
   const mins = h * 60 + mi, left = 1440 - mins;
-  const leftTxt = `${Math.floor(left / 60)}h ${left % 60}m left`;
-  const dots = Array.from({ length: 24 }, (_, i) => `<i class="${i < h ? 'on' : i === h ? 'now' : ''}"></i>`).join('');
+  const pct = mins / 1440 * 100;
+  const dur = m => `${Math.floor(m / 60)}h ${m % 60}m`;
+  /* Today's timed events as marks along the bar */
+  const marks = todays.filter(e => !e.allDay).map(e => {
+    const s0 = minutesOf(e.start), e0 = Math.max(minutesOf(e.end), s0 + 15);
+    return `<i class="dp-ev${e0 <= mins ? ' past' : ''}" style="left:${s0 / 14.4}%;width:${(e0 - s0) / 14.4}%" title="${esc(e.title || '(No title)')} · ${fmtRange(e)}"></i>`;
+  }).join('');
+  const ticks = [0, 6, 12, 18, 24].map(t => `<span style="left:${t / 24 * 100}%">${t === 24 ? '' : S().hour12 ? `${t % 12 || 12}${t < 12 ? 'a' : 'p'}` : pad(t)}</span>`).join('');
+  const next = todays.filter(e => !e.allDay && minutesOf(e.start) > mins)[0];
   $('#now-card').innerHTML = `
     <div class="now-greet">${greet}</div>
-    <div class="w-tiles">
-      <button class="w-tile" data-goto-day="${tk}" aria-label="Open today, ${fmtDayLong(tk)}">
-        <span class="w-head"><span>${DOW3[now.getDay()]} <span class="muted">${MON3[now.getMonth()]}</span></span></span>
-        <span class="w-big">${now.getDate()}</span>
-        <span class="w-foot">${time}</span>
-      </button>
-      <div class="w-tile" title="Time left today: ${leftTxt.replace(' left', '')}">
-        <span class="w-head"><span>Day</span><span class="muted">${Math.round(mins / 1440 * 100)}%</span></span>
-        <span class="w-dots" aria-hidden="true">${dots}</span>
-        <span class="w-foot">${leftTxt}</span>
+    <button class="now-time" data-goto-day="${tk}" aria-label="Open today, ${fmtDayLong(tk)}">${clock}</button>
+    <div class="dp">
+      <div class="dp-head"><span>Day</span><span class="dp-pct">${Math.round(pct)}%</span></div>
+      <div class="dp-track">
+        <div class="dp-fill" style="width:${pct}%"></div>
+        ${marks}
+        <div class="dp-now" style="left:${pct}%"></div>
       </div>
+      <div class="dp-ticks">${ticks}</div>
+      <div class="dp-foot"><span>${dur(mins)} gone</span><span>${dur(left)} left</span></div>
+      ${next ? `<div class="dp-next">Next: <b>${esc(next.title || '(No title)')}</b> in ${dur(minutesOf(next.start) - mins).replace(/^0h /, '')}</div>` : ''}
     </div>
     <div class="now-stats">
       <button data-goto-day="${tk}">${evs} event${evs === 1 ? '' : 's'}</button><span>·</span>
@@ -783,6 +791,7 @@ function renderNowCard() {
     </div>`;
 }
 function renderMini() {
+  if (!$('#mini')) return;
   const mc = ui.mini;
   const y = mc.getFullYear(), m = mc.getMonth();
   const start = startOfWeek(new Date(y, m, 1), S().weekStart);
@@ -835,6 +844,7 @@ function renderUpNext() {
   $$('#upnext .tiny').forEach(s => { s.style.width = '11px'; s.style.height = '11px'; s.style.verticalAlign = '-1px'; });
 }
 function renderCalendars() {
+  if (!$('#cal-list')) return;
   $('#cal-list').innerHTML = state.calendars.map(c => `
     <li class="cal-row${c.visible ? ' on' : ''}" style="--c:${paint(c.color)};--on-c:${readable(paint(c.color))}">
       <button class="cal-toggle" data-cal-toggle="${c.id}" aria-pressed="${c.visible}"><span class="cbox">${icon('check')}</span><span>${esc(c.name)}</span></button>
@@ -1351,6 +1361,9 @@ function renderSettings(el) {
   const row = (label, control) => `<div class="set-row"><span>${label}</span>${control}</div>`;
   NOTE_FONTS.forEach(f => ensureFont(f.gf));
   el.innerHTML = drawerShell('Settings', `
+    <section class="set-sec"><div class="set-head"><h3>Calendars</h3><button class="icon-btn sm" data-add-cal aria-label="Add calendar" title="Add calendar">${icon('plus')}</button></div>
+      <div class="set-group"><ul class="cal-list" id="cal-list"></ul></div>
+    </section>
     <section class="set-sec"><h3>Appearance</h3>
       <div class="set-group">
         <div class="set-pad"><div class="skins">${SKINS.map(k => `<button class="skin${s.skin === k.id ? ' on' : ''}" data-skin="${k.id}" aria-pressed="${s.skin === k.id}">
@@ -1399,12 +1412,14 @@ function renderSettings(el) {
     <section class="set-sec"><h3>Your data</h3>
       <p class="hint" style="margin:0 4px">Everything is saved in this browser. Back it up to move it to another device.</p>
       <div class="set-actions">
+        <button class="btn sm" data-shortcuts>${icon('keyboard')}Keyboard shortcuts</button>
         <button class="btn sm" data-export>${icon('download')}Export</button>
         <button class="btn sm" data-copy-backup>${icon('copy')}Copy</button>
         <button class="btn sm" data-import>${icon('upload')}Import</button>
         <button class="btn sm danger" data-reset>${icon('trash')}Erase everything</button>
       </div>
     </section>`);
+  renderCalendars();
   $('.drawer-body', el).scrollTop = scroll;
 }
 function permCard() {
@@ -1714,11 +1729,10 @@ $('#btn-sidebar').addEventListener('click', toggleSidebar);
 $('#btn-board').addEventListener('click', toggleBoard);
 $('#btn-settings').addEventListener('click', () => openDrawer('settings'));
 $('#btn-bell').addEventListener('click', () => openDrawer('reminders'));
-$('#btn-shortcuts').addEventListener('click', () => openDrawer('shortcuts'));
 $('#btn-create').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-fab').addEventListener('click', () => openEditor({ date: ui.selected }));
 $('#btn-create-note').addEventListener('click', () => addNote(ui.selected));
-$('#btn-add-cal').addEventListener('click', e => openCalEditor(null, e.currentTarget));
+layer.addEventListener('click', e => { const b = e.target.closest('[data-add-cal]'); if (b) openCalEditor(null, b); });
 $('#scrim').addEventListener('click', () => { ui.sbOverlay = false; ui.bdOverlay = false; closeDrawer(); syncOverlays(); });
 
 /* Shared delegated clicks (sidebar, stage, board, drawers) */
@@ -2067,6 +2081,7 @@ layer.addEventListener('click', e => {
     fireReminder({ kind: 'note', key: 'test:' + Date.now(), n, trig: Date.now() }, false);
     playSound(S().soundType, true);
   }
+  else if (e.target.closest('[data-shortcuts]')) openDrawer('shortcuts');
   else if (e.target.closest('[data-export]')) exportData();
   else if (e.target.closest('[data-copy-backup]')) {
     const txt = JSON.stringify(state, null, 2);
