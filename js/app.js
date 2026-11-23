@@ -267,8 +267,9 @@ function eventsOn(key) {
 const notesOn = key => state.notes.filter(n => n.date === key && !n.evId).sort((a, b) => (a.y - b.y));
 const allNotesOn = key => state.notes.filter(n => n.date === key);
 const evNotes = (id, key) => state.notes.filter(n => n.evId === id && n.date === key);
+const noteEmpty = n => n.mode === 'list' ? !n.items.length : !(n.text || '').trim();
 const holId = h => 'hol:' + h;
-const noteDot = (id, key) => { const ns = evNotes(id, key); return ns.length ? `<span class="chip-note" style="--nc:${noteColor(ns[0].color)}" title="${ns.length} note${ns.length > 1 ? 's' : ''}"></span>` : ''; };
+const noteDot = (id, key) => { const ns = evNotes(id, key).filter(n => !noteEmpty(n)); return ns.length ? `<span class="chip-note" style="--nc:${noteColor(ns[0].color)}" title="${ns.length} note${ns.length > 1 ? 's' : ''}"></span>` : ''; };
 function nextOccurrence(ev, fromK = todayKey(), span = 400) {
   if (ev.repeat === 'none') return ev.date;
   let d = fromKey(fromK > ev.date ? fromK : ev.date);
@@ -1155,7 +1156,7 @@ function showEventPopover(ev, occ, anchor) {
 }
 
 function popNotesHTML(id, key) {
-  const ns = evNotes(id, key);
+  const ns = evNotes(id, key).filter(n => !noteEmpty(n));
   return `<div class="pop-row">${icon('sticky')}<div class="pop-notes">
     ${ns.map(n => `<button class="pop-note" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg" data-open-board="${key}" title="Open note">${esc(noteSummary(n)).slice(0, 60)}</button>`).join('')}
     <button class="btn sm" data-p="note">${icon('plus')}${ns.length ? 'Another note' : 'Attach a note'}</button></div></div>`;
@@ -1235,6 +1236,8 @@ function openEditor(init = {}) {
     calendarId: (lastCal && calById(lastCal)) ? lastCal : firstCal.id, color: null, location: '', description: '',
     reminder: S().defaultReminder, repeat: 'none', until: null, exceptions: [],
   };
+  const edOcc = existing ? (occursOn(existing, ui.selected) ? ui.selected : existing.date) : null;
+  const newId = uid();
   const w = openModal(`
     <form class="ev-form" novalidate>
       <div class="modal-head"><h2>${existing ? 'Edit event' : 'New event'}</h2><button type="button" class="icon-btn sm" data-x aria-label="Close">${icon('x')}</button></div>
@@ -1261,7 +1264,10 @@ function openEditor(init = {}) {
         </div>
         <div class="field" id="ev-until-f"><label for="ev-until">Repeat until (optional)</label><input class="input" type="date" id="ev-until" name="until" value="${d.until || ''}"></div>
         <div class="icon-field">${icon('pin')}<input class="input" id="ev-location" name="location" placeholder="Add a location" value="${esc(d.location)}" aria-label="Location"></div>
-        <textarea class="input" id="ev-desc" name="description" placeholder="Add a description or notes" aria-label="Description">${esc(d.description)}</textarea>
+        <div class="field"><span class="field-label">Notes</span>
+          <div class="pop-notes" id="ev-notes">${existing ? evNotes(existing.id, edOcc).filter(n => !noteEmpty(n)).map(n => `<span class="pop-note" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg">${esc(noteSummary(n)).slice(0, 60)}</span>`).join('') : ''}<button type="button" class="btn sm" data-attach>${icon('plus')}Attach a note</button></div>
+          <textarea class="ed-note" id="ev-note" placeholder="Write your note…" aria-label="Note" hidden></textarea>
+        </div>
         ${existing && existing.repeat !== 'none' ? `<p class="hint" style="margin:0">Changes apply to every repeat of this event.</p>` : ''}
         <p class="hint" id="ev-err" style="margin:0;color:var(--danger)" hidden></p>
       </div>
@@ -1288,7 +1294,9 @@ function openEditor(init = {}) {
     const col = e.target.closest('[data-color]');
     if (col) { d.color = col.dataset.color || null; $$('#ev-colors [data-color]', f).forEach(b => b.classList.toggle('on', b === col)); }
     if (e.target.closest('[data-x]')) w._close();
-    if (e.target.closest('[data-del]')) { w._close(); deleteEvent(existing, ui.selected && occursOn(existing, ui.selected) ? ui.selected : existing.date); }
+    if (e.target.closest('[data-del]')) { w._close(); deleteEvent(existing, edOcc); }
+    const att = e.target.closest('[data-attach]');
+    if (att) { att.hidden = true; const t = $('#ev-note', f); t.hidden = false; t.focus(); }
   });
   $('#ev-custom-color', f).addEventListener('input', e => { d.color = e.target.value; $$('#ev-colors [data-color]', f).forEach(b => b.classList.remove('on')); });
   f.addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); f.requestSubmit(); } });
@@ -1302,12 +1310,17 @@ function openEditor(init = {}) {
     snapshot();
     const out = {
       title: f.title.value.trim(), date: f.date.value, start: allDay ? '00:00' : f.start.value, end: allDay ? '23:59' : f.end.value, allDay,
-      important: f.important.checked, calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: f.description.value.trim(),
+      important: f.important.checked, calendarId: d.calendarId, color: d.color, location: f.location.value.trim(), description: d.description,
       reminder: f.reminder.value === '' ? null : Number(f.reminder.value), repeat: f.repeat.value, until: f.repeat.value !== 'none' && f.until.value ? f.until.value : null,
     };
     lastCal = d.calendarId;
     if (existing) { Object.assign(existing, out); clearFiredFor(existing.id); }
-    else state.events.push({ id: uid(), exceptions: [], ...out });
+    else state.events.push({ id: newId, exceptions: [], ...out });
+    const noteText = $('#ev-note', f).value.trim();
+    if (noteText) {
+      const palette = NOTE_COLORS.slice(0, 7);
+      state.notes.push({ id: uid(), evId: existing ? existing.id : newId, date: existing && existing.repeat !== 'none' ? edOcc : out.date, mode: 'text', text: noteText, items: [], color: palette[Math.floor(Math.random() * palette.length)].id, x: 0, y: 0, rot: +(Math.random() * 6 - 3).toFixed(1), z: 1, remindAt: null, done: false });
+    }
     save();
     w._close();
     ui.selected = out.date;
@@ -1995,7 +2008,16 @@ board.addEventListener('dblclick', e => {
   const px = clamp(e.clientX - r.left - cork.clientLeft - 75, 0, w - 150);
   addNote(cork.dataset.cork, { x: w > 150 ? px / (w - 150) : 0, y: Math.max(8, e.clientY - r.top - cork.clientTop - 20) });
 });
-board.addEventListener('focusout', e => { if (e.target.closest('.note')) saveSoon(); });
+board.addEventListener('focusout', e => {
+  const el = e.target.closest('.note');
+  if (!el) return;
+  /* a note attached to an event and left blank is removed once you click away */
+  setTimeout(() => {
+    const n = findNote(el.dataset.note);
+    if (n && n.evId && noteEmpty(n) && !el.contains(document.activeElement)) { state.notes = state.notes.filter(x => x !== n); save(); renderBoard(); }
+    saveSoon();
+  }, 150);
+});
 
 /* Dragging notes around the board, and onto calendar days */
 let ndrag = null;

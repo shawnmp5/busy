@@ -571,6 +571,11 @@ body.dragging-note .cell, body.dragging-note .tg-dh, body.dragging-note .mini-da
 .note-drag-ghost { position: fixed; z-index: 400; pointer-events: none; width: 150px; transform: rotate(-4deg) scale(.6); transform-origin: top left; opacity: .92; }
 
 /* Post-its attached to an event */
+.ed-note { width: 100%; min-height: 110px; border: 0; outline: 0; resize: vertical; padding: 12px 14px; margin-top: 4px;
+  background: #ffe57a; background-image: linear-gradient(170deg, rgb(255 255 255 / .35), transparent 40%); color: #2a2318;
+  font-family: var(--font-note); font-size: var(--note-size); line-height: 1.15; border-radius: 3px 3px 16px 3px; transform: rotate(-.6deg);
+  box-shadow: 0 1px 1px rgb(0 0 0 / .1), 0 8px 16px -8px rgb(0 0 0 / .3); }
+.ed-note::placeholder { color: rgb(42 35 24 / .45); }
 .ev-notes { display: flex; flex-wrap: wrap; gap: 14px 12px; align-items: flex-start; padding: 0 0 14px 74px; }
 .agenda li:has(.note) .ag-item { padding-bottom: 8px; }
 .note.flow { position: relative; left: auto; top: auto; width: 150px; min-height: 120px; margin-top: 8px; }
