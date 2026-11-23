@@ -51,16 +51,17 @@ const MON3 = MONTHS.map(m => m.slice(0, 3));
 const DOW = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const DOW3 = DOW.map(d => d.slice(0, 3));
 const NOTE_COLORS = [
-  { id: 'paper', name: 'Paper', c: '#ffffff' },
-  { id: 'mist', name: 'Mist', c: '#f2f2f2' },
-  { id: 'linen', name: 'Linen', c: '#f3f0e9' },
-  { id: 'stone', name: 'Stone', c: '#e4e4e4' },
-  { id: 'silver', name: 'Silver', c: '#c8c8c8' },
-  { id: 'graphite', name: 'Graphite', c: '#48484a' },
-  { id: 'ink', name: 'Ink', c: '#111111' },
+  { id: 'lemon', name: 'Lemon', c: '#ffe57a' },
+  { id: 'peach', name: 'Peach', c: '#ffc08f' },
+  { id: 'rose', name: 'Rose', c: '#ffacc9' },
+  { id: 'lilac', name: 'Lilac', c: '#d4bfff' },
+  { id: 'sky', name: 'Sky', c: '#a8d7ff' },
+  { id: 'mint', name: 'Mint', c: '#aeecca' },
+  { id: 'lime', name: 'Lime', c: '#dcef8a' },
+  { id: 'cloud', name: 'Cloud', c: '#e8ebf2' },
 ];
-/* Paper colours from before the monochrome redesign, mapped to their nearest new shade */
-const OLD_NOTE_COLORS = { lemon: 'paper', peach: 'linen', rose: 'mist', lilac: 'mist', sky: 'mist', mint: 'stone', lime: 'linen', cloud: 'stone' };
+/* Gray paper shades briefly used by the monochrome redesign, mapped back to post-it colours */
+const MONO_NOTE_COLORS = { paper: 'lemon', mist: 'sky', linen: 'peach', stone: 'cloud', silver: 'cloud', graphite: 'cloud', ink: 'cloud' };
 const noteColor = id => (NOTE_COLORS.find(c => c.id === id) || NOTE_COLORS[0]).c;
 const EVENT_COLORS = ['#111111', '#3a3a3c', '#636366', '#8e8e93', '#aeaeb2', '#c7c7cc'];
 const OLD_EVENT_COLORS = { '#7c9cff': '#111111', '#5cc8e0': '#3a3a3c', '#3fbf8f': '#aeaeb2', '#a8c94a': '#8e8e93', '#f2b45a': '#636366', '#ff8a65': '#8e8e93', '#f06292': '#3a3a3c', '#b388ff': '#636366', '#8d99ae': '#c7c7cc' };
@@ -83,22 +84,22 @@ const FONTS = [
   { id: 'mono', name: 'SF Mono', display: 'ui-monospace, "SF Mono", Menlo, Consolas', body: 'ui-monospace, "SF Mono", Menlo, Consolas', gf: null },
 ];
 const NOTE_FONTS = [
-  { id: 'clean', name: 'Clean', family: 'var(--font-body)', size: 14, gf: null },
   { id: 'caveat', name: 'Caveat', family: '"Caveat"', size: 21, gf: 'family=Caveat:wght@500..700' },
   { id: 'kalam', name: 'Kalam', family: '"Kalam"', size: 16, gf: 'family=Kalam:wght@400;700' },
   { id: 'patrick', name: 'Patrick Hand', family: '"Patrick Hand"', size: 18, gf: 'family=Patrick+Hand' },
   { id: 'gochi', name: 'Gochi Hand', family: '"Gochi Hand"', size: 18, gf: 'family=Gochi+Hand' },
+  { id: 'clean', name: 'Clean', family: 'var(--font-body)', size: 14, gf: null },
 ];
 const attrFont = f => f.replace(/"/g, "'");
 const REMINDERS = [[null, 'No reminder'], [0, 'At start time'], [5, '5 minutes before'], [10, '10 minutes before'], [15, '15 minutes before'], [30, '30 minutes before'], [60, '1 hour before'], [120, '2 hours before'], [1440, '1 day before']];
 const REPEATS = [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays', 'Every weekday (Mon–Fri)'], ['weekly', 'Every week'], ['biweekly', 'Every 2 weeks'], ['monthly', 'Every month'], ['yearly', 'Every year']];
 const DEFAULT_SETTINGS = {
-  skin: 'light', accent: null, font: 'sf', noteFont: 'clean',
+  skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
-  sidebarOpen: true, boardOpen: true, view: 'month', design: 2,
+  sidebarOpen: true, boardOpen: true, view: 'month', design: 3,
 };
 const KEY = 'chronos.v1';
 
@@ -130,9 +131,9 @@ function seed(s) {
     { id: uid(), title: 'Dentist', date: k(5), start: '15:30', end: '16:15', allDay: false, calendarId: 'personal', color: '#8e8e93', location: '', description: ex, reminder: 60, repeat: 'none', until: null, exceptions: [] },
   );
   s.notes.push(
-    { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'paper', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
-    { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mist', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
-    { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'linen', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
+    { id: uid(), date: k(0), mode: 'text', text: 'Welcome to Chronos!\nDrag me by the top edge, or drop me onto another day in the calendar.', items: [], color: 'lemon', x: 0.02, y: 18, rot: -2.5, z: 1, remindAt: null, done: false },
+    { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mint', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
+    { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'rose', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
   );
   s.moods[k(0)] = '😊';
 }
@@ -147,12 +148,17 @@ function migrate(s) {
   out.events.forEach(e => { e.exceptions = e.exceptions || []; e.repeat = e.repeat || 'none'; });
   if (((s.settings && s.settings.design) || 1) < 2) {
     /* One-time move to the monochrome design: reset appearance, turn default colours into grays */
-    Object.assign(out.settings, { skin: 'light', accent: null, font: 'sf', noteFont: 'clean', radius: 14, ambient: false, grain: false, glass: false, design: 2 });
+    Object.assign(out.settings, { skin: 'light', accent: null, font: 'sf', noteFont: 'caveat', radius: 14, ambient: false, grain: false, glass: false, design: 3 });
     const mono = c => (c && OLD_EVENT_COLORS[String(c).toLowerCase()]) || c;
     out.calendars.forEach(c => { c.color = mono(c.color); });
     out.events.forEach(e => { if (e.color) e.color = mono(e.color); });
   }
-  out.notes.forEach(n => { if (OLD_NOTE_COLORS[n.color]) n.color = OLD_NOTE_COLORS[n.color]; });
+  if (((s.settings && s.settings.design) || 1) === 2) {
+    /* Post-it notes are back: restore the handwriting font the monochrome redesign switched off */
+    if (out.settings.noteFont === 'clean') out.settings.noteFont = 'caveat';
+    out.settings.design = 3;
+  }
+  out.notes.forEach(n => { if (MONO_NOTE_COLORS[n.color]) n.color = MONO_NOTE_COLORS[n.color]; });
   if (!SKINS.some(k => k.id === out.settings.skin)) out.settings.skin = 'light';
   if (!FONTS.some(f => f.id === out.settings.font)) out.settings.font = 'sf';
   const cutoff = Date.now() - 14 * 864e5;
@@ -877,9 +883,9 @@ function renderBoard() {
       ${agenda ? `<ul class="agenda">${agenda}</ul>` : `<div class="board-empty">Nothing scheduled. <button data-quick-event="${key}">Add an event</button></div>`}
     </div>
     <div class="cork-wrap">
-      <div class="sec-title"><h3>Notes</h3>${notes.length ? `<span class="count">${notes.length}</span>` : ''}<span class="sp"></span><button class="btn sm" data-quick-note="${key}">${icon('plus')}Note</button></div>
+      <div class="sec-title"><h3>Sticky notes</h3>${notes.length ? `<span class="count">${notes.length}</span>` : ''}<span class="sp"></span><button class="btn sm" data-quick-note="${key}">${icon('plus')}Note</button></div>
       <div class="cork" data-cork="${key}" title="Double-click to add a note here">
-        ${notes.length ? '' : `<div class="cork-empty"><div><strong>No notes yet</strong>Double-click anywhere to add one.</div></div>`}
+        ${notes.length ? '' : `<div class="cork-empty"><div><strong>A blank board</strong>Double-click anywhere to stick a note.</div></div>`}
         ${notes.map(noteHTML).join('')}
       </div>
     </div>`;
@@ -902,7 +908,7 @@ function noteHTML(n) {
   const body = list
     ? `<ul class="note-list">${n.items.map((it, i) => `<li class="nl-item${it.done ? ' checked' : ''}" data-i="${i}"><button class="nl-check" data-na="check" aria-label="Toggle item">${icon('check')}</button><span contenteditable="true" spellcheck="false" data-item-edit>${esc(it.text)}</span><button class="nl-del" data-na="del-item" aria-label="Remove item">${icon('x')}</button></li>`).join('')}<li><input class="nl-add" placeholder="+ add item" aria-label="Add checklist item"></li></ul>${n.items.length ? `<div class="nl-progress"><i style="width:${doneCount / n.items.length * 100}%"></i></div>` : ''}`
     : `<textarea class="note-text" rows="3" placeholder="Write something…" aria-label="Note text">${esc(n.text)}</textarea>`;
-  return `<div class="note${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--ni:${readable(noteColor(n.color))};--rot:${n.rot}deg;left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}">
+  return `<div class="note${n.done ? ' done' : ''}" data-note="${n.id}" style="--nc:${noteColor(n.color)};--rot:${n.rot}deg;left:calc((100% - 150px) * ${clamp(n.x, 0, 1)});top:${n.y}px;z-index:${n.z || 1}">
     <div class="note-tape"></div>
     <div class="note-bar" data-note-drag title="Drag to move. Drop on a calendar day to move it there.">
       ${icon('grip', 'grip')}
@@ -946,7 +952,9 @@ function maxZ(key) { return Math.max(0, ...notesOn(key).map(n => n.z || 0)); }
 function addNote(key, opts = {}) {
   snapshot();
   const spot = opts.x != null ? { x: opts.x, y: opts.y } : findSpot(key);
-  const n = { id: uid(), date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || 'paper', x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
+  const last = state.notes[state.notes.length - 1];
+  const palette = NOTE_COLORS.slice(0, 7).map(c => c.id).filter(c => c !== last?.color);
+  const n = { id: uid(), date: key, mode: opts.mode || 'text', text: opts.text || '', items: opts.items || [], color: opts.color || palette[Math.floor(Math.random() * palette.length)], x: spot.x, y: spot.y, rot: +(Math.random() * 6 - 3).toFixed(1), z: maxZ(key) + 1, remindAt: null, done: false };
   state.notes.push(n);
   save();
   ui.selected = key;
@@ -1511,7 +1519,7 @@ function confetti(originEl) {
   const r = originEl ? originEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
   const ox = r.left + r.width / 2, oy = r.top + r.height / 3;
   const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  const cols = ['#111111', '#3a3a3c', '#8e8e93', '#c7c7cc', accent];
+  const cols = [...NOTE_COLORS.slice(0, 7).map(x => x.c), accent];
   const parts = Array.from({ length: 90 }, () => ({
     x: ox, y: oy, vx: (Math.random() - 0.5) * 11, vy: -Math.random() * 11 - 3, w: 5 + Math.random() * 6, h: 3 + Math.random() * 5,
     rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, col: cols[Math.floor(Math.random() * cols.length)],
@@ -1924,9 +1932,9 @@ board.addEventListener('click', e => {
 board.addEventListener('dblclick', e => {
   const cork = e.target.closest('.cork');
   if (!cork || e.target.closest('.note')) return;
-  const r = cork.getBoundingClientRect();
-  const px = clamp(e.clientX - r.left - 75, 0, r.width - 150);
-  addNote(cork.dataset.cork, { x: r.width > 150 ? px / (r.width - 150) : 0, y: Math.max(8, e.clientY - r.top - 20) });
+  const r = cork.getBoundingClientRect(), w = cork.clientWidth;
+  const px = clamp(e.clientX - r.left - cork.clientLeft - 75, 0, w - 150);
+  addNote(cork.dataset.cork, { x: w > 150 ? px / (w - 150) : 0, y: Math.max(8, e.clientY - r.top - cork.clientTop - 20) });
 });
 board.addEventListener('focusout', e => { if (e.target.closest('.note')) saveSoon(); });
 
@@ -1959,7 +1967,7 @@ board.addEventListener('pointermove', e => {
   if (inside) {
     if (d.ghost) { d.ghost.remove(); d.ghost = null; d.el.style.opacity = ''; }
     if (d.target) { d.target.classList.remove('drop-target'); d.target = null; }
-    d.el.style.left = clamp(e.clientX - cr.left - d.offX, 0, cr.width - 150) + 'px';
+    d.el.style.left = clamp(e.clientX - cr.left - d.offX, 0, d.cork.clientWidth - 150) + 'px';
     d.el.style.top = Math.max(0, e.clientY - cr.top - d.offY) + 'px';
     if (e.clientY > br.bottom - 40) board.scrollTop += 10;
     if (e.clientY < br.top + 40) board.scrollTop -= 10;
@@ -1967,7 +1975,7 @@ board.addEventListener('pointermove', e => {
     if (!d.ghost) {
       d.ghost = d.el.cloneNode(true);
       d.ghost.className = 'note note-drag-ghost';
-      d.ghost.style.cssText = `--nc:${noteColor(d.n.color)};--ni:${readable(noteColor(d.n.color))};left:0;top:0;animation:none`;
+      d.ghost.style.cssText = `--nc:${noteColor(d.n.color)};left:0;top:0;animation:none`;
       document.body.appendChild(d.ghost);
       d.el.style.opacity = '.25';
     }
@@ -2068,7 +2076,7 @@ layer.addEventListener('click', e => {
   else if (e.target.closest('[data-perm]')) requestNotify();
   else if (e.target.closest('[data-test-sound]')) playSound(S().soundType, true);
   else if (e.target.closest('[data-test-reminder]')) {
-    const n = { id: 'test', date: todayKey(), mode: 'text', text: 'This is a test reminder. Real ones look just like this.', items: [], color: 'paper', done: false };
+    const n = { id: 'test', date: todayKey(), mode: 'text', text: 'This is a test reminder. Real ones look just like this.', items: [], color: 'lemon', done: false };
     fireReminder({ kind: 'note', key: 'test:' + Date.now(), n, trig: Date.now() }, false);
     playSound(S().soundType, true);
   }

@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/logo/chronos-logo.svg" alt="Chronos" width="560"></p>
 
-A quiet, monochrome calendar with a notes board for every day and reminders for events and notes. Black and white, Apple's San Francisco typeface, plenty of space.
+A quiet, monochrome calendar with a sticky-note board for every day and reminders for events and notes. Black and white, Apple's San Francisco typeface, plenty of space.
 
 No build step and no dependencies. Open `index.html` in a browser, or serve the folder with any static host (GitHub Pages works). Everything is saved in your browser's `localStorage`.
 
@@ -20,13 +20,13 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 - A Year view heatmap showing how busy each day is
 - Search across events and notes (`/`)
 
-**Notes**
-- A notes board for each day. Double-click anywhere on it to add a note there.
+**Sticky notes**
+- A post-it board for each day. Double-click anywhere on it to stick a note there. The post-its are the one colourful thing in an otherwise black-and-white app.
 - Drag notes around by their top edge, or drop one onto any day in the calendar to move it there
-- Seven paper shades (white to ink) and an optional handwriting font
+- Eight paper colours and five handwriting fonts
 - Turn a note into a checklist (with a progress bar and confetti when you finish)
 - Mark notes done, duplicate them, or delete them with undo
-- Notes show up as small markers in the Month view and Week headers
+- Notes show up as tiny post-its in the Month view and Week headers
 
 **Reminders**
 - Event reminders (at start, 5 min … 1 day before)
