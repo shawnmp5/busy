@@ -50,7 +50,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 | `C` | New event |
 | `N` | New note |
 | `/` | Search |
-| `B` | Toggle day board |
+| `B` | Show the day panel on smaller screens (always visible on wide ones) |
 | `[` | Toggle sidebar |
 | `,` | Settings |
 | `R` | Reminders |
