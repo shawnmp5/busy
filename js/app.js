@@ -66,6 +66,7 @@ const ACCENTS = ['#8fa8ff', '#4a5fe0', '#5cc8e0', '#3fbf8f', '#9ccfa8', '#e6b17e
 const MOODS = ['😊', '🤩', '😌', '🥱', '😤', '😢', '🤒', '🎉', '💪', '📚', '💼', '❤️'];
 const SKINS = [
   { id: 'auto', name: 'Auto' },
+  { id: 'aether', name: 'Aether', bg: '#040a1c', sf: '#0f1f45', ac: '#6fd3ff', g1: '#1e4fd6', g2: '#7a5a1c' },
   { id: 'nocturne', name: 'Nocturne', bg: '#0c0d12', sf: '#1b1e28', ac: '#8fa8ff', g1: '#2f3fb0', g2: '#6a2fb0' },
   { id: 'daylight', name: 'Daylight', bg: '#eef0f5', sf: '#ffffff', ac: '#4a5fe0', g1: '#c4cdff', g2: '#ffd3e6' },
   { id: 'sakura', name: 'Sakura', bg: '#fbf1f4', sf: '#fffafb', ac: '#d9577f', g1: '#ffc4d6', g2: '#ffe1c4' },
@@ -380,7 +381,6 @@ function renderTitle() {
       : `${MON3[a.getMonth()]} – ${MON3[b.getMonth()]} <span class="muted">${b.getFullYear()}</span>`;
   }
   $('#view-title').innerHTML = html;
-  $('#brand-day').textContent = new Date().getDate();
 }
 function renderSeg() {
   $$('#view-seg button').forEach(b => { const on = b.dataset.view === ui.view; b.classList.toggle('active', on); b.setAttribute('aria-selected', on); });

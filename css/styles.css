@@ -126,6 +126,15 @@
   --shadow-lg: 0 2px 6px rgb(0 0 0 / .4), 0 24px 60px rgb(0 0 0 / .55);
   color-scheme: dark;
 }
+:root[data-skin="aether"] {
+  --bg: #040a1c; --bg-2: #071230; --surface: #0a1634; --surface-2: #0f1f45; --surface-3: #152a58;
+  --line: #16295a; --line-strong: #22397a; --fg: #e6f4ff; --fg-2: #8fb0d8; --fg-3: #5875a3;
+  --accent: #6fd3ff; --danger: #ff6b8a; --glow-1: #1e4fd6; --glow-2: #0b6fa8; --glow-3: #7a5a1c; --glow-opacity: .55;
+  --cork: #071230; --cork-dot: #13285a;
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 8px 24px rgb(0 10 40 / .45);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / .4), 0 24px 60px rgb(0 10 40 / .65);
+  color-scheme: dark;
+}
 :root[data-skin="void"] {
   --bg: #000000; --bg-2: #050505; --surface: #0a0a0b; --surface-2: #121214; --surface-3: #1a1a1d;
   --line: #1c1c20; --line-strong: #2a2a30; --fg: #f4f4f6; --fg-2: #9c9ca6; --fg-3: #5c5c66;
@@ -240,15 +249,12 @@ kbd {
 .tb-left { flex: 1 1 auto; }
 .brand { display: flex; align-items: center; gap: 10px; margin-right: 10px; }
 .brand-tile {
-  width: 34px; height: 34px; border-radius: 10px;
-  background: linear-gradient(160deg, color-mix(in oklab, var(--accent) 85%, white), var(--accent));
-  display: grid; place-items: center; position: relative; overflow: hidden;
-  color: #fff; font-family: var(--font-display); font-weight: 750; font-size: 16px;
-  box-shadow: 0 6px 18px color-mix(in oklab, var(--accent) 40%, transparent);
+  width: 36px; height: 36px; border-radius: 10px; display: block; flex: none;
+  box-shadow: 0 0 0 1px rgb(143 220 255 / .18), 0 6px 18px rgb(30 107 255 / .35);
+  transition: transform .3s cubic-bezier(.2,1.4,.4,1), box-shadow .3s;
 }
-.brand-tile::before { content: ""; position: absolute; inset: 0 0 auto; height: 9px; background: rgb(0 0 0 / .16); }
-.brand-tile span { position: relative; top: 3px; color: color-mix(in oklab, var(--accent) 10%, #fff); text-shadow: 0 1px 0 rgb(0 0 0 / .15); }
-.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 21px; letter-spacing: -.02em; }
+.brand:hover .brand-tile { transform: rotate(180deg); box-shadow: 0 0 0 1px rgb(143 220 255 / .35), 0 8px 26px rgb(30 107 255 / .6); }
+.brand-name { font-family: "Cinzel", var(--font-display); font-weight: 600; font-size: 19px; letter-spacing: .14em; }
 .view-title {
   margin: 0 0 0 6px; font-family: var(--font-display); font-weight: 650; font-size: 24px; letter-spacing: -.02em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
