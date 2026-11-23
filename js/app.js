@@ -834,7 +834,7 @@ function upcomingItems(limit = 6) {
   return items.sort((a, b) => a.at - b.at).slice(0, limit);
 }
 function renderUpNext() {
-  const items = upcomingItems(5);
+  const items = upcomingItems(40).filter(it => it.kind !== 'event' || !it.ev.important).slice(0, 5); /* starred ones live in Important */
   $('#upnext').innerHTML = items.length ? items.map(it => {
     if (it.kind === 'event') {
       const now = new Date();
