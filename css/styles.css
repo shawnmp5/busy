@@ -80,6 +80,32 @@
   color-scheme: dark;
 }
 
+/* Beach scene (js/beach.js): sandy glass with deep-ocean text by day, warm peach glass at sunset, deep navy at night */
+:root[data-scene="beach"][data-tone="day"] {
+  --bg: #e7f5f5;
+  --surface: rgb(255 253 246 / .6); --surface-2: rgb(255 250 238 / .62); --surface-3: rgb(16 110 130 / .1);
+  --line: rgb(20 100 120 / .14); --line-strong: rgb(20 100 120 / .26); --panel-line: rgb(255 255 255 / .75);
+  --fg: #0b3340; --fg-2: rgb(16 70 88 / .76); --fg-3: rgb(16 70 88 / .46); --accent: #ef4f5d; --danger: #d0302f;
+  --shadow-pop: 0 1px 2px rgb(10 60 80 / .08), 0 16px 44px rgb(10 60 80 / .2); --scrim: rgb(5 40 55 / .16);
+  color-scheme: light;
+}
+:root[data-scene="beach"][data-tone="sunset"] {
+  --bg: #fbe6d8;
+  --surface: rgb(255 243 232 / .6); --surface-2: rgb(255 236 222 / .62); --surface-3: rgb(200 80 60 / .12);
+  --line: rgb(150 60 50 / .14); --line-strong: rgb(150 60 50 / .26); --panel-line: rgb(255 228 208 / .8);
+  --fg: #3a1526; --fg-2: rgb(108 40 52 / .78); --fg-3: rgb(108 40 52 / .48); --accent: #e6503c; --danger: #c8283f;
+  --shadow-pop: 0 1px 2px rgb(110 40 40 / .08), 0 16px 44px rgb(110 40 40 / .2); --scrim: rgb(60 20 30 / .16);
+  color-scheme: light;
+}
+:root[data-scene="beach"][data-tone="night"] {
+  --bg: #06131f;
+  --surface: rgb(8 26 40 / .5); --surface-2: rgb(160 230 255 / .07); --surface-3: rgb(140 220 255 / .13);
+  --line: rgb(150 220 255 / .1); --line-strong: rgb(150 220 255 / .2); --panel-line: rgb(150 220 255 / .13);
+  --fg: #e8f8fb; --fg-2: rgb(190 230 240 / .72); --fg-3: rgb(190 230 240 / .42); --accent: #ff7f8a; --danger: #ff6b6b;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 10 20 / .6); --scrim: rgb(0 10 20 / .4);
+  color-scheme: dark;
+}
+
 /* Derived */
 :root {
   --accent-soft: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -939,11 +965,11 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 .set-row .hint { flex: 1; line-height: 1.4; }
 
 /* Cherry blossom: pop-ups, menus, the settings drawer and the modal take the same sakura glass */
-:root[data-tone="day"] .pop, :root[data-tone="day"] .menu, :root[data-tone="day"] .search-results { background: rgb(255 242 247 / .86); }
-:root[data-tone="day"] .modal { background: rgb(255 244 248 / .9); }
-:root[data-tone="day"] .drawer { background: rgb(255 238 245 / .82); }
-:root[data-tone="day"] .topbar, :root[data-tone="day"] .board-head, :root[data-tone="day"] .board, :root[data-tone="day"] .today-strip, :root[data-tone="day"] .stage { text-shadow: 0 0 10px rgb(255 240 246 / .95), 0 0 2px rgb(255 240 246 / .85); }
-:root[data-tone="day"] .toggle input:checked + .tr::after { background: #fff; }
+:root[data-scene="sakura"][data-tone="day"] .pop, :root[data-scene="sakura"][data-tone="day"] .menu, :root[data-scene="sakura"][data-tone="day"] .search-results { background: rgb(255 242 247 / .86); }
+:root[data-scene="sakura"][data-tone="day"] .modal { background: rgb(255 244 248 / .9); }
+:root[data-scene="sakura"][data-tone="day"] .drawer { background: rgb(255 238 245 / .82); }
+:root[data-scene="sakura"][data-tone="day"] .topbar, :root[data-scene="sakura"][data-tone="day"] .board-head, :root[data-scene="sakura"][data-tone="day"] .board, :root[data-scene="sakura"][data-tone="day"] .today-strip, :root[data-scene="sakura"][data-tone="day"] .stage { text-shadow: 0 0 10px rgb(255 240 246 / .95), 0 0 2px rgb(255 240 246 / .85); }
+:root[data-scene="sakura"][data-tone="day"] .toggle input:checked + .tr::after { background: #fff; }
 :root[data-scene="sakura"][data-tone="night"] .pop, :root[data-scene="sakura"][data-tone="night"] .menu, :root[data-scene="sakura"][data-tone="night"] .search-results { background: rgb(42 16 40 / .82); }
 :root[data-scene="sakura"][data-tone="night"] .modal { background: rgb(42 16 40 / .88); }
 :root[data-scene="sakura"][data-tone="night"] .drawer { background: rgb(34 12 32 / .74); }
@@ -968,3 +994,32 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 .sakura-prev i:nth-child(5) { --x: 15%; --y: -10%; --d: -3.4s; }
 .sakura-prev i:nth-child(6) { --x: 45%; --y: -10%; --d: -4.2s; }
 @keyframes prevPetal { to { transform: translate(26px, 90px) rotate(540deg); } }
+
+/* Beach: pop-ups, menus, the settings drawer and the modal take the scene's glass */
+:root[data-scene="beach"][data-tone="day"] .pop, :root[data-scene="beach"][data-tone="day"] .menu, :root[data-scene="beach"][data-tone="day"] .search-results { background: rgb(255 253 247 / .88); }
+:root[data-scene="beach"][data-tone="day"] .modal { background: rgb(255 253 247 / .92); }
+:root[data-scene="beach"][data-tone="day"] .drawer { background: rgb(246 251 250 / .84); }
+:root[data-scene="beach"][data-tone="sunset"] .pop, :root[data-scene="beach"][data-tone="sunset"] .menu, :root[data-scene="beach"][data-tone="sunset"] .search-results { background: rgb(255 244 234 / .88); }
+:root[data-scene="beach"][data-tone="sunset"] .modal { background: rgb(255 244 234 / .92); }
+:root[data-scene="beach"][data-tone="sunset"] .drawer { background: rgb(255 240 228 / .84); }
+:root[data-scene="beach"]:not([data-tone="night"]) .topbar, :root[data-scene="beach"]:not([data-tone="night"]) .board-head, :root[data-scene="beach"]:not([data-tone="night"]) .board, :root[data-scene="beach"]:not([data-tone="night"]) .today-strip, :root[data-scene="beach"]:not([data-tone="night"]) .stage { text-shadow: 0 0 10px rgb(255 252 244 / .95), 0 0 2px rgb(255 252 244 / .85); }
+:root[data-scene="beach"]:not([data-tone="night"]) .toggle input:checked + .tr::after { background: #fff; }
+:root[data-scene="beach"][data-tone="night"] .pop, :root[data-scene="beach"][data-tone="night"] .menu, :root[data-scene="beach"][data-tone="night"] .search-results { background: rgb(8 24 38 / .86); }
+:root[data-scene="beach"][data-tone="night"] .modal { background: rgb(8 24 38 / .9); }
+:root[data-scene="beach"][data-tone="night"] .drawer { background: rgb(6 18 30 / .78); }
+:root[data-scene="beach"][data-tone="night"] .topbar, :root[data-scene="beach"][data-tone="night"] .board-head, :root[data-scene="beach"][data-tone="night"] .board, :root[data-scene="beach"][data-tone="night"] .today-strip, :root[data-scene="beach"][data-tone="night"] .stage { text-shadow: 0 1px 10px rgb(0 10 20 / .7); }
+:root[data-scene="beach"] ::selection { background: rgb(255 110 120 / .28); }
+.beach-prev {
+  background:
+    radial-gradient(circle at 15% 90%, #ffc3a0 0 5%, #ff8d69 7%, #c42853 9%, transparent 10.5%),
+    radial-gradient(circle at 28% 97%, #ff5c62 0 4%, #e6243a 6%, transparent 7.5%),
+    radial-gradient(ellipse 34% 30% at 0% 100%, #2f7d32 0 62%, transparent 64%),
+    radial-gradient(ellipse 50% 24% at 100% 0%, #3d8b2e 0 55%, transparent 58%),
+    radial-gradient(ellipse 36% 18% at 0% 0%, #36862b 0 55%, transparent 58%),
+    linear-gradient(to bottom, transparent 72%, #f0dcb4 72%),
+    linear-gradient(to bottom, transparent 52%, #1a73b8 52%, #2ec5c4 68%, #8be0d2 72%),
+    radial-gradient(ellipse 30% 9% at 18% 52%, #2c6a38 60%, transparent 62%),
+    linear-gradient(#2a7ad6, #9fd3f2);
+}
+.beach-prev i { position: absolute; left: 0; right: 0; top: 71%; height: 2px; background: rgb(255 255 255 / .9); border-radius: 2px; animation: prevSurf 3.2s ease-in-out infinite; }
+@keyframes prevSurf { 0%, 100% { transform: translateY(0); opacity: .9; } 50% { transform: translateY(5px); opacity: .5; } }
