@@ -66,7 +66,6 @@ const noteColor = id => (NOTE_COLORS.find(c => c.id === id) || NOTE_COLORS[0]).c
 const EVENT_COLORS = ['#111111', '#3a3a3c', '#636366', '#8e8e93', '#aeaeb2', '#c7c7cc'];
 const OLD_EVENT_COLORS = { '#7c9cff': '#111111', '#5cc8e0': '#3a3a3c', '#3fbf8f': '#aeaeb2', '#a8c94a': '#8e8e93', '#f2b45a': '#636366', '#ff8a65': '#8e8e93', '#f06292': '#3a3a3c', '#b388ff': '#636366', '#8d99ae': '#c7c7cc' };
 const ACCENTS = ['#48484a'];
-const MOODS = ['😊', '🤩', '😌', '🥱', '😤', '😢', '🤒', '🎉', '💪', '📚', '💼', '❤️'];
 const SKINS = [
   { id: 'light', name: 'Light', bg: '#f5f5f5', sf: '#ffffff', ac: '#111111' },
   { id: 'paper', name: 'Paper', bg: '#ffffff', sf: '#f2f2f2', ac: '#111111' },
@@ -135,7 +134,6 @@ function seed(s) {
     { id: uid(), date: k(0), mode: 'list', text: '', items: [{ text: 'Open Chronos', done: true }, { text: 'Drag an event to a new time', done: false }, { text: 'Right-click a day', done: false }, { text: 'Pick a theme', done: false }], color: 'mint', x: 0.98, y: 64, rot: 2, z: 2, remindAt: null, done: false },
     { id: uid(), date: k(1), mode: 'text', text: 'Example reminder: call the pharmacy', items: [], color: 'rose', x: 0.1, y: 20, rot: 1.5, z: 1, remindAt: `${k(1)}T09:00`, done: false },
   );
-  s.moods[k(0)] = '😊';
 }
 function migrate(s) {
   const d = defaultState();
@@ -479,11 +477,9 @@ function renderMonth() {
       if (key === tk) cls.push('today');
       if (key === ui.selected) cls.push('selected');
       if (d.getDay() === 0 || d.getDay() === 6) cls.push('weekend');
-      const mood = state.moods[key];
       html += `<div class="${cls.join(' ')}" data-date="${key}">
         <div class="cell-top">
           <button class="daynum" data-goto-day="${key}" aria-label="${fmtDayLong(key)}">${d.getDate() === 1 ? `<span class="mon">${MON3[d.getMonth()]}</span>` : ''}${d.getDate()}</button>
-          ${mood ? `<span class="mood" title="Mood">${mood}</span>` : ''}
           <div class="cell-actions">
             <button data-quick-note="${key}" title="Add note" aria-label="Add note">${icon('sticky')}</button>
             <button data-quick-event="${key}" title="Add event" aria-label="Add event">${icon('plus')}</button>
@@ -566,11 +562,10 @@ function renderTimeGrid(days) {
   const head = keys.map((k, i) => {
     const d = days[i];
     const notes = notesOn(k);
-    const mood = state.moods[k];
     return `<div class="tg-dh${k === tk ? ' today' : ''}${k === ui.selected ? ' selected' : ''}" data-date="${k}">
       <span class="dow">${DOW3[d.getDay()]}</span>
       <button class="dnum" data-goto-day="${k}" aria-label="${fmtDayLong(k)}">${d.getDate()}</button>
-      <div class="dh-extra">${mood ? `<span class="mood">${mood}</span>` : ''}${notes.length ? `<button class="dh-notes" data-open-board="${k}" title="${notes.length} note${notes.length > 1 ? 's' : ''}">${notes.slice(0, 3).map(n => `<span class="mini-note" style="--nc:${noteColor(n.color)};--rot:${n.rot * 2}deg"></span>`).join('')}${notes.length}</button>` : ''}</div>
+      <div class="dh-extra">${notes.length ? `<button class="dh-notes" data-open-board="${k}" title="${notes.length} note${notes.length > 1 ? 's' : ''}">${notes.slice(0, 3).map(n => `<span class="mini-note" style="--nc:${noteColor(n.color)};--rot:${n.rot * 2}deg"></span>`).join('')}${notes.length}</button>` : ''}</div>
     </div>`;
   }).join('');
   const allday = keys.map(k => {
@@ -733,8 +728,7 @@ function renderYear() {
       if (hols[key]) cls.push('hol');
       if (key === tk) cls.push('today');
       if (key === ui.selected) cls.push('sel');
-      const mood = state.moods[key];
-      cells += `<button class="${cls.join(' ')}" data-date="${key}" data-goto-day="${key}" title="${fmtDayLong(key)}${c ? ` · ${c} item${c > 1 ? 's' : ''}` : ''}${hols[key] ? ' · ' + esc(hols[key].join(', ')) : ''}">${d}${mood ? `<span class="ym-mood">${mood}</span>` : ''}</button>`;
+      cells += `<button class="${cls.join(' ')}" data-date="${key}" data-goto-day="${key}" title="${fmtDayLong(key)}${c ? ` · ${c} item${c > 1 ? 's' : ''}` : ''}${hols[key] ? ' · ' + esc(hols[key].join(', ')) : ''}">${d}</button>`;
     }
     html += `<section class="ym${y === now.getFullYear() && m === now.getMonth() ? ' current' : ''}">
       <h3><button data-goto-month="${toKey(first)}">${MONTHS[m]}</button><span>${total ? `${total} item${total > 1 ? 's' : ''}` : ''}</span></h3>
@@ -847,14 +841,13 @@ function renderCalendars() {
 }
 
 /* ============================================================
-   Day board (agenda + mood + sticky notes)
+   Day board (agenda + sticky notes)
    ============================================================ */
 function renderBoard() {
   const key = ui.selected;
   const d = fromKey(key);
   const evs = eventsOn(key), hols = holidaysOn(key), notes = notesOn(key);
   const now = new Date();
-  const mood = state.moods[key];
   const agenda = [
     ...hols.map(h => `<li><div class="ag-item holiday"><div class="ag-time">All day</div><div><div class="ag-title"><span class="d"></span><span>${esc(h)}</span></div><div class="ag-sub">US holiday</div></div></div></li>`),
     ...evs.map(ev => {
@@ -877,7 +870,6 @@ function renderBoard() {
         <button class="icon-btn sm board-close" data-board-close aria-label="Close day board">${icon('x')}</button>
       </div>
     </div>
-    <div class="mood-row"><span class="lbl">Mood</span>${MOODS.map(m => `<button class="mood-opt${mood === m ? ' on' : ''}" data-mood="${m}" aria-label="Set mood ${m}" aria-pressed="${mood === m}">${m}</button>`).join('')}</div>
     <div class="board-sec">
       <div class="sec-title"><h3>Schedule</h3>${evs.length ? `<span class="count">${evs.length}</span>` : ''}<span class="sp"></span><button class="icon-btn sm" data-quick-event="${key}" aria-label="Add event" title="Add event">${icon('plus')}</button></div>
       ${agenda ? `<ul class="agenda">${agenda}</ul>` : `<div class="board-empty">Nothing scheduled. <button data-quick-event="${key}">Add an event</button></div>`}
@@ -1745,13 +1737,6 @@ document.addEventListener('click', e => {
     save(); render(); return;
   }
   if ((el = t.closest('[data-cal-edit]'))) { openCalEditor(calById(el.dataset.calEdit), el); return; }
-  if ((el = t.closest('[data-mood]'))) {
-    const k = ui.selected, m = el.dataset.mood;
-    if (state.moods[k] === m) delete state.moods[k]; else state.moods[k] = m;
-    save(); render();
-    if (state.moods[k] === '🎉') confetti($(`[data-mood="🎉"]`, board));
-    return;
-  }
   if ((el = t.closest('[data-board-shift]'))) { goTo(toKey(addDays(fromKey(ui.selected), +el.dataset.boardShift))); return; }
   if ((el = t.closest('[data-board-close]'))) { ui.bdOverlay = false; syncOverlays(); return; }
   if (t.closest('.stage .chip-ev:not(.holiday)')) { el = t.closest('.chip-ev'); const ev = findEvent(el.dataset.ev); if (ev) showEventPopover(ev, el.dataset.occ, el); return; }
@@ -1843,9 +1828,6 @@ document.addEventListener('contextmenu', e => {
       { id: 'note', label: 'New note', icon: 'sticky', kbd: 'N', fn: () => addNote(key) },
       { id: 'list', label: 'New checklist', icon: 'check', fn: () => addNote(key, { mode: 'list' }) },
       { id: 'day', label: 'Open in Day view', icon: 'cal', fn: () => goTo(key, 'day') },
-      '-',
-      { html: `<div class="menu-label">Mood</div><div class="mood-line">${MOODS.slice(0, 8).map((m, i) => `<button data-mi="m${i}">${m}</button>`).join('')}</div>` },
-      ...MOODS.slice(0, 8).map((m, i) => ({ id: 'm' + i, fn: () => { if (state.moods[key] === m) delete state.moods[key]; else state.moods[key] = m; save(); render(); } })),
     ], pt);
   }
 });

@@ -38,7 +38,6 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 - Five monochrome themes: Light (default), Paper, Auto (follows the system), Graphite and Dark
 - Accent (black by default), typeface (San Francisco, SF Rounded, New York, SF Mono; on non-Apple devices San Francisco falls back to Inter, its closest open match), corner roundness, density
 - Event style (gray, solid, outline), 12/24-hour clock, week start, week numbers, hide weekends
-- Mood for each day, shown in the Month and Year views
 - Export, import or copy a JSON backup
 
 ## Keyboard shortcuts
