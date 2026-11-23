@@ -132,7 +132,7 @@ kbd {
 .tb-left, .tb-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tb-left { flex: 1 1 auto; }
 .brand { display: flex; align-items: center; gap: 9px; margin: 0 14px 0 4px; color: var(--fg); }
-.brand-mark { width: 22px; height: 22px; flex: none; transition: transform .5s var(--ease); }
+.brand-mark { width: 20px; height: 20px; flex: none; transition: transform .5s var(--ease); }
 .brand:hover .brand-mark { transform: rotate(180deg); }
 .brand-name { font-weight: 600; font-size: 17px; letter-spacing: -.02em; }
 .view-title {
