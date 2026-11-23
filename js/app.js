@@ -102,7 +102,7 @@ const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
-  rainAmount: 50, rainSize: 100, rainSpeed: 100, rainBright: 100, rainCity: true, rainLightning: true, rainFog: true, rainStreaks: true,
+  rainAmount: 50, rainFrost: 0, rainSize: 100, rainSpeed: 100, rainBright: 100, rainCity: true, rainLightning: true, rainFog: true, rainStreaks: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -392,6 +392,9 @@ function applySettings() {
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
   const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
+  /* how frosted the panels over the rain are; 0 = clear glass */
+  if (scene) root.style.setProperty('--glass', s.rainFrost > 0 ? `blur(${s.rainFrost}px) saturate(120%)` : 'none');
+  else root.style.removeProperty('--glass');
   window.ChronosScenes?.set(scene, {
     amount: s.rainAmount, size: s.rainSize, speed: s.rainSpeed, brightness: s.rainBright,
     city: s.rainCity, lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks,
@@ -1478,6 +1481,7 @@ function renderSettings(el) {
         ${row('Drop size', `<input type="range" class="range" min="50" max="180" step="1" value="${s.rainSize}" data-rain-range="rainSize" aria-label="Drop size">`)}
         ${row('Slide speed', `<input type="range" class="range" min="30" max="220" step="1" value="${s.rainSpeed}" data-rain-range="rainSpeed" aria-label="Slide speed">`)}
         ${row('Brightness', `<input type="range" class="range" min="30" max="150" step="1" value="${s.rainBright}" data-rain-range="rainBright" aria-label="Brightness">`)}
+        ${row('Panel frost', `<input type="range" class="range" min="0" max="20" step="1" value="${s.rainFrost}" data-rain-range="rainFrost" aria-label="Panel frost">`)}
         ${tgl('rainCity', 'City lights', s.rainCity)}
         ${tgl('rainLightning', 'Lightning', s.rainLightning)}
         ${tgl('rainFog', 'Fog on the glass', s.rainFog)}

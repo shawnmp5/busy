@@ -65,7 +65,7 @@
    --bg stays an opaque base colour so text drawn "in the background colour" (selected pills, badges) stays readable. */
 :root[data-scene="rain"] {
   --bg: #0a0b11;
-  --surface: rgb(10 12 20 / .34); --surface-2: rgb(255 255 255 / .07); --surface-3: rgb(255 255 255 / .12);
+  --surface: rgb(10 12 20 / .26); --surface-2: rgb(255 255 255 / .07); --surface-3: rgb(255 255 255 / .12);
   --line: rgb(255 255 255 / .08); --line-strong: rgb(255 255 255 / .17); --panel-line: rgb(255 255 255 / .09);
   --fg: #f2f3f8; --fg-2: rgb(232 234 245 / .62); --fg-3: rgb(232 234 245 / .34); --accent: #f2f3f8; --danger: #ff6b62;
   --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 0 0 / .55); --scrim: rgb(0 0 0 / .35);
