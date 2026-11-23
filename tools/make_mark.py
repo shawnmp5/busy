@@ -1,7 +1,7 @@
 """Generate the Busy app mark: a calendar week grid that's nearly full.
 
 Twelve day-tiles on a squircle. Most are filled (a busy schedule), two are
-empty outlines (free time) and one is red (the important thing). Usage:
+empty outlines (free time) and one is a circle (the important thing). Pure black and white. Usage:
 python3 tools/make_mark.py
 """
 import os
@@ -12,7 +12,6 @@ COLS, ROWS = 4, 3
 TILE, GAP = 172, 42
 FREE = {(1, 0), (2, 2)}   # empty days
 IMPORTANT = (3, 1)        # the red one
-RED = '#ff3b30'
 
 def squircle(s, inset=0):
     # Apple-style continuous-corner rounded square (superellipse approximation)
@@ -35,9 +34,10 @@ def tiles(fill, empty_stroke):
             if (c, r) in FREE:
                 sw = 14
                 out.append(f'<rect x="{x + sw/2}" y="{y + sw/2}" width="{TILE - sw}" height="{TILE - sw}" rx="{rx - sw/2}" fill="none" stroke="{empty_stroke}" stroke-width="{sw}"/>')
+            elif (c, r) == IMPORTANT:
+                out.append(f'<circle cx="{x + TILE/2}" cy="{y + TILE/2}" r="{TILE/2}" fill="{fill}"/>')
             else:
-                col = RED if (c, r) == IMPORTANT else fill
-                out.append(f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="{rx}" fill="{col}"/>')
+                out.append(f'<rect x="{x}" y="{y}" width="{TILE}" height="{TILE}" rx="{rx}" fill="{fill}"/>')
     return ''.join(out)
 
 def svg(bg, fill, empty, with_bg=True):
@@ -46,10 +46,10 @@ def svg(bg, fill, empty, with_bg=True):
 
 os.makedirs(OUT, exist_ok=True)
 for name, content in [
-    ('busy-icon.svg', svg('#111111', '#f2f2f2', '#555555')),          # app icon, dark
-    ('busy-icon-light.svg', svg('#ffffff', '#111111', '#c7c7cc')),    # app icon, light
-    ('busy-mark.svg', svg(None, '#111111', '#c7c7cc', False)),        # bare mark for light backgrounds
-    ('busy-mark-light.svg', svg(None, '#f2f2f2', '#555555', False)),  # bare mark for dark backgrounds
+    ('busy-icon.svg', svg('#000000', '#ffffff', '#ffffff')),          # app icon, dark
+    ('busy-icon-light.svg', svg('#ffffff', '#000000', '#000000')),    # app icon, light
+    ('busy-mark.svg', svg(None, '#000000', '#000000', False)),        # bare mark for light backgrounds
+    ('busy-mark-light.svg', svg(None, '#ffffff', '#ffffff', False)),  # bare mark for dark backgrounds
 ]:
     open(os.path.join(OUT, name), 'w').write(content)
     print('wrote', name)
