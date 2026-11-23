@@ -17,7 +17,7 @@ No build step and no dependencies. Open `index.html` in a browser, or serve the 
 - Repeating events (daily, weekdays, weekly, every 2 weeks, monthly, yearly), with an optional end date
 - Moving or deleting one occurrence of a repeating event leaves the rest alone
 - Calendars (Personal, Work, …) that you can rename, reshade, hide or add to
-- US holidays, computed for any year
+- US holidays, computed for any year, each in its own colour (Christmas red, Halloween orange, St. Patrick's green…)
 - A Year view heatmap showing how busy each day is
 - Search across events and notes (`/`)
 

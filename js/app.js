@@ -298,6 +298,18 @@ function holidaysFor(y) {
   holidayCache.set(y, map);
   return map;
 }
+/* Each holiday gets a colour that fits it */
+const HOLIDAY_COLORS = {
+  "New Year's Day": '#c9a227', 'Martin Luther King Jr. Day': '#6b4f9e', "Valentine's Day": '#e0457b',
+  "Presidents' Day": '#2f5fb3', "St. Patrick's Day": '#2e9d4f', 'Easter Sunday': '#b07ad6',
+  "Mother's Day": '#e86fa0', 'Memorial Day': '#b3262e', 'Juneteenth': '#d9822b',
+  "Father's Day": '#3f7cc4', 'Independence Day': '#c8102e', 'Labor Day': '#2f5fb3',
+  "Indigenous Peoples' Day": '#a0522d', 'Halloween': '#f07b16', 'Veterans Day': '#5a6b3a',
+  'Thanksgiving Day': '#c0661c', 'Black Friday': '#222222', 'Christmas Eve': '#1f7a3e',
+  'Christmas Day': '#c8102e', "New Year's Eve": '#c9a227',
+};
+const holColor = h => HOLIDAY_COLORS[h] || '#8e8e93';
+const holChip = h => `<div class="chip-ev allday holiday" style="--hc:${holColor(h)}" title="${esc(h)}"><span class="n">${esc(h)}</span></div>`;
 const holidaysOn = key => S().showHolidays ? (holidaysFor(+key.slice(0, 4))[key] || []) : [];
 
 /* Formatting */
@@ -491,7 +503,7 @@ function renderMonth() {
           </div>
         </div>
         <div class="cell-events" data-date="${key}">
-          ${hols.map(h => `<div class="chip-ev allday holiday" title="${esc(h)}"><span class="n">${esc(h)}</span></div>`).join('')}
+          ${hols.map(holChip).join('')}
           ${evs.map(ev => chipHTML(ev, key)).join('')}
         </div>
         ${S().notesInGrid && notes.length ? `<div class="cell-notes" data-open-board="${key}">
@@ -575,7 +587,7 @@ function renderTimeGrid(days) {
   }).join('');
   const allday = keys.map(k => {
     const hols = holidaysOn(k), evs = eventsOn(k).filter(e => e.allDay);
-    return `<div class="tg-adcol" data-date="${k}">${hols.map(h => `<div class="chip-ev allday holiday" title="${esc(h)}"><span class="n">${esc(h)}</span></div>`).join('')}${evs.map(ev => chipHTML(ev, k)).join('')}</div>`;
+    return `<div class="tg-adcol" data-date="${k}">${hols.map(holChip).join('')}${evs.map(ev => chipHTML(ev, k)).join('')}</div>`;
   }).join('');
   let hours = '';
   for (let h = 1; h < 24; h++) hours += `<span style="top:${h * HH}px">${fmtHour(h)}</span>`;
@@ -731,9 +743,10 @@ function renderYear() {
       const cls = ['ym-day'];
       if (c) cls.push(c >= 4 ? 'h3' : c >= 2 ? 'h2' : 'h1');
       if (hols[key]) cls.push('hol');
+      const holStyle = hols[key] ? ` style="--hc:${holColor(hols[key][0])}"` : '';
       if (key === tk) cls.push('today');
       if (key === ui.selected) cls.push('sel');
-      cells += `<button class="${cls.join(' ')}" data-date="${key}" data-goto-day="${key}" title="${fmtDayLong(key)}${c ? ` · ${c} item${c > 1 ? 's' : ''}` : ''}${hols[key] ? ' · ' + esc(hols[key].join(', ')) : ''}">${d}</button>`;
+      cells += `<button class="${cls.join(' ')}"${holStyle} data-date="${key}" data-goto-day="${key}" title="${fmtDayLong(key)}${c ? ` · ${c} item${c > 1 ? 's' : ''}` : ''}${hols[key] ? ' · ' + esc(hols[key].join(', ')) : ''}">${d}</button>`;
     }
     html += `<section class="ym${y === now.getFullYear() && m === now.getMonth() ? ' current' : ''}">
       <h3><button data-goto-month="${toKey(first)}">${MONTHS[m]}</button><span>${total ? `${total} item${total > 1 ? 's' : ''}` : ''}</span></h3>
@@ -851,7 +864,7 @@ function renderBoard() {
   const evs = eventsOn(key), hols = holidaysOn(key), notes = notesOn(key);
   const now = new Date();
   const agenda = [
-    ...hols.map(h => `<li><div class="ag-item holiday"><div class="ag-time">All day</div><div><div class="ag-title"><span class="d"></span><span>${esc(h)}</span></div><div class="ag-sub">US holiday</div></div></div></li>`),
+    ...hols.map(h => `<li><div class="ag-item holiday" style="--c:${holColor(h)}"><div class="ag-time">All day</div><div><div class="ag-title"><span class="d"></span><span>${esc(h)}</span></div><div class="ag-sub">US holiday</div></div></div></li>`),
     ...evs.map(ev => {
       const past = !ev.allDay && dtOf(key, ev.end) < now;
       const c = evColor(ev);
