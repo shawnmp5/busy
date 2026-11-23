@@ -65,7 +65,7 @@
    deep plum glass with pale pink text by night. */
 :root[data-scene="sakura"][data-tone="day"] {
   --bg: #fbeef3;
-  --surface: rgb(255 244 248 / .62); --surface-2: rgb(255 236 243 / .62); --surface-3: rgb(214 92 140 / .12);
+  --surface: rgb(255 244 248 / calc(.62 * var(--glass-k, 1))); --surface-2: rgb(255 236 243 / calc(.62 * var(--glass-k, 1))); --surface-3: rgb(214 92 140 / .12);
   --line: rgb(190 80 125 / .14); --line-strong: rgb(190 80 125 / .26); --panel-line: rgb(255 214 229 / .85);
   --fg: #4a1832; --fg-2: rgb(122 48 86 / .78); --fg-3: rgb(122 48 86 / .48); --accent: #d6457f; --danger: #c8283f;
   --shadow-pop: 0 1px 2px rgb(140 40 90 / .08), 0 16px 44px rgb(140 40 90 / .2); --scrim: rgb(90 20 55 / .16);
@@ -73,7 +73,7 @@
 }
 :root[data-scene="sakura"][data-tone="night"] {
   --bg: #1c0d1c;
-  --surface: rgb(46 18 44 / .5); --surface-2: rgb(255 190 220 / .08); --surface-3: rgb(255 170 210 / .14);
+  --surface: rgb(46 18 44 / calc(.5 * var(--glass-k, 1))); --surface-2: rgb(255 190 220 / calc(.08 * var(--glass-k, 1))); --surface-3: rgb(255 170 210 / .14);
   --line: rgb(255 180 215 / .1); --line-strong: rgb(255 180 215 / .2); --panel-line: rgb(255 180 215 / .14);
   --fg: #ffeef5; --fg-2: rgb(250 200 222 / .72); --fg-3: rgb(250 200 222 / .42); --accent: #f59bc1; --danger: #ff6b82;
   --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(20 0 15 / .6); --scrim: rgb(20 0 15 / .4);
@@ -83,7 +83,7 @@
 /* Autumn scene (the cherry blossom engine in fall colours): warm amber glass with brown text by day, deep ember glass at night */
 :root[data-scene="autumn"][data-tone="day"] {
   --bg: #fbecd9;
-  --surface: rgb(255 246 232 / .6); --surface-2: rgb(255 238 214 / .62); --surface-3: rgb(200 90 30 / .12);
+  --surface: rgb(255 246 232 / calc(.6 * var(--glass-k, 1))); --surface-2: rgb(255 238 214 / calc(.62 * var(--glass-k, 1))); --surface-3: rgb(200 90 30 / .12);
   --line: rgb(150 70 20 / .14); --line-strong: rgb(150 70 20 / .26); --panel-line: rgb(255 226 190 / .85);
   --fg: #3b1d0c; --fg-2: rgb(110 52 18 / .78); --fg-3: rgb(110 52 18 / .48); --accent: #d9581e; --danger: #c8283f;
   --shadow-pop: 0 1px 2px rgb(120 50 10 / .08), 0 16px 44px rgb(120 50 10 / .2); --scrim: rgb(70 30 10 / .16);
@@ -91,7 +91,7 @@
 }
 :root[data-scene="autumn"][data-tone="night"] {
   --bg: #1a0c07;
-  --surface: rgb(40 18 10 / .52); --surface-2: rgb(255 190 140 / .08); --surface-3: rgb(255 170 110 / .14);
+  --surface: rgb(40 18 10 / calc(.52 * var(--glass-k, 1))); --surface-2: rgb(255 190 140 / calc(.08 * var(--glass-k, 1))); --surface-3: rgb(255 170 110 / .14);
   --line: rgb(255 180 130 / .1); --line-strong: rgb(255 180 130 / .2); --panel-line: rgb(255 180 130 / .14);
   --fg: #fff1e4; --fg-2: rgb(250 210 180 / .72); --fg-3: rgb(250 210 180 / .42); --accent: #f5a15a; --danger: #ff6b6b;
   --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(20 5 0 / .6); --scrim: rgb(20 5 0 / .4);
@@ -101,7 +101,7 @@
 /* Tropical scene (js/tropical.js): light leaf-green glass with deep jungle text by day, dark green glass at night */
 :root[data-scene="tropical"][data-tone="day"] {
   --bg: #e4f2e6;
-  --surface: rgb(244 252 245 / .64); --surface-2: rgb(236 248 238 / .64); --surface-3: rgb(20 110 60 / .1);
+  --surface: rgb(244 252 245 / calc(.64 * var(--glass-k, 1))); --surface-2: rgb(236 248 238 / calc(.64 * var(--glass-k, 1))); --surface-3: rgb(20 110 60 / .1);
   --line: rgb(20 90 50 / .14); --line-strong: rgb(20 90 50 / .26); --panel-line: rgb(255 255 255 / .7);
   --fg: #0c2a1a; --fg-2: rgb(16 66 40 / .76); --fg-3: rgb(16 66 40 / .46); --accent: #e0304a; --danger: #c8283f;
   --shadow-pop: 0 1px 2px rgb(0 40 20 / .1), 0 16px 44px rgb(0 40 20 / .24); --scrim: rgb(0 30 15 / .18);
@@ -109,7 +109,7 @@
 }
 :root[data-scene="tropical"][data-tone="night"] {
   --bg: #04120c;
-  --surface: rgb(6 26 18 / .52); --surface-2: rgb(160 255 200 / .07); --surface-3: rgb(140 240 190 / .13);
+  --surface: rgb(6 26 18 / calc(.52 * var(--glass-k, 1))); --surface-2: rgb(160 255 200 / calc(.07 * var(--glass-k, 1))); --surface-3: rgb(140 240 190 / .13);
   --line: rgb(150 240 190 / .1); --line-strong: rgb(150 240 190 / .2); --panel-line: rgb(150 240 190 / .13);
   --fg: #e8fbef; --fg-2: rgb(190 235 210 / .72); --fg-3: rgb(190 235 210 / .42); --accent: #ff7a8c; --danger: #ff6b6b;
   --shadow-pop: 0 1px 2px rgb(0 0 0 / .4), 0 18px 50px rgb(0 10 5 / .6); --scrim: rgb(0 10 5 / .4);
@@ -1059,3 +1059,8 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
 .tropical-prev i { position: absolute; width: 60%; height: 18%; left: -8%; top: 36%; background: linear-gradient(90deg, transparent, rgb(255 250 214 / .25), transparent); transform: rotate(28deg); animation: prevSun 5s ease-in-out infinite; }
 .tropical-prev i + i { left: 30%; top: 20%; animation-delay: -2.5s; }
 @keyframes prevSun { 0%, 100% { opacity: .3; } 50% { opacity: 1; } }
+
+/* On scenes, the Up next cards are glass too, so the Panel opacity slider reaches them */
+:root[data-scene] .upnext li button { background: var(--surface-2); }
+:root[data-scene] .upnext li button:hover { background: var(--hover); }
+:root[data-scene] .upnext .imp-item { background: color-mix(in oklab, var(--danger) 10%, var(--surface-2)); }

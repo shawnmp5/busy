@@ -111,9 +111,9 @@ const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
-  sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true, sakuraOrb: true,
-  autumnTime: 'auto', autumnPetals: 55, autumnWind: 45, autumnBright: 100, autumnFrost: 4, autumnClouds: true, autumnSway: true, autumnLanterns: true, autumnRays: true, autumnParallax: true, autumnOrb: true,
-  tropicTime: 'auto', tropicWind: 40, tropicBright: 100, tropicFrost: 4, tropicFlowers: true, tropicCritters: true, tropicLight: true, tropicOrb: true, tropicParallax: true,
+  sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true, sakuraOrb: true, sakuraGlass: 100,
+  autumnTime: 'auto', autumnPetals: 55, autumnWind: 45, autumnBright: 100, autumnFrost: 4, autumnClouds: true, autumnSway: true, autumnLanterns: true, autumnRays: true, autumnParallax: true, autumnOrb: true, autumnGlass: 100,
+  tropicTime: 'auto', tropicWind: 40, tropicBright: 100, tropicFrost: 4, tropicFlowers: true, tropicCritters: true, tropicLight: true, tropicOrb: true, tropicParallax: true, tropicGlass: 100,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -411,6 +411,9 @@ function applySettings() {
   const frost = scene === 'tropical' ? s.tropicFrost : s[tk + 'Frost'];
   if (scene) root.style.setProperty('--glass', frost > 0 ? `blur(${frost}px) saturate(130%)` : 'none');
   else root.style.removeProperty('--glass');
+  /* how see-through the panels are: 0 = clear glass, 100 = the theme's default, up to 150 = more solid */
+  const glassK = scene === 'tropical' ? s.tropicGlass : s[tk + 'Glass'];
+  if (scene) root.style.setProperty('--glass-k', ((glassK ?? 100) / 100).toFixed(2)); else root.style.removeProperty('--glass-k');
   window.ChronosSakura?.set(tree, {
     season: scene === 'autumn' ? 'autumn' : 'spring', mode: treeMode(s), petals: s[tk + 'Petals'], wind: s[tk + 'Wind'], brightness: s[tk + 'Bright'],
     clouds: s[tk + 'Clouds'], sway: s[tk + 'Sway'], lanterns: s[tk + 'Lanterns'], rays: s[tk + 'Rays'], parallax: s[tk + 'Parallax'], orb: s[tk + 'Orb'],
@@ -1513,6 +1516,7 @@ function renderSettings(el) {
         ${row(tk === 'autumn' ? 'Leaf presets' : 'Petal presets', `<div class="seg">${[[20, 'Few'], [55, 'Normal'], [150, 'Lots'], [300, 'Blizzard']].map(([v, name]) => `<button data-sakura-petals="${v}" class="${s[tk + 'Petals'] === v ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
         ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s[tk + 'Wind']}" data-scene-range="${tk}Wind" aria-label="Wind">`)}
         ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s[tk + 'Bright']}" data-scene-range="${tk}Bright" aria-label="Brightness">`)}
+        ${row('Panel opacity', `<input type="range" class="range" min="0" max="150" step="1" value="${s[tk + 'Glass']}" data-scene-range="${tk}Glass" aria-label="Panel opacity">`)}
         ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s[tk + 'Frost']}" data-scene-range="${tk}Frost" aria-label="Panel frost">`)}
         ${tgl(tk + 'Sway', 'Swaying branches', s[tk + 'Sway'])}
         ${tgl(tk + 'Clouds', 'Clouds', s[tk + 'Clouds'])}
@@ -1528,6 +1532,7 @@ function renderSettings(el) {
         ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-tropic-time="${id}" class="${s.tropicTime === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
         ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s.tropicWind}" data-scene-range="tropicWind" aria-label="Wind">`)}
         ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s.tropicBright}" data-scene-range="tropicBright" aria-label="Brightness">`)}
+        ${row('Panel opacity', `<input type="range" class="range" min="0" max="150" step="1" value="${s.tropicGlass}" data-scene-range="tropicGlass" aria-label="Panel opacity">`)}
         ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.tropicFrost}" data-scene-range="tropicFrost" aria-label="Panel frost">`)}
         ${tgl('tropicFlowers', 'Hibiscus flowers', s.tropicFlowers)}
         ${tgl('tropicCritters', 'Butterflies and fireflies', s.tropicCritters)}
