@@ -1,9 +1,8 @@
 /* Chronos — "Rain on glass" scene.
 
    You are looking out of a window at a city at night. Rain falls outside, and on the glass itself:
-   - tiny droplets bead up all over the pane,
-   - bigger drops grow until they are heavy enough to slide, in stop-start runs, leaving a trail of beads behind,
-   - sliding drops swallow whatever they run into and wipe a clear path through the fog on the glass,
+   - small drops land all over the pane and run down it with a slight stutter,
+   - drops swallow whatever they run into and wipe a clear path through the fog on the glass,
    - every drop is a little lens that shows an upside-down, sharper view of the street behind it.
 
    How it works: the drops are simulated on a 2D canvas (the "drop map"). Each drop is stamped from a sprite whose
@@ -23,7 +22,7 @@
   function tune(o) {
     const a = clamp(+o.amount || 0, 0, 100) / 100;
     return {
-      spawn: 32 * a, beads: 400 * a,
+      spawn: 120 * a, beads: 0,
       lightning: o.lightning ? (.5 + 2 * a) / 45 : 0,
       streaks: o.streaks ? .2 + 1.4 * a : 0,
       size: clamp(+o.size || 100, 40, 200) / 100,
@@ -158,7 +157,8 @@
   /* ============================================================
      Drop simulation (all units are CSS pixels)
      ============================================================ */
-  const MIN_R = 3, SLIDE_R = 12, MAX_R = 30;
+  /* Every drop slides: small ones land anywhere on the pane and run down it */
+  const MIN_R = 1.8, MAX_R = 6.5;
   function Sim(w, h, mapScale) {
     this.w = w; this.h = h; this.k = mapScale;
     this.map = makeCanvas(w * mapScale, h * mapScale); this.mg = this.map.getContext('2d');
@@ -170,12 +170,12 @@
     this.level = tune(DEFAULTS); this.spawnAcc = 0; this.beadAcc = 0; this.fadeAcc = 0;
   }
   Sim.prototype.add = function (x, y, r, moving) {
-    const d = { x, y, r, vy: 0, vx: 0, moving: !!moving, stall: 0, trail: 0, nextTrail: rand(6, 24), sx: 1, sy: 1, dead: false, wob: rand(0, TAU) };
+    const d = { x, y, r, vy: moving ? rand(10, 50) : 0, vx: 0, pace: rand(.6, 1.35), moving: !!moving, stall: 0, trail: 0, nextTrail: rand(6, 24), sx: 1, sy: 1, dead: false, wob: rand(0, TAU) };
     this.drops.push(d); return d;
   };
   Sim.prototype.spawn = function () {
-    const r = (MIN_R + Math.pow(Math.random(), 2.4) * (MAX_R * .7 - MIN_R)) * this.level.size;
-    this.add(rand(-10, this.w + 10), rand(-10, this.h * .98), r, false);
+    const r = (MIN_R + Math.pow(Math.random(), 1.8) * (MAX_R - MIN_R)) * this.level.size;
+    this.add(rand(-10, this.w + 10), rand(-20, this.h * .95), r, true);
   };
   /* Paint the little beads that mist the whole pane */
   Sim.prototype.bead = function () {
@@ -183,9 +183,8 @@
     this.bg.drawImage(this.lens, (x - r) * k, (y - r) * k, r * 2 * k, r * 2 * k * rand(.9, 1.1));
   };
   Sim.prototype.prefill = function () {
-    const a = this.level.beads / 200;
-    for (let i = 0; i < this.w * this.h / 420 * a; i++) this.bead();
-    for (let i = 0; i < this.w * this.h / 9000 * a; i++) this.spawn();
+    const a = this.level.spawn / 60;
+    for (let i = 0; i < this.w * this.h / 3500 * a; i++) this.spawn();
   };
   Sim.prototype.step = function (dt) {
     const L = this.level, k = this.k, sz = L.size, sp = L.speed;
@@ -206,39 +205,27 @@
     const grid = this.grid, cs = this.cell; grid.clear();
     for (const d of this.drops) { const key = ((d.x / cs) | 0) + ',' + ((d.y / cs) | 0); let b = grid.get(key); if (!b) grid.set(key, b = []); b.push(d); }
 
-    const born = [];
     for (const d of this.drops) {
       if (d.dead) continue;
-      if (!d.moving) {
-        if (d.r >= SLIDE_R * sz && Math.random() < dt * (d.r / sz - SLIDE_R + .6) * .5 * sp) { d.moving = true; d.vy = 0; }
-        d.sy += (1 - d.sy) * Math.min(1, dt * 6); d.sx += (1 - d.sx) * Math.min(1, dt * 6);
-      } else {
+      d.moving = true;
+      {
         /* glass has friction: drops stutter, stall and lurch rather than fall smoothly */
         if (d.stall > 0) { d.stall -= dt; d.vy *= Math.pow(.02, dt); }
         else {
-          const rr = d.r / sz;
-          d.vy = Math.min(d.vy + (40 + rr * 16) * sp * dt, (20 + rr * 10) * sp);
-          if (Math.random() < dt * 1.3) { d.stall = rand(.04, .35) * (rr < 16 ? 1.6 : 1) / sp; }
+          const rr = d.r / sz, top = (35 + rr * 20) * sp * d.pace;
+          d.vy = Math.min(d.vy + top * 1.5 * dt, top);
+          if (Math.random() < dt * .7) { d.stall = rand(.03, .18) / sp; }
         }
         d.vx += rand(-1, 1) * 160 * dt; d.vx *= Math.pow(.05, dt); d.vx = Math.max(-25, Math.min(25, d.vx));
         d.x += d.vx * dt; d.y += d.vy * dt;
         /* stretch with speed */
-        const stretch = Math.min(1, d.vy / 220);
+        const stretch = Math.min(1, d.vy / 160);
         d.sy += (1 + stretch * .5 - d.sy) * Math.min(1, dt * 10); d.sx += (1 - stretch * .18 - d.sx) * Math.min(1, dt * 10);
-        /* leave a trail of beads and lose a little water doing it */
-        d.trail += d.vy * dt;
-        if (d.trail > d.nextTrail && d.r > 7 * sz) {
-          d.trail = 0; d.nextTrail = rand(7, 30) * (18 * sz / d.r);
-          const tr = d.r * rand(.16, .32);
-          born.push([d.x + rand(-d.r * .25, d.r * .25), d.y - d.r * d.sy * rand(.9, 1.4), tr]);
-          d.r *= .987;
-        }
         /* clear the mist and fog it runs through */
         this.bg.globalCompositeOperation = 'destination-out';
         this.bg.drawImage(this.dot, (d.x - d.r * 1.05) * k, (d.y - d.r * 1.25) * k, d.r * 2.1 * k, d.r * 2.5 * k);
         this.bg.globalCompositeOperation = 'source-over';
         this.wg.globalAlpha = .55; this.wg.drawImage(this.dot, (d.x - d.r * 1.6) / 4, (d.y - d.r * 1.6) / 4, d.r * 3.2 / 4, d.r * 3.2 / 4); this.wg.globalAlpha = 1;
-        if (d.r < 6.5 * sz) d.moving = false;
         if (d.y - d.r * 2 > this.h) d.dead = true;
       }
       /* merge with anything it touches; the bigger one survives and takes the water */
@@ -249,16 +236,14 @@
           if (o === d || o.dead || d.dead) continue;
           const dx = o.x - d.x, dy = o.y - d.y, reach = (d.r + o.r) * .72;
           if (dx * dx + dy * dy > reach * reach) continue;
-          if (!d.moving && !o.moving && Math.random() > .5) continue; /* still drops sit side by side for a while */
           const [big, small] = (d.r > o.r || (d.moving && !o.moving)) ? [d, o] : [o, d];
-          big.r = Math.min(MAX_R * 1.25 * sz, Math.sqrt(big.r * big.r + small.r * small.r * .85));
+          big.r = Math.min(MAX_R * 1.4 * sz, Math.sqrt(big.r * big.r + small.r * small.r * .85));
           if (small.moving) { big.moving = true; big.vy = Math.max(big.vy, small.vy * .8); }
           big.sx = 1.12; big.sy = .92; /* a little wobble on impact */
           small.dead = true;
         }
       }
     }
-    for (const [x, y, r] of born) this.add(x, y, r, false);
     this.drops = this.drops.filter(d => !d.dead);
   };
   /* Compose the map: the bead layer, then every drop stamped on top */

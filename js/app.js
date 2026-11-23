@@ -1467,7 +1467,7 @@ function renderSettings(el) {
           <span class="skin-name">${k.name}</span></button>`).join('')}</div></div>
         <div class="set-pad"><button class="scene-card${s.skin === 'rain' ? ' on' : ''}" data-skin="rain" aria-pressed="${s.skin === 'rain'}">
           <span class="scene-prev rain-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-          <span class="scene-text"><b>Rain on glass</b><span>A night city behind a rainy window. Drops bead, slide and merge on the glass.</span></span></button></div>
+          <span class="scene-text"><b>Rain on glass</b><span>A night city behind a rainy window, with raindrops running down the glass.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
