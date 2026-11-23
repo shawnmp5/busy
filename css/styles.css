@@ -570,6 +570,22 @@ button.ag-item:hover { opacity: .6; }
 body.dragging-note .cell, body.dragging-note .tg-dh, body.dragging-note .mini-day { cursor: copy; }
 .note-drag-ghost { position: fixed; z-index: 400; pointer-events: none; width: 150px; transform: rotate(-4deg) scale(.6); transform-origin: top left; opacity: .92; }
 
+/* Post-its attached to an event */
+.ev-notes { display: flex; flex-wrap: wrap; gap: 14px 12px; align-items: flex-start; padding: 0 0 14px 74px; }
+.agenda li:has(.note) .ag-item { padding-bottom: 8px; }
+.note.flow { position: relative; left: auto; top: auto; width: 150px; min-height: 120px; margin-top: 8px; }
+.ev-add-note { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 9px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--fg-2); background: var(--surface-2); align-self: flex-start; margin-top: -4px; }
+.note.flow ~ .ev-add-note { margin-top: 8px; height: 30px; }
+.ev-add-note:hover { color: var(--fg); background: var(--surface-3); }
+.ev-add-note .ic { width: 13px; height: 13px; }
+.chip-note { flex: none; order: 4; width: 9px; height: 9px; margin-left: 4px; border-radius: 1px 1px 3px 1px; background: var(--nc); transform: rotate(8deg); box-shadow: 0 1px 1px rgb(0 0 0 / .2); }
+.chip-ev.holiday { cursor: pointer; }
+.chip-ev.holiday:hover { background: color-mix(in oklab, var(--hc) 20%, var(--surface)); }
+.ag-item.holiday { cursor: pointer; }
+.pop-notes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.pop-note { max-width: 100%; padding: 6px 9px; background: var(--nc); color: #2a2318; font-family: var(--font-note); font-size: calc(var(--note-size) * .8); line-height: 1.15; border-radius: 2px 2px 8px 2px; transform: rotate(var(--rot, 0deg)); box-shadow: 0 1px 2px rgb(0 0 0 / .18); text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pop-note:hover { transform: none; }
+
 /* ---------- Layer: popovers, modals, menus ---------- */
 .scrim { position: fixed; inset: 0; z-index: 60; background: var(--scrim); animation: fadeIn .2s; }
 @keyframes fadeIn { from { opacity: 0; } }
@@ -841,6 +857,7 @@ textarea.input { height: auto; min-height: 80px; padding: 10px 12px; resize: ver
   .tg-ev { padding: 2px 4px 2px 8px; font-size: 11px; }
   .year { padding: 16px; gap: 18px 14px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .drawer { top: auto; bottom: 0; right: 0; left: 0; width: auto; max-width: none; max-height: 90vh; border-radius: 26px 26px 0 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .ev-notes { padding-left: 0; }
   .board, .app.bd-closed .board { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-width: none; height: 88vh; border-radius: 26px 26px 0 0; transform: translateY(105%); padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
   .app.bd-open .board { transform: none; }
   .fab {
