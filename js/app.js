@@ -76,12 +76,8 @@ const SKINS = [
   { id: 'dark', name: 'Dark', bg: '#000000', sf: '#1c1c1c', ac: '#f2f2f2' },
   /* Animated scene (js/sakura.js): looking up into cherry trees in full bloom, by day or by night */
   { id: 'sakura', name: 'Cherry blossom', scene: true },
-  /* Animated scene (js/beach.js): a Hawaiian beach with palms, surf and hibiscus, by day, at sunset or by night */
-  { id: 'beach', name: 'Beach', scene: true },
 ];
 /* Day or night for the cherry blossom scene; Auto follows the clock (night from 7 pm to 6 am) */
- /* Day, sunset or night for the beach scene; Auto follows the clock (sunset 5–7 pm, night 7 pm–6 am) */
-const beachMode = s => s.beachTime !== 'auto' ? (['day', 'sunset', 'night'].includes(s.beachTime) ? s.beachTime : 'day') : (h => h >= 19 || h < 6 ? 'night' : h >= 17 ? 'sunset' : 'day')(new Date().getHours());
 const sakuraMode = s => s.sakuraTime === 'auto' ? ((h => h >= 19 || h < 6)(new Date().getHours()) ? 'night' : 'day') : (s.sakuraTime === 'night' ? 'night' : 'day');
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
@@ -107,7 +103,6 @@ const DEFAULT_SETTINGS = {
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
   ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
   sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true,
-  beachTime: 'auto', beachWaves: 50, beachWind: 40, beachBright: 100, beachFrost: 4, beachClouds: true, beachFlowers: true, beachBirds: true, beachTorches: true, beachParallax: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -398,16 +393,12 @@ function applySettings() {
   const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
   /* the cherry blossom scene by day gets light glass and dark text; by night, dark glass */
-  const tone = scene === 'sakura' ? sakuraMode(s) : scene === 'beach' ? beachMode(s) : null;
+  const tone = scene === 'sakura' ? sakuraMode(s) : null;
   if (tone) root.setAttribute('data-tone', tone); else root.removeAttribute('data-tone');
   /* how frosted the panels over the scene are; 0 = clear glass */
-  const frost = scene === 'beach' ? s.beachFrost : s.sakuraFrost;
+  const frost = s.sakuraFrost;
   if (scene) root.style.setProperty('--glass', frost > 0 ? `blur(${frost}px) saturate(130%)` : 'none');
   else root.style.removeProperty('--glass');
-  window.ChronosBeach?.set(scene === 'beach', {
-    mode: beachMode(s), waves: s.beachWaves, wind: s.beachWind, brightness: s.beachBright,
-    clouds: s.beachClouds, flowers: s.beachFlowers, birds: s.beachBirds, torches: s.beachTorches, parallax: s.beachParallax,
-  });
   window.ChronosSakura?.set(scene === 'sakura', {
     mode: sakuraMode(s), petals: s.sakuraPetals, wind: s.sakuraWind, brightness: s.sakuraBright,
     clouds: s.sakuraClouds, sway: s.sakuraSway, lanterns: s.sakuraLanterns, rays: s.sakuraRays, parallax: s.sakuraParallax,
@@ -435,10 +426,7 @@ function applySettings() {
   app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
 /* the cherry blossom scene on Auto turns to night (and back) on its own */
-setInterval(() => {
-  const s = S(), tone = document.documentElement.dataset.tone;
-  if ((s.skin === 'sakura' && s.sakuraTime === 'auto' && tone !== sakuraMode(s)) || (s.skin === 'beach' && s.beachTime === 'auto' && tone !== beachMode(s))) applySettings();
-}, 60000);
+setInterval(() => { const s = S(); if (s.skin === 'sakura' && s.sakuraTime === 'auto' && document.documentElement.dataset.tone !== sakuraMode(s)) applySettings(); }, 60000);
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { render(); });
 
 /* ============================================================
@@ -1486,9 +1474,6 @@ function renderSettings(el) {
         <div class="set-pad"><button class="scene-card${s.skin === 'sakura' ? ' on' : ''}" data-skin="sakura" aria-pressed="${s.skin === 'sakura'}">
           <span class="scene-prev sakura-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
           <span class="scene-text"><b>Cherry blossom</b><span>Standing under cherry trees in full bloom. Petals drift on the wind, by day or by night.</span></span></button></div>
-        <div class="set-pad"><button class="scene-card${s.skin === 'beach' ? ' on' : ''}" data-skin="beach" aria-pressed="${s.skin === 'beach'}">
-          <span class="scene-prev beach-prev" aria-hidden="true"><i></i></span>
-          <span class="scene-text"><b>Beach</b><span>A Hawaiian beach with swaying palms, rolling surf and hibiscus, by day, at sunset or by night.</span></span></button></div>
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
@@ -1509,21 +1494,6 @@ function renderSettings(el) {
         ${tgl('sakuraParallax', 'Move with mouse', s.sakuraParallax)}
         ${tgl('sakuraLanterns', 'Lanterns at night', s.sakuraLanterns)}
         <div class="set-row"><span class="hint">Auto switches to night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="sakura">Reset</button></div>
-      </div>
-    </section>` : ''}
-    ${s.skin === 'beach' ? `<section class="set-sec"><h3>Beach</h3>
-      <div class="set-group">
-        ${row('Time of day', `<div class="seg">${[['day', 'Day'], ['sunset', 'Sunset'], ['night', 'Night'], ['auto', 'Auto']].map(([id, name]) => `<button data-beach-time="${id}" class="${s.beachTime === id ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
-        ${row('Waves', `<input type="range" class="range" min="0" max="100" step="1" value="${s.beachWaves}" data-scene-range="beachWaves" aria-label="Waves">`)}
-        ${row('Wind', `<input type="range" class="range" min="0" max="100" step="1" value="${s.beachWind}" data-scene-range="beachWind" aria-label="Wind">`)}
-        ${row('Brightness', `<input type="range" class="range" min="40" max="150" step="1" value="${s.beachBright}" data-scene-range="beachBright" aria-label="Brightness">`)}
-        ${row('Panel frost', `<input type="range" class="range" min="0" max="24" step="1" value="${s.beachFrost}" data-scene-range="beachFrost" aria-label="Panel frost">`)}
-        ${tgl('beachFlowers', 'Hibiscus flowers', s.beachFlowers)}
-        ${tgl('beachClouds', 'Clouds', s.beachClouds)}
-        ${tgl('beachBirds', 'Seagulls', s.beachBirds)}
-        ${tgl('beachTorches', 'Tiki torches after dark', s.beachTorches)}
-        ${tgl('beachParallax', 'Move with mouse', s.beachParallax)}
-        <div class="set-row"><span class="hint">Auto shows the sunset from 5 to 7 pm and night from 7 pm to 6 am.</span><button class="btn sm ghost" data-scene-reset="beach">Reset</button></div>
       </div>
     </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
@@ -2222,7 +2192,6 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
   else if ((el = e.target.closest('[data-scene-reset]'))) { const pre = el.dataset.sceneReset; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith(pre)) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
   else if ((el = e.target.closest('[data-sakura-petals]'))) { s.sakuraPetals = +el.dataset.sakuraPetals; rerender(); }
-  else if ((el = e.target.closest('[data-beach-time]'))) { s.beachTime = el.dataset.beachTime; rerender(); }
   else if ((el = e.target.closest('[data-sakura-time]'))) { s.sakuraTime = el.dataset.sakuraTime; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }
