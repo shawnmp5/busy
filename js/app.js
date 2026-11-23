@@ -77,7 +77,8 @@ const SKINS = [
   /* Animated scene (js/rain.js): the app sits on frosted glass with rain running down the window behind it */
   { id: 'rain', name: 'Rain', scene: true },
 ];
-const RAIN_LEVELS = [['drizzle', 'Drizzle'], ['rain', 'Rain'], ['storm', 'Storm']];
+/* Quick presets for the rain scene; each sets the amount and whether there's lightning */
+const RAIN_PRESETS = [['drizzle', 'Drizzle', 20, false], ['rain', 'Rain', 50, true], ['storm', 'Storm', 90, true]];
 /* Apple's San Francisco family where it exists (Apple devices); Inter, its closest open match, everywhere else */
 const SF = '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", Roboto';
 const INTER = 'family=Inter:wght@400..700';
@@ -100,7 +101,8 @@ const REPEATS = [['none', 'Does not repeat'], ['daily', 'Every day'], ['weekdays
 const DEFAULT_SETTINGS = {
   skin: 'light', accent: null, font: 'sf', noteFont: 'caveat',
   weekStart: 0, hour12: true, showWeekNumbers: false, showWeekends: true,
-  ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14, rainLevel: 'rain',
+  ambient: false, grain: false, glass: false, density: 'comfortable', radius: 14,
+  rainAmount: 50, rainSize: 100, rainSpeed: 100, rainBright: 100, rainCity: true, rainLightning: true, rainFog: true, rainStreaks: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -390,7 +392,10 @@ function applySettings() {
   if (s.skin === 'auto') root.removeAttribute('data-skin'); else root.setAttribute('data-skin', s.skin);
   const scene = SKINS.find(k => k.id === s.skin)?.scene ? s.skin : null;
   if (scene) root.setAttribute('data-scene', scene); else root.removeAttribute('data-scene');
-  window.ChronosScenes?.set(scene, { level: s.rainLevel });
+  window.ChronosScenes?.set(scene, {
+    amount: s.rainAmount, size: s.rainSize, speed: s.rainSpeed, brightness: s.rainBright,
+    city: s.rainCity, lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks,
+  });
   root.classList.toggle('compact', s.density === 'compact');
   root.classList.toggle('ev-solid', s.eventStyle === 'solid');
   root.classList.toggle('ev-outline', s.eventStyle === 'outline');
@@ -1460,13 +1465,26 @@ function renderSettings(el) {
         <div class="set-pad"><button class="scene-card${s.skin === 'rain' ? ' on' : ''}" data-skin="rain" aria-pressed="${s.skin === 'rain'}">
           <span class="scene-prev rain-prev" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
           <span class="scene-text"><b>Rain on glass</b><span>A night city behind a rainy window. Drops bead, slide and merge on the glass.</span></span></button></div>
-        ${s.skin === 'rain' ? row('Rain', `<div class="seg">${RAIN_LEVELS.map(([id, name]) => `<button data-rain="${id}" class="${s.rainLevel === id ? 'active' : ''}">${name}</button>`).join('')}</div>`) : ''}
         ${row('Accent', `<div class="swatches">
           <button class="pill${!s.accent ? ' on' : ''}" data-accent="">Default</button>
           ${ACCENTS.map(a => `<button class="swatch${s.accent === a ? ' on' : ''}" style="--sw:${a}" data-accent="${a}" aria-label="Accent ${a}"></button>`).join('')}
           <label class="swatch custom${s.accent && !ACCENTS.includes(s.accent) ? ' on' : ''}" title="Custom accent"><input type="color" id="set-accent" value="${s.accent || '#111111'}" aria-label="Custom accent"></label></div>`)}
       </div>
     </section>
+    ${s.skin === 'rain' ? `<section class="set-sec"><h3>Rain</h3>
+      <div class="set-group">
+        ${row('Preset', `<div class="seg">${RAIN_PRESETS.map(([id, name, amt, lt]) => `<button data-rain-preset="${id}" class="${s.rainAmount === amt && s.rainLightning === lt ? 'active' : ''}">${name}</button>`).join('')}</div>`)}
+        ${row('Amount of rain', `<input type="range" class="range" min="0" max="100" step="1" value="${s.rainAmount}" data-rain-range="rainAmount" aria-label="Amount of rain">`)}
+        ${row('Drop size', `<input type="range" class="range" min="50" max="180" step="1" value="${s.rainSize}" data-rain-range="rainSize" aria-label="Drop size">`)}
+        ${row('Slide speed', `<input type="range" class="range" min="30" max="220" step="1" value="${s.rainSpeed}" data-rain-range="rainSpeed" aria-label="Slide speed">`)}
+        ${row('Brightness', `<input type="range" class="range" min="30" max="150" step="1" value="${s.rainBright}" data-rain-range="rainBright" aria-label="Brightness">`)}
+        ${tgl('rainCity', 'City lights', s.rainCity)}
+        ${tgl('rainLightning', 'Lightning', s.rainLightning)}
+        ${tgl('rainFog', 'Fog on the glass', s.rainFog)}
+        ${tgl('rainStreaks', 'Rain falling outside', s.rainStreaks)}
+        <div class="set-row"><span class="hint">Lower the amount or turn things off if the scene feels busy or your computer runs warm.</span><button class="btn sm ghost" data-rain-reset>Reset</button></div>
+      </div>
+    </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
       <div class="font-cards">${FONTS.map(f => `<button class="font-card${s.font === f.id ? ' on' : ''}" data-font="${f.id}"><span class="fc-a" style="font-family:${attrFont(f.display)}, sans-serif;font-weight:700">Aa 23</span><span class="fc-n">${f.name}</span></button>`).join('')}</div>
     </section>
@@ -2161,7 +2179,8 @@ layer.addEventListener('click', e => {
   else if ((el = e.target.closest('[data-accent]'))) { s.accent = el.dataset.accent || null; rerender(); }
   else if ((el = e.target.closest('[data-font]'))) { s.font = el.dataset.font; rerender(); }
   else if ((el = e.target.closest('[data-notefont]'))) { s.noteFont = el.dataset.notefont; rerender(); }
-  else if ((el = e.target.closest('[data-rain]'))) { s.rainLevel = el.dataset.rain; rerender(); }
+  else if ((el = e.target.closest('[data-rain-preset]'))) { const p = RAIN_PRESETS.find(x => x[0] === el.dataset.rainPreset); s.rainAmount = p[2]; s.rainLightning = p[3]; rerender(); }
+  else if (e.target.closest('[data-rain-reset]')) { for (const k of Object.keys(DEFAULT_SETTINGS)) if (k.startsWith('rain')) s[k] = DEFAULT_SETTINGS[k]; rerender(); }
   else if ((el = e.target.closest('[data-density]'))) { s.density = el.dataset.density; ui.resetScroll = true; rerender(); }
   else if ((el = e.target.closest('[data-evstyle]'))) { s.eventStyle = el.dataset.evstyle; rerender(); }
   else if ((el = e.target.closest('[data-hour12]'))) { s.hour12 = el.dataset.hour12 === '1'; rerender(); }
@@ -2201,10 +2220,12 @@ layer.addEventListener('change', e => {
   if (t.id === 'set-defaultReminder') { s.defaultReminder = t.value === '' ? null : +t.value; save(); }
   if (t.id === 'set-soundType') { s.soundType = t.value; save(); playSound(t.value, true); }
   if (t.id === 'set-accent') { renderSettings(dr); }
+  if (t.dataset.rainRange) renderSettings(dr); /* refresh which preset is highlighted */
 });
 layer.addEventListener('input', e => {
   const t = e.target;
   if (t.id === 'set-radius') { S().radius = +t.value; save(); applySettings(); }
+  if (t.dataset.rainRange) { S()[t.dataset.rainRange] = +t.value; save(); applySettings(); }
   if (t.id === 'set-accent') { S().accent = t.value; save(); applySettings(); }
 });
 function exportData() {

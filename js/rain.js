@@ -16,11 +16,22 @@
 
   const rand = (a, b) => a + Math.random() * (b - a);
   const TAU = Math.PI * 2;
-  const LEVELS = {
-    drizzle: { spawn: 7, beads: 90, lightning: 0, streaks: .45 },
-    rain: { spawn: 16, beads: 200, lightning: 1 / 40, streaks: .8 },
-    storm: { spawn: 34, beads: 360, lightning: 1 / 12, streaks: 1.25 },
-  };
+  /* What the person can tune in Settings (percentages and switches) */
+  const DEFAULTS = { amount: 50, size: 100, speed: 100, brightness: 100, city: true, lightning: true, fog: true, streaks: true };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* Turn those settings into the numbers the simulation and shader use */
+  function tune(o) {
+    const a = clamp(+o.amount || 0, 0, 100) / 100;
+    return {
+      spawn: 32 * a, beads: 400 * a,
+      lightning: o.lightning ? (.5 + 2 * a) / 45 : 0,
+      streaks: o.streaks ? .2 + 1.4 * a : 0,
+      size: clamp(+o.size || 100, 40, 200) / 100,
+      speed: clamp(+o.speed || 100, 25, 250) / 100,
+      bright: clamp(+o.brightness || 100, 20, 180) / 100,
+      fog: o.fog ? 1 : 0,
+    };
+  }
 
   function makeCanvas(w, h) {
     const c = document.createElement('canvas');
@@ -31,7 +42,7 @@
   /* ============================================================
      The view outside: a city at night, painted once per resize.
      ============================================================ */
-  function paintCity(w, h) {
+  function paintCity(w, h, lights = true) {
     const c = makeCanvas(w, h), g = c.getContext('2d');
     const sky = g.createLinearGradient(0, 0, 0, h);
     sky.addColorStop(0, '#04050a'); sky.addColorStop(.45, '#0a0c16'); sky.addColorStop(.75, '#15131f'); sky.addColorStop(1, '#0d0c13');
@@ -40,6 +51,13 @@
     const glow = g.createRadialGradient(w * .55, h * .95, 0, w * .55, h * .95, w * .7);
     glow.addColorStop(0, 'rgba(120,70,90,.35)'); glow.addColorStop(.5, 'rgba(60,40,80,.15)'); glow.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = glow; g.fillRect(0, 0, w, h);
+    if (!lights) { /* city lights off: just a dark, rainy night sky with a faint cold glow */
+      g.fillStyle = 'rgba(4,5,9,.55)'; g.fillRect(0, 0, w, h);
+      const cold = g.createRadialGradient(w * .3, h * .2, 0, w * .3, h * .2, w * .8);
+      cold.addColorStop(0, 'rgba(70,85,120,.16)'); cold.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = cold; g.fillRect(0, 0, w, h);
+      return c;
+    }
 
     const unit = Math.max(w, h) / 1440;
     const warm = ['255,196,120', '255,214,160', '255,170,90'], cool = ['170,205,255', '200,225,255'];
@@ -149,27 +167,28 @@
     this.wg.fillStyle = '#000'; this.wg.fillRect(0, 0, this.wipe.width, this.wipe.height);
     this.lens = lensSprite(); this.dot = softDot();
     this.drops = []; this.cell = 40; this.grid = new Map();
-    this.level = LEVELS.rain; this.spawnAcc = 0; this.beadAcc = 0; this.fadeAcc = 0;
+    this.level = tune(DEFAULTS); this.spawnAcc = 0; this.beadAcc = 0; this.fadeAcc = 0;
   }
   Sim.prototype.add = function (x, y, r, moving) {
     const d = { x, y, r, vy: 0, vx: 0, moving: !!moving, stall: 0, trail: 0, nextTrail: rand(6, 24), sx: 1, sy: 1, dead: false, wob: rand(0, TAU) };
     this.drops.push(d); return d;
   };
   Sim.prototype.spawn = function () {
-    const r = MIN_R + Math.pow(Math.random(), 2.4) * (MAX_R * .7 - MIN_R);
+    const r = (MIN_R + Math.pow(Math.random(), 2.4) * (MAX_R * .7 - MIN_R)) * this.level.size;
     this.add(rand(-10, this.w + 10), rand(-10, this.h * .98), r, false);
   };
   /* Paint the little beads that mist the whole pane */
   Sim.prototype.bead = function () {
-    const r = rand(.9, 2.4) * (Math.random() < .1 ? 1.7 : 1), k = this.k, x = Math.random() * this.w, y = Math.random() * this.h;
+    const r = rand(.9, 2.4) * (Math.random() < .1 ? 1.7 : 1) * Math.sqrt(this.level.size), k = this.k, x = Math.random() * this.w, y = Math.random() * this.h;
     this.bg.drawImage(this.lens, (x - r) * k, (y - r) * k, r * 2 * k, r * 2 * k * rand(.9, 1.1));
   };
   Sim.prototype.prefill = function () {
-    for (let i = 0; i < this.w * this.h / 420; i++) this.bead();
-    for (let i = 0; i < this.w * this.h / 9000; i++) this.spawn();
+    const a = this.level.beads / 200;
+    for (let i = 0; i < this.w * this.h / 420 * a; i++) this.bead();
+    for (let i = 0; i < this.w * this.h / 9000 * a; i++) this.spawn();
   };
   Sim.prototype.step = function (dt) {
-    const L = this.level, k = this.k;
+    const L = this.level, k = this.k, sz = L.size, sp = L.speed;
     this.spawnAcc += L.spawn * dt; while (this.spawnAcc >= 1) { this.spawnAcc--; if (this.drops.length < 900) this.spawn(); }
     this.beadAcc += L.beads * dt; while (this.beadAcc >= 1) { this.beadAcc--; this.bead(); }
     /* beads slowly evaporate, and the fog slowly creeps back over wiped paths */
@@ -191,14 +210,15 @@
     for (const d of this.drops) {
       if (d.dead) continue;
       if (!d.moving) {
-        if (d.r >= SLIDE_R && Math.random() < dt * (d.r - SLIDE_R + .6) * .5) { d.moving = true; d.vy = 0; }
+        if (d.r >= SLIDE_R * sz && Math.random() < dt * (d.r / sz - SLIDE_R + .6) * .5 * sp) { d.moving = true; d.vy = 0; }
         d.sy += (1 - d.sy) * Math.min(1, dt * 6); d.sx += (1 - d.sx) * Math.min(1, dt * 6);
       } else {
         /* glass has friction: drops stutter, stall and lurch rather than fall smoothly */
         if (d.stall > 0) { d.stall -= dt; d.vy *= Math.pow(.02, dt); }
         else {
-          d.vy = Math.min(d.vy + (40 + d.r * 16) * dt, 20 + d.r * 10);
-          if (Math.random() < dt * 1.3) { d.stall = rand(.04, .35) * (d.r < 16 ? 1.6 : 1); }
+          const rr = d.r / sz;
+          d.vy = Math.min(d.vy + (40 + rr * 16) * sp * dt, (20 + rr * 10) * sp);
+          if (Math.random() < dt * 1.3) { d.stall = rand(.04, .35) * (rr < 16 ? 1.6 : 1) / sp; }
         }
         d.vx += rand(-1, 1) * 160 * dt; d.vx *= Math.pow(.05, dt); d.vx = Math.max(-25, Math.min(25, d.vx));
         d.x += d.vx * dt; d.y += d.vy * dt;
@@ -207,8 +227,8 @@
         d.sy += (1 + stretch * .5 - d.sy) * Math.min(1, dt * 10); d.sx += (1 - stretch * .18 - d.sx) * Math.min(1, dt * 10);
         /* leave a trail of beads and lose a little water doing it */
         d.trail += d.vy * dt;
-        if (d.trail > d.nextTrail && d.r > 7) {
-          d.trail = 0; d.nextTrail = rand(7, 30) * (18 / d.r);
+        if (d.trail > d.nextTrail && d.r > 7 * sz) {
+          d.trail = 0; d.nextTrail = rand(7, 30) * (18 * sz / d.r);
           const tr = d.r * rand(.16, .32);
           born.push([d.x + rand(-d.r * .25, d.r * .25), d.y - d.r * d.sy * rand(.9, 1.4), tr]);
           d.r *= .987;
@@ -218,7 +238,7 @@
         this.bg.drawImage(this.dot, (d.x - d.r * 1.05) * k, (d.y - d.r * 1.25) * k, d.r * 2.1 * k, d.r * 2.5 * k);
         this.bg.globalCompositeOperation = 'source-over';
         this.wg.globalAlpha = .55; this.wg.drawImage(this.dot, (d.x - d.r * 1.6) / 4, (d.y - d.r * 1.6) / 4, d.r * 3.2 / 4, d.r * 3.2 / 4); this.wg.globalAlpha = 1;
-        if (d.r < 6.5) d.moving = false;
+        if (d.r < 6.5 * sz) d.moving = false;
         if (d.y - d.r * 2 > this.h) d.dead = true;
       }
       /* merge with anything it touches; the bigger one survives and takes the water */
@@ -231,7 +251,7 @@
           if (dx * dx + dy * dy > reach * reach) continue;
           if (!d.moving && !o.moving && Math.random() > .5) continue; /* still drops sit side by side for a while */
           const [big, small] = (d.r > o.r || (d.moving && !o.moving)) ? [d, o] : [o, d];
-          big.r = Math.min(MAX_R * 1.25, Math.sqrt(big.r * big.r + small.r * small.r * .85));
+          big.r = Math.min(MAX_R * 1.25 * sz, Math.sqrt(big.r * big.r + small.r * small.r * .85));
           if (small.moving) { big.moving = true; big.vy = Math.max(big.vy, small.vy * .8); }
           big.sx = 1.12; big.sy = .92; /* a little wobble on impact */
           small.dead = true;
@@ -262,7 +282,7 @@
     varying vec2 vUv;
     uniform sampler2D uMap, uSharp, uBlur, uWipe;
     uniform vec2 uRes;
-    uniform float uTime, uFlash, uStreaks;
+    uniform float uTime, uFlash, uStreaks, uFog, uBright;
 
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
     /* rain falling outside, as thin slanted streaks */
@@ -292,9 +312,9 @@
       vec2 uv = vUv;
       float wipe = texture2D(uWipe, uv).r;
       /* the pane: fogged where nothing has run down it, clearer in the wiped tracks */
-      vec3 col = outside(uv, wipe * .4);
+      vec3 col = outside(uv, mix(.2, wipe * .4, uFog));
       vec3 fog = vec3(.07, .075, .09) + col * .55;
-      col = mix(col, fog, (1. - wipe) * .38);
+      col = mix(col, fog, (1. - wipe) * .38 * uFog);
 
       vec4 m = texture2D(uMap, uv);
       if (m.a > .01) {
@@ -315,7 +335,7 @@
       }
       /* soft vignette so the corners fall into the dark */
       vec2 q = uv - .5;
-      col *= 1. - dot(q, q) * .55;
+      col *= (1. - dot(q, q) * .55) * uBright;
       gl_FragColor = vec4(col, 1.);
     }`;
 
@@ -342,14 +362,16 @@
       return { unit, t, upload(src) { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src); } };
     };
     const T = { map: tex(0, 'uMap'), sharp: tex(1, 'uSharp'), blur: tex(2, 'uBlur'), wipe: tex(3, 'uWipe') };
-    const u = { res: U('uRes'), time: U('uTime'), flash: U('uFlash'), streaks: U('uStreaks') };
+    const u = { res: U('uRes'), time: U('uTime'), flash: U('uFlash'), streaks: U('uStreaks'), fog: U('uFog'), bright: U('uBright') };
     return {
       setScene(sharp, blur) { T.sharp.upload(sharp); T.blur.upload(blur); },
-      draw(sim, t, flash, streakAmt) {
+      draw(sim, t, flash) {
+        const L = sim.level;
         gl.viewport(0, 0, canvas.width, canvas.height);
         T.map.upload(sim.map); T.wipe.upload(sim.wipe);
         gl.uniform2f(u.res, canvas.width, canvas.height);
-        gl.uniform1f(u.time, t % 1000); gl.uniform1f(u.flash, flash); gl.uniform1f(u.streaks, streakAmt);
+        gl.uniform1f(u.time, t % 1000); gl.uniform1f(u.flash, flash); gl.uniform1f(u.streaks, L.streaks);
+        gl.uniform1f(u.fog, L.fog); gl.uniform1f(u.bright, L.bright);
         gl.drawArrays(gl.TRIANGLES, 0, 6);
       },
     };
@@ -364,6 +386,7 @@
         const w = canvas.width, h = canvas.height, sx = w / sim.w;
         g.drawImage(blur, 0, 0, w, h);
         if (flash > 0) { g.fillStyle = `rgba(160,175,220,${flash * .25})`; g.fillRect(0, 0, w, h); }
+        if (sim.level.bright < 1) { g.fillStyle = `rgba(0,0,0,${1 - sim.level.bright})`; g.fillRect(0, 0, w, h); }
         for (const d of sim.drops) {
           const x = d.x * sx, y = d.y * sx, r = d.r * sx;
           g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(x, y, r * d.sx, r * d.sy, 0, 0, TAU); g.fill();
@@ -376,7 +399,7 @@
   /* ============================================================
      Engine
      ============================================================ */
-  let canvas = null, renderer = null, sim = null, active = false, level = 'rain';
+  let canvas = null, renderer = null, sim = null, active = false, opts = { ...DEFAULTS }, paintedCity = null;
   let raf = 0, last = 0, clock = rand(0, 100), W = 0, H = 0, flash = 0, nextFlash = 20, resizeT = 0;
   const reduce = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -385,12 +408,16 @@
     W = window.innerWidth; H = window.innerHeight;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
     /* paint the street at no more than ~1600px wide; the blur hides the rest */
-    const ps = Math.min(1, 1600 / W), city = paintCity(W * ps, H * ps);
-    renderer.setScene(city, blurCopy(city, Math.round(22 * ps)));
+    paintScene();
     sim = new Sim(W, H, Math.min(.75, 1100 / W));
-    sim.level = LEVELS[level] || LEVELS.rain;
+    sim.level = tune(opts);
     sim.prefill();
     for (let i = 0; i < 90; i++) sim.step(1 / 30); /* start mid-shower rather than on a dry pane */
+  }
+  function paintScene() {
+    const ps = Math.min(1, 1600 / W), city = paintCity(W * ps, H * ps, opts.city);
+    renderer.setScene(city, blurCopy(city, Math.round(22 * ps)));
+    paintedCity = opts.city;
   }
   function ensureCanvas() {
     if (canvas) return;
@@ -419,10 +446,10 @@
     const dt = Math.min(.05, (now - last) / 1000 || 0);
     last = now; clock += dt;
     sim.step(dt); sim.compose();
-    renderer.draw(sim, clock, lightning(dt), sim.level.streaks);
+    renderer.draw(sim, clock, lightning(dt));
     raf = requestAnimationFrame(frame);
   }
-  function once() { sim.compose(); renderer.draw(sim, clock, 0, sim.level.streaks); }
+  function once() { sim.compose(); renderer.draw(sim, clock, 0); }
   function start() {
     stop();
     if (reduce()) { once(); return; }
@@ -431,12 +458,16 @@
   function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
 
   window.ChronosScenes = {
-    set(id, opts = {}) {
-      const want = id === 'rain';
-      const newLevel = LEVELS[opts.level] ? opts.level : 'rain';
-      if (!want) { if (active) { stop(); active = false; canvas.hidden = true; } return; }
-      if (active) { if (newLevel !== level) { level = newLevel; sim.level = LEVELS[level]; } return; }
-      level = newLevel;
+    /* id: 'rain' to show the scene, anything else to hide it. o: any of DEFAULTS' keys */
+    set(id, o = {}) {
+      for (const key in DEFAULTS) if (o[key] !== undefined && o[key] !== null) opts[key] = o[key];
+      if (id !== 'rain') { if (active) { stop(); active = false; canvas.hidden = true; } return; }
+      if (active) { /* already running: retune in place */
+        sim.level = tune(opts);
+        if (paintedCity !== opts.city) paintScene();
+        if (!raf) once();
+        return;
+      }
       ensureCanvas(); canvas.hidden = false; active = true;
       build(); start();
     },
