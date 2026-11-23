@@ -504,7 +504,7 @@ function renderMonth() {
     html += `<div class="month-row">${wk ? `<div class="wk-num">${isoWeek(addDays(row.ws, 3))}</div>` : ''}`;
     for (const d of row.days) {
       const key = toKey(d);
-      const evs = eventsOn(key), hols = holidaysOn(key), notes = notesOn(key);
+      const evs = eventsOn(key), hols = holidaysOn(key), notes = allNotesOn(key);
       const cls = ['cell'];
       if (d.getMonth() !== m) cls.push('other');
       if (key === tk) cls.push('today');
