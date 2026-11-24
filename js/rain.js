@@ -440,7 +440,7 @@
     function build() {
       ac = new (window.AudioContext || window.webkitAudioContext)();
       master = ac.createGain(); master.gain.value = 0;
-      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 3;
+      const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4; comp.knee.value = 10;
       master.connect(comp); comp.connect(ac.destination);
       const pink = noise(9, 'pink'), brown = noise(11, 'brown');
       tap = noise(.08, 'white');
@@ -462,11 +462,11 @@
       beds.steady.gain.setTargetAtTime(.25 + .5 * a, now, .8);
       beds.body.gain.setTargetAtTime(.15 + .55 * a, now, .8);
       beds.sheen.gain.setTargetAtTime(.04 + .12 * a, now, .8);
-      master.gain.setTargetAtTime(wanted ? vol * .9 : 0, now, wanted ? .9 : .35);
+      master.gain.setTargetAtTime(wanted ? vol * 1.9 : 0, now, wanted ? .9 : .35);
     }
     /* single drops tapping the window, scheduled 1.5 s ahead so they keep going when a background tab slows timers down */
     function drops() {
-      if (!ac || !wanted) return;
+      if (!ac || !wanted || ac.state !== 'running') return;
       const now = ac.currentTime, rate = 4 + 26 * intensity;
       let t = Math.max(nextDrop, now + .02);
       while (t < now + 1.5) {
@@ -508,17 +508,23 @@
     }
     function start() {
       try { if (!ac) build(); } catch (e) { return; }
-      if (ac.state === 'suspended') ac.resume().then(() => level(), () => arm()).catch(() => arm());
+      if (!ac.onstatechange) ac.onstatechange = () => onChange();
+      if (ac.state === 'suspended') ac.resume().then(() => { level(); onChange(); }, () => arm()).catch(() => arm());
       level();
       if (!dropTimer) dropTimer = setInterval(drops, 250);
       if (ac.state !== 'running') arm();
     }
+    let onChange = () => {};
     return {
+      /* 'off', 'blocked' (wanted but the browser is waiting for a click) or 'playing' */
+      status: () => !wanted ? 'off' : ac && ac.state === 'running' ? 'playing' : 'blocked',
+      watch(fn) { onChange = fn; },
       set(o) {
         vol = clamp(o.volume / 100, 0, 1); intensity = o.amount; thunderOn = o.thunder;
         if (o.on && !wanted) { wanted = true; start(); }
         else if (!o.on && wanted) { wanted = false; if (ac) level(); if (dropTimer) { clearInterval(dropTimer); dropTimer = 0; } }
         else level();
+        onChange();
       },
       thunder,
     };
@@ -576,13 +582,40 @@
   function once() { sim.compose(); traffic.step(0, clock, opts.traffic && opts.city); renderer.draw(sim, clock, 0, traffic); }
   function start() { stop(); if (reduce()) { once(); return; } last = performance.now(); raf = requestAnimationFrame(frame); }
   function stop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+  /* A small button in the corner: shows whether the rain is audible, and starts it (browsers need a click for sound) */
+  let btn = null;
+  function soundButton() {
+    if (btn) return btn;
+    btn = document.createElement('button');
+    btn.className = 'rain-sound'; btn.type = 'button';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path class="w1" d="M15.5 8.5a5 5 0 0 1 0 7"/><path class="w2" d="M18.5 5.5a9 9 0 0 1 0 13"/><path class="x" d="m16 9 6 6m0-6-6 6"/></svg><span></span>';
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const st = Sound.status();
+      /* 'blocked' just needs this click to start; otherwise flip the setting (the app saves it) */
+      if (st === 'blocked') Sound.set(soundState());
+      else window.dispatchEvent(new CustomEvent('chronos:rain-sound', { detail: { on: st === 'off' } }));
+    });
+    document.body.appendChild(btn);
+    Sound.watch(paintButton);
+    return btn;
+  }
+  function paintButton() {
+    if (!btn) return;
+    btn.hidden = !active;
+    const st = Sound.status();
+    btn.dataset.state = st;
+    btn.querySelector('span').textContent = st === 'blocked' ? 'Tap to hear the rain' : st === 'playing' ? 'Rain sound on' : 'Rain sound off';
+    btn.setAttribute('aria-label', st === 'playing' ? 'Turn rain sound off' : 'Turn rain sound on');
+    btn.title = btn.getAttribute('aria-label');
+  }
   const soundState = () => ({ on: active && opts.sound, volume: opts.volume, amount: tune(opts).a, thunder: opts.thunder && opts.lightning });
 
   window.ChronosRain = {
     /* on: show or hide the scene. o: any of DEFAULTS' keys */
     set(on, o = {}) {
       for (const key in DEFAULTS) if (o[key] !== undefined && o[key] !== null) opts[key] = o[key];
-      if (!on) { if (active) { stop(); active = false; canvas.hidden = true; } Sound.set(soundState()); return; }
+      if (!on) { if (active) { stop(); active = false; canvas.hidden = true; } Sound.set(soundState()); paintButton(); return; }
       if (active) {
         sim.level = tune(opts);
         if (paintedCity !== opts.city) paintScene();
@@ -591,7 +624,9 @@
         ensureCanvas(); canvas.hidden = false; active = true;
         build(); start();
       }
+      soundButton();
       Sound.set(soundState());
+      paintButton();
     },
   };
 })();

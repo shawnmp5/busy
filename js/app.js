@@ -118,7 +118,7 @@ const DEFAULT_SETTINGS = {
   sakuraTime: 'auto', sakuraPetals: 55, sakuraWind: 40, sakuraBright: 100, sakuraFrost: 4, sakuraClouds: true, sakuraSway: true, sakuraLanterns: true, sakuraRays: true, sakuraParallax: true, sakuraOrb: true, sakuraGlass: 100,
   autumnTime: 'auto', autumnPetals: 55, autumnWind: 45, autumnBright: 100, autumnFrost: 4, autumnClouds: true, autumnSway: true, autumnLanterns: true, autumnRays: true, autumnParallax: true, autumnOrb: true, autumnGlass: 100,
   tropicTime: 'auto', tropicWind: 40, tropicBright: 100, tropicFrost: 4, tropicFlowers: true, tropicCritters: true, tropicLight: true, tropicOrb: true, tropicParallax: true, tropicGlass: 100,
-  rainAmount: 50, rainSize: 100, rainSpeed: 100, rainBright: 100, rainGlass: 100, rainFrost: 4, rainCity: true, rainTraffic: true, rainLightning: true, rainFog: true, rainStreaks: true, rainSound: false, rainVolume: 60, rainThunder: true,
+  rainAmount: 50, rainSize: 100, rainSpeed: 100, rainBright: 100, rainGlass: 100, rainFrost: 4, rainCity: true, rainTraffic: true, rainLightning: true, rainFog: true, rainStreaks: true, rainAudio: true, rainVolume: 60, rainThunder: true,
   dayStartHour: 7, sound: true, soundType: 'chime', showHolidays: true,
   defaultDuration: 60, defaultReminder: 10, eventStyle: 'tinted', notesInGrid: true,
   sidebarOpen: true, boardOpen: true, view: 'month', design: 6,
@@ -426,7 +426,7 @@ function applySettings() {
   });
   window.ChronosRain?.set(scene === 'rain', {
     amount: s.rainAmount, size: s.rainSize, speed: s.rainSpeed, brightness: s.rainBright, city: s.rainCity, traffic: s.rainTraffic,
-    lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks, sound: s.rainSound, volume: s.rainVolume, thunder: s.rainThunder,
+    lightning: s.rainLightning, fog: s.rainFog, streaks: s.rainStreaks, sound: s.rainAudio, volume: s.rainVolume, thunder: s.rainThunder,
   });
   window.ChronosTropical?.set(scene === 'tropical', {
     mode: tropicMode(s), wind: s.tropicWind, brightness: s.tropicBright, flowers: s.tropicFlowers,
@@ -454,6 +454,11 @@ function applySettings() {
   const app = $('#app');
   app.classList.remove('bd-closed'); /* the day board is always open on wide screens */
 }
+/* the rain's corner speaker button turns its sound on and off */
+window.addEventListener('chronos:rain-sound', e => {
+  S().rainAudio = !!e.detail.on; save(); applySettings();
+  const dr = layer.querySelector('.drawer[data-kind="settings"]'); if (dr) renderSettings(dr);
+});
 /* the cherry blossom scene on Auto turns to night (and back) on its own */
 setInterval(() => {
   const s = S(), k = treeKey(s), tone = document.documentElement.dataset.tone;
@@ -1573,10 +1578,10 @@ function renderSettings(el) {
     </section>
     <section class="set-sec"><h3>Rain sounds</h3>
       <div class="set-group">
-        ${tgl('rainSound', 'Play rain sounds', s.rainSound)}
+        ${tgl('rainAudio', 'Play rain sounds', s.rainAudio)}
         ${row('Volume', `<input type="range" class="range" min="0" max="100" step="1" value="${s.rainVolume}" data-scene-range="rainVolume" aria-label="Volume">`)}
         ${tgl('rainThunder', 'Thunder', s.rainThunder)}
-        <div class="set-row"><span class="hint">Made right in your browser. It starts after your next click, and keeps playing if you switch tabs.</span><button class="btn sm ghost" data-scene-reset="rain">Reset</button></div>
+        <div class="set-row"><span class="hint">Made right in your browser. Browsers only allow sound after a click, so if you can't hear it, use the speaker button in the corner. It keeps playing if you switch tabs.</span><button class="btn sm ghost" data-scene-reset="rain">Reset</button></div>
       </div>
     </section>` : ''}
     <section class="set-sec"><h3>Typeface</h3>
